@@ -1,0 +1,16 @@
+#
+# stracker install
+#
+
+---
+
+- name: epel-release repo if missing
+  ansible.builtin.package: # noqa package-latest
+    name: epel-release
+    state: latest
+  when: ansible_os_family == 'RedHat'
+
+- name: install zlib for straker
+  ansible.builtin.package: # noqa package-latest
+    name: zlib.i686
+    state: latest

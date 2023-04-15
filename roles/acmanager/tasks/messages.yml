@@ -1,0 +1,60 @@
+# lobby messages
+
+---
+
+- name: insert motd message for single server
+  ansible.builtin.template:
+    src: motd.j2
+    dest: "{{ acserverPath}}/motd.txt"
+    owner: "{{ assettouser }}"
+    group: "{{ assettogroup }}"
+    mode: '0644'
+
+- name: insert join message for single server
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanagerStorePath }}/server_options.json"
+    regex: '^  "ServerJoinMessage": '
+    line: '  "ServerJoinMessage": "Please obey the rules and Respect others\r\nThis is a KMR Managed  server\r\n",'
+    state: present
+
+
+- name: insert content manger welcome message
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanagerStorePath }}/server_options.json"
+    regexp: '^  "ContentManagerWelcomeMessage": '
+    line: '{% raw %}  "ContentManagerWelcomeMessage": "\u003cdiv\u003e\u003cfont face=\"Arial\"\u003e\u003cspan style=\"font-size: 14px;\"\u003e{{ .ServerName }}\u003c/span\u003e\u003c/font\u003e\u003c/div\u003e\u003cdiv\u003e\u003cfont face=\"Arial\"\u003e\u003cspan style=\"font-size: 14px;\"\u003eA casual server for serious drivers.\u0026nbsp;\u003c/span\u003e\u003c/font\u003e\u003c/div\u003e\u003cdiv\u003e\u003cfont face=\"Arial\"\u003e\u003cspan style=\"font-size: 14px;\"\u003eIf you want to take part in the choosing of combos you need to join the discord channel.\u003c/span\u003e\u003c/font\u003e\u003c/div\u003e\u003cdiv\u003e\u003cfont face=\"Arial\"\u003e\u003cspan style=\"font-size: 14px;\"\u003eRules for this server\u003c/span\u003e\u003c/font\u003e\u003c/div\u003e\u003cdiv\u003e\u003cfont face=\"Arial\"\u003e\u003cspan style=\"font-size: 14px;\"\u003e\u0026nbsp; \u0026nbsp; \u0026nbsp;1. Be Respectful\u003c/span\u003e\u003c/font\u003e\u003c/div\u003e\u003cdiv\u003e\u003cfont face=\"Arial\"\u003e\u003cspan style=\"font-size: 14px;\"\u003e\u0026nbsp; \u0026nbsp; \u0026nbsp;2. Follow any instructions from the Moderators\u003c/span\u003e\u003c/font\u003e\u003c/div\u003e\u003cdiv\u003e\u003cfont face=\"Arial\"\u003e\u003cspan style=\"font-size: 14px;\"\u003e\u003cbr\u003e\u003c/span\u003e\u003c/font\u003e\u003c/div\u003e\u003cdiv\u003e\u003cfont face=\"Arial\"\u003e\u003cspan style=\"font-size: 14px;\"\u003eSome, but not all, actions that may get you banned from the server\u003c/span\u003e\u003c/font\u003e\u003c/div\u003e\u003cdiv\u003e\u003cfont face=\"Arial\"\u003e\u003cspan style=\"font-size: 14px;\"\u003e\u0026nbsp; \u0026nbsp; \u0026nbsp;*Being disrespectful, insulting or trolling in the chat\u003c/span\u003e\u003c/font\u003e\u003c/div\u003e\u003cdiv\u003e\u003cfont face=\"Arial\"\u003e\u003cspan style=\"font-size: 14px;\"\u003e\u0026nbsp; \u0026nbsp; \u0026nbsp;*Intentionally crashing, ramming or blocking other cars on track or in the pits\u003c/span\u003e\u003c/font\u003e\u003c/div\u003e\u003cdiv\u003e\u003cfont face=\"Arial\"\u003e\u003cspan style=\"font-size: 14px;\"\u003e\u0026nbsp; \u0026nbsp; \u0026nbsp;*Lack of car control or dangerous driving on track or in the pits\u0026nbsp;\u003c/span\u003e\u003c/font\u003e\u003c/div\u003e\u003cdiv\u003e\u003cfont face=\"Arial\"\u003e\u003cspan style=\"font-size: 14px;\"\u003e\u0026nbsp; \u0026nbsp; \u0026nbsp;*Glitching, cheating or intentionally cutting the track (may result in instant ban)\u003c/span\u003e\u003c/font\u003e\u003c/div\u003e\u003cdiv\u003e\u003cfont face=\"Arial\"\u003e\u003cspan style=\"font-size: 14px;\"\u003e\u0026nbsp; \u0026nbsp; \u0026nbsp;*Having an unreadable name or one that just reads as “Player” or \"User\"\u003c/span\u003e\u003c/font\u003e\u003c/div\u003e\u003cdiv\u003e\u003cfont face=\"Arial\"\u003e\u003cspan style=\"font-size: 14px;\"\u003e\u003cbr\u003e\u003c/span\u003e\u003c/font\u003e\u003c/div\u003e\u003cdiv\u003e\u003cfont face=\"Arial\"\u003e\u003cspan style=\"font-size: 14px;\"\u003e{{ .Track }} {{ with .TrackLayout }}({{ . }}){{ end }} - an event hosted by {{ .ServerName }}\u003c/span\u003e\u003c/font\u003e\u003c/div\u003e\u003cdiv\u003e\u003cfont face=\"Arial\"\u003e\u003cspan style=\"font-size: 14px;\"\u003e\u003cbr\u003e\u003c/span\u003e\u003c/font\u003e\u003c/div\u003e\u003cdiv\u003e\u003cfont face=\"Arial\"\u003e\u003cspan style=\"font-size: 14px;\"\u003e{{ .EventDescription }}\u003c/span\u003e\u003c/font\u003e\u003c/div\u003e\u003cdiv\u003e\u003cfont face=\"Arial\"\u003e\u003cspan style=\"font-size: 14px;\"\u003e{{ .ChampionshipPoints }}\u003c/span\u003e\u003c/font\u003e\u003c/div\u003e\u003cdiv\u003e\u003cfont face=\"Arial\"\u003e\u003cspan style=\"font-size: 14px;\"\u003e{{ .CarDownloads }}\u003c/span\u003e\u003c/font\u003e\u003c/div\u003e\u003cdiv\u003e\u003cfont face=\"Arial\"\u003e\u003cspan style=\"font-size: 14px;\"\u003e{{ .TrackDownload }}\u003c/span\u003e\u003c/font\u003e\u003c/div\u003e" {% endraw %},'
+    state: present
+
+- name: check if AC multi manager is installed
+  ansible.builtin.stat:
+    path: "{{ acmanagerPath }}/servers/SERVER_00/" #store.json/server_options.json"
+  register: acmm_installed
+
+
+- name: insert motd message for multi servers
+  ansible.builtin.template:
+    src: motd.j2
+    dest: "{{ acmanagerPath }}/servers/SERVER_{{ item }}/assetto/motd.txt"
+    owner: "{{ assettouser }}"
+    group: "{{ assettogroup }}"
+    mode: '0644'
+  with_sequence: start=0 end={{ acMultiServerManagerCount -1 }} format=%02x
+  when: acmm_installed.stat.exists
+
+- name: insert join message for multi servers
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanagerPath }}/servers/SERVER_{{ item }}/store.json/server_options.json"
+    regex: '^  "ServerJoinMessage": '
+    line: '  "ServerJoinMessage": "Please obey the rules and Respect others\r\nThis is a KMR Managed  server\r\n",'
+    state: present
+  with_sequence: start=0 end={{ acMultiServerManagerCount -1 }} format=%02x
+  when: acmm_installed.stat.exists
+
+- name: insert content manger welcome messag multi serverse
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanagerPath }}/servers/SERVER_{{ item }}/store.json/server_options.json"
+    regexp: '^  "ContentManagerWelcomeMessage": '
+    line: '{% raw %}  "ContentManagerWelcomeMessage": "\u003cdiv\u003e\u003cspan style=\"color: rgb(232, 62, 140); font-family: SFMono-Regular, Menlo, Monaco, Consolas, \u0026quot;Liberation Mono\u0026quot;, \u0026quot;Courier New\u0026quot;, monospace; font-size: 14px;\"\u003e{{ .ServerName }}\u003c/span\u003e\u003cbr\u003e\u003c/div\u003e\u003cdiv\u003e\u003cspan style=\"font-family: \u0026quot;Source Sans Pro\u0026quot;, -apple-system, BlinkMacSystemFont, \u0026quot;Segoe UI\u0026quot;, Roboto, \u0026quot;Helvetica Neue\u0026quot;, Arial, sans-serif, \u0026quot;Apple Color Emoji\u0026quot;, \u0026quot;Segoe UI Emoji\u0026quot;, \u0026quot;Segoe UI Symbol\u0026quot;; font-size: 1rem;\"\u003e\u003cbr\u003e\u003c/span\u003e\u003c/div\u003e\u003cdiv\u003e\u003cspan style=\"font-family: \u0026quot;Source Sans Pro\u0026quot;, -apple-system, BlinkMacSystemFont, \u0026quot;Segoe UI\u0026quot;, Roboto, \u0026quot;Helvetica Neue\u0026quot;, Arial, sans-serif, \u0026quot;Apple Color Emoji\u0026quot;, \u0026quot;Segoe UI Emoji\u0026quot;, \u0026quot;Segoe UI Symbol\u0026quot;; font-size: 1rem;\"\u003eA\u003c/span\u003e\u003cspan style=\"font-family: \u0026quot;Source Sans Pro\u0026quot;, -apple-system, BlinkMacSystemFont, \u0026quot;Segoe UI\u0026quot;, Roboto, \u0026quot;Helvetica Neue\u0026quot;, Arial, sans-serif, \u0026quot;Apple Color Emoji\u0026quot;, \u0026quot;Segoe UI Emoji\u0026quot;, \u0026quot;Segoe UI Symbol\u0026quot;; font-size: 1rem;\"\u003e\u0026nbsp;casual server for serious drivers.\u0026nbsp;\u003c/span\u003e\u003c/div\u003e\u003cdiv\u003eIf you want to take part in the choosing of combos you need to join the discord channel.\u003c/div\u003e\u003cdiv\u003eRules for this server:\u003c/div\u003e\u003cdiv\u003e\u0026nbsp; \u0026nbsp; \u0026nbsp;1. Be Respectful\u003c/div\u003e\u003cdiv\u003e\u0026nbsp; \u0026nbsp; \u0026nbsp;2. Follow any instructions from the Moderators\u003c/div\u003e\u003cdiv\u003eSome, but not all, actions that may get you banned from the server\u003c/div\u003e\u003cdiv\u003e\u0026nbsp; \u0026nbsp; \u0026nbsp;*Being disrespectful, insulting or trolling in the chat\u003c/div\u003e\u003cdiv\u003e\u0026nbsp; \u0026nbsp; \u0026nbsp;*Intentionally crashing, ramming or blocking other cars on track or in the pits\u003c/div\u003e\u003cdiv\u003e\u0026nbsp; \u0026nbsp; \u0026nbsp;*Lack of car control or dangerous driving on track or in the pits\u0026nbsp;\u003c/div\u003e\u003cdiv\u003e\u0026nbsp; \u0026nbsp; \u0026nbsp;*Glitching, cheating or intentionally cutting the track (may result in instant ban)\u003c/div\u003e\u003cp\u003e\u0026nbsp; \u0026nbsp; \u0026nbsp;*Having an unreadable name or one that just reads as “Player” or \"User\"\u003c/p\u003e\u003cp\u003e\u003c/p\u003e\u003cp\u003e\u003cspan style=\"font-family: \u0026quot;Source Sans Pro\u0026quot;, -apple-system, BlinkMacSystemFont, \u0026quot;Segoe UI\u0026quot;, Roboto, \u0026quot;Helvetica Neue\u0026quot;, Arial, sans-serif, \u0026quot;Apple Color Emoji\u0026quot;, \u0026quot;Segoe UI Emoji\u0026quot;, \u0026quot;Segoe UI Symbol\u0026quot;; font-size: 1rem;\"\u003e{{ .Track }} {{ with .TrackLayout }}({{ . }}){{ end }}\u003c/span\u003e\u003c/p\u003e\u003cp\u003e{{ .EventDescription }}\u003cbr\u003e{{ .ChampionshipPoints }}\u003cbr\u003e{{ .CarDownloads }}\u003cbr\u003e{{ .TrackDownload }}\u003c/p\u003e", {% endraw %}'
+    state: present
+  with_sequence: start=0 end={{ acMultiServerManagerCount -1 }} format=%02x
+  when: acmm_installed.stat.exists

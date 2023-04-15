@@ -1,0 +1,20 @@
+{
+  "ID": "e1588485-5988-42dd-97c3-5a473ee2b0b6",
+  "Created": "2022-02-24T19:51:39.539132395Z",
+  "Updated": "2022-02-24T19:51:39.539147905Z",
+  "Deleted": "0001-01-01T00:00:00Z",
+  "Name": "jobyone",
+  "Groups": {
+    "856dd1cf-4cd8-4447-a84f-7fa1a1db28fe": "admin"
+  },
+  "DriverName": "",
+  "GUID": "",
+  "Team": "",
+  "PasswordHash": "",
+  "PasswordSalt": "",
+  "DefaultPassword": "sharper-aroma-sponge-undercook",
+  "LastSeenVersion": "v2.1.6",
+  "HasSeenIntroPopup": false,
+  "Theme": "default",
+  "Group": ""
+}

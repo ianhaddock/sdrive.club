@@ -1,0 +1,14 @@
+# site wide default variables
+
+---
+verbose: True
+
+zram_ratio: 0.8
+cert_enabled: false
+siteFQDN: example.tld
+
+containers: true
+containers_path: '/mnt/containers'
+
+# acsm backup
+acsmFQDN: game_server.tld

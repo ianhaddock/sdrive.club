@@ -1,0 +1,7 @@
+# acsm backup
+---
+adminuser: ian
+assettouser: assetto
+backup_path: '/home/assetto/backups'
+backup_destination: '/mnt/acsm_backups'
+backup_key: 'id_rsa'

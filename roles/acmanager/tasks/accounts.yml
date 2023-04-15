@@ -1,0 +1,12 @@
+# import existing user accounts
+
+---
+
+- name: add ACSM user accounts
+  copy:
+    src: "{{ item }}"
+    dest: "{{ acmanagerStorePath }}/accounts/"
+    owner: "{{ assettouser }}"
+    group: "{{ assettogroup }}"
+    mode: '0644'
+  with_fileglob: "accounts/*.json"

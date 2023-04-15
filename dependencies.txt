@@ -1,0 +1,3 @@
+230201- not sure why i'm reinstalling these now?
+
+ansible-galaxy collection install community.general ansible.posix community.crypto

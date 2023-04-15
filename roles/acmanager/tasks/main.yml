@@ -1,0 +1,126 @@
+# install acserver, acmanager, plugins
+
+---
+
+- name: add system accounts
+  ansible.builtin.import_tasks: users.yml
+
+- name: set sysctl values
+  ansible.builtin.import_tasks: sysctl.yml
+
+- name: install systemd files
+  ansible.builtin.import_tasks: systemd.yml
+    #when: acmanager_path.changed
+
+- name: setup acserver with steamcmd
+  ansible.builtin.import_tasks: steamcmd.yml
+
+- name: add firewalld rules
+  include_tasks: firewalld.yml
+
+
+###
+
+- name: install or update AC Server Manager
+  import_tasks: install.yml
+  # this sets acmanager_path variable
+
+- name: setup acsm config.yml
+  ansible.builtin.import_tasks: config.yml
+
+- name: set game lobby count to "{{ acMultiServerManagerCount }}"
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanagerPath }}/servers.yml"
+    regexp: '^servers: '
+    line: 'servers: {{ acMultiServerManagerCount }}'
+
+###
+
+- name: start ACSM to generate config files and paths
+  ansible.builtin.systemd:
+    name: "{{ acmanagerSystemd }}"
+    daemon_reload: true
+    state: started
+  when: acmanager_path.changed
+
+- name: wait for server-manager to settle
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:8772/login"
+    status_code: 200
+  register: result
+  until: result.status == 200
+  retries: 720 # 720 * 5 = 1 hour
+  delay: 5
+  when: acmanager_path.changed
+
+###
+
+- name: add acsm login accounts
+  import_tasks: accounts.yml
+
+- name: add custom server messages
+  ansible.builtin.import_tasks: messages.yml
+  when: acmanager_path.changed
+
+- name: add cars, tracks, weather, and custom races
+  ansible.builtin.import_tasks: content.yml
+  when: acmanager_path.changed
+
+- name: add settings in server options
+  ansible.builtin.import_tasks: server_options.yml
+
+- name: insert custom CSS
+  ansible.builtin.import_tasks: css_mods.yml
+
+###
+
+- name: update or get certs with certbot
+  ansible.builtin.import_tasks: certbot.yml
+  when: cert_enabled
+
+- name: setup kissmyrank plugin
+  ansible.builtin.import_tasks: kissmyrank.yml
+  when: install_kmr
+
+- name: add nginx conf.d files for kmr
+  import_tasks: nginx.yml
+  when: install_kmr and ansible_architecture == 'x86_64'
+
+- name: add nginx redirect for ac server manager
+  ansible.builtin.import_tasks: redirect.yml
+
+- name: install stracker plugin
+  ansible.builtin.import_tasks: stracker.yml
+  when: install_stracker
+
+###
+
+- name: load changes to ACSM with restart
+  ansible.builtin.systemd:
+    name: "{{ acmanagerSystemd }}"
+    state: restarted
+  when: acMultiServerManagerCount == 1 or acmanager_path.changed
+
+- name: wait for AC Server Manager to settle
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:8772/login"
+    status_code: 200
+  register: result
+  until: result.status == 200
+  retries: 720 # 720 * 5 = 1 hour
+  delay: 5
+  when: acMultiServerManagerCount == 1 or acmanager_path.changed
+
+###
+
+- name: run single server if system reconfigured from multi-server
+  ansible.builtin.systemd:
+    name: "{{ acMultiServerManagerSystemd }}"
+    state: stopped
+  when: acMultiServerManagerCount == 1
+
+###
+
+- name: continue to multi-server setup when server count is >1
+  ansible.builtin.import_tasks: multi-server.yml
+  when: acMultiServerManagerCount > 1

@@ -1,0 +1,31 @@
+# production environment
+
+---
+  all:
+    hosts:
+      192.168.1.9:
+      167.71.179.204:
+      143.198.137.131:
+#      192.168.1.20:
+#      192.168.1.11:
+#      192.168.1.101:
+
+    children:
+      west:
+        hosts:
+          192.168.1.9: # j4025
+      east:
+        hosts:
+          167.71.179.204: # Digital Ocean NY3 VPS
+      blog:
+        hosts:
+          143.198.137.131: # Digital Ocean SFO3 VPS
+#      rpi2b:
+#        hosts:
+#          192.168.1.20: # Raspberry Pi 2b
+#      t420s:
+#        hosts:
+#          192.168.1.11: # Thinkpad t420s
+#      steam:
+#        hosts:
+#          192.168.1.101: # Steam PC

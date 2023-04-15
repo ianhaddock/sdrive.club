@@ -1,0 +1,90 @@
+# single server options
+
+---
+
+- name: Update name for servers
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanagerStorePath }}/server_options.json"
+    regex: '^  "Name": '
+    line: '  "Name": "{{ gameServerShort }}00 | {{ gameServerName }}",'
+    state: present
+
+- name: set UPnP state
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanagerStorePath }}/server_options.json"
+    regex: '^  "UPnP": true,$'
+    line: '  "UPnP": {{ upnp_enabled }},'
+    state: present
+
+
+- name: Do not connect online to AC servers when testing
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanagerStorePath }}/server_options.json"
+    regex: '^  "RegisterToLobby": 1,$'
+    line: '  "RegisterToLobby": 0,'
+    state: present
+  when: cert_enabled == False
+
+- name: set lobby http port
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanagerStorePath }}/server_options.json"
+    regex: '^  "HTTPPort": '
+    line: '  "HTTPPort": {{ lobby_port_prefix }}00,'
+
+
+- name: set number of threads to system thread count
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanagerStorePath }}/server_options.json"
+    regex: '^  "NumberOfThreads": 2,$'
+    line: '  "NumberOfThreads": {{ ansible_processor_nproc }},'  # set cores available
+  when: ansible_processor_nproc != 2
+
+
+- name: set UDP ports
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanagerStorePath }}/server_options.json"
+    regex: '^  "UDPPort": '
+    line: '  "UDPPort": {{ udp_port_prefix }}00,'
+
+
+- name: set TCP ports
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanagerStorePath }}/server_options.json"
+    regex: '^  "TCPPort": '
+    line: '  "TCPPort": {{ tcp_port_prefix }}00,'
+
+
+- name: Set admin chat password if not set
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanagerStorePath }}/server_options.json"
+    regexp: '^  "AdminPassword": "",'
+    line: '  "AdminPassword": "{{ admin_chat_password }}",'
+
+
+- name: Set UDP Plugin Local Port
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanagerStorePath }}/server_options.json"
+    regexp: '^  "UDPPluginLocalPort": '
+    line: '  "UDPPluginLocalPort": {{ plugin_udp_local_port_prefix }}000,'
+
+
+- name: Set UDP Plugin Address
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanagerStorePath }}/server_options.json"
+    regexp: '^  "UDPPluginAddress": '
+    line: '  "UDPPluginAddress": "{{ plugin_udp_address }}:{{ plugin_udp_port_prefix }}000",'
+
+
+- name: set KMR status
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanagerStorePath }}/server_options.json"
+    state: present
+    regexp: '^  "EnableKissMyRank": '
+    line: '  "EnableKissMyRank": {{ kmrEnabled }},'
+  when: ansible_architecture == 'x86_64' and install_kmr
+
+- name: set live track view
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanagerStorePath }}/server_options.json"
+    regexp: '^  "live_track_view": 0'
+    line: '  "live_track_view": 1,'

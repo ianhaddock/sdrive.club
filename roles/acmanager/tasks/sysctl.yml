@@ -1,0 +1,14 @@
+# sysctl network memory values
+
+---
+- name: add sysctl ipv4 network memory values
+  ansible.builtin.copy:
+    src: "{{ sysctlSettings }}"
+    dest: "{{ sysctlSettingsPath }}"
+    mode: '0640'
+  register: sysctl_settings
+
+- name: reload sysctl if new values set
+  ansible.builtin.command:
+    cmd: sysctl --load "{{ sysctlSettingsPath }}/{{ sysctlSettings }}"
+  when: sysctl_settings.changed

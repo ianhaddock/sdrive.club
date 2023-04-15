@@ -1,0 +1,33 @@
+#acsm backup zip files
+---
+- name: create backup log file
+  ansible.builtin.file:
+    state: touch
+    path: /var/log/backup_acsm.log
+    owner: ian
+    group: ian
+    mode: '0644'
+
+- name: create backup storage directory
+  ansible.builtin.file:
+    state: directory
+    path: /mnt/acsm_backups
+    owner: ian
+    group: ian
+    mode: '0755'
+
+- name: install backup script
+  ansible.builtin.template:
+    src: templates/acsm_backup.sh.j2
+    dest: /usr/local/sbin/backup_acsm.sh
+    owner: ian
+    group: ian
+    mode: '0740'
+
+- name: add cron job for backup script
+  become_user: "{{ adminuser }}"
+  ansible.builtin.cron:
+    name: daily acsm backup pull
+    minute: "45"
+    hour: "6"
+    job: "/usr/local/sbin/backup_acsm.sh >> /var/log/backup_acsm.log 2>&1"

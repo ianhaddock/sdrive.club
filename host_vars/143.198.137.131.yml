@@ -1,0 +1,25 @@
+# Production blog server
+
+---
+verbose: true
+hostname: "blog"
+timezone: "America/Los_Angeles"
+public_key: blog-sfo3.pub
+
+zram_ratio: 0.8
+cert_enabled: true
+certbot_email: "mazdaspeed13b@gmail.com"
+
+domain_app: 'blog'
+
+siteFQDN: ianhaddock.com
+site_fqdn: "{{ siteFQDN }}"
+
+certbot_domains: "{{ site_fqdn }},\
+                  files.{{ site_fqdn }},\
+                  git.{{ site_fqdn }},\
+                  blog.{{ site_fqdn }},\
+                  www.{{ site_fqdn }}"
+
+app_git_repo: "https://git.ianhaddock.com/ian/{{ app_name }}.git"
+file_server: "https://files.ianhaddock.com"

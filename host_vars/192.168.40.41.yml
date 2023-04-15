@@ -1,0 +1,32 @@
+# development blog server
+
+---
+verbose: true
+
+public_key: assetto.pub
+
+zram_ratio: 0.8
+cert_enabled: false
+certbot_email: 'mazdaspeed13b@gmail.com'
+
+domain_app: 'blog'
+
+siteFQDN: ianh.lan
+site_fqdn: "{{ siteFQDN }}"
+site_subdomains: "files.{{ site_fqdn }},\
+                  git.{{ site_fqdn }},\
+                  blog.{{ site_fqdn }},\
+                  www.{{ site_fqdn }}"
+
+file_server: 'http://files.ianhaddock.org'
+
+containers: true
+containers_path: '/mnt/containers'
+
+# acsm backup
+acsmFQDN: ddock.lan
+adminuser: ian
+assettouser: assetto
+backup_path: '/home/assetto/backups'
+backup_destination: '/mnt/acsm_backups'
+backup_key: 'id_rsa'

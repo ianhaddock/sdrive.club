@@ -1,0 +1,107 @@
+# configure certbot and setup web certs
+
+---
+- name: install nginx
+  ansible.builtin.package: # noqa package-latest
+    name: nginx
+    state: latest
+
+#- name: certbot nginx plugin
+#  ansible.builtin.package: # noqa package-latest
+#    name: python2-certbot-nginx
+#    state: present
+
+- name: install epel-release
+  ansible.builtin.package: # noqa package-latest
+    name: epel-release
+    state: latest
+  when: ansible_os_family == 'RedHat'
+
+- name: install certbot
+  ansible.builtin.package: # noqa package-latest
+    name: certbot
+    state: latest
+
+- name: check if cerbot certificate directory exists
+  ansible.builtin.stat:
+    path: '/etc/letsencrypt/live/{{ siteFQDN }}'
+  register: certbot_dir
+
+- name: check if kmr subdomains match lobby count
+  ansible.builtin.find:
+    path: '/etc/nginx/conf.d/'
+    patterns: "kmr*.conf"
+  register: kmr_subdomain_count
+
+- name: debug kmr subdomains
+  ansible.builtin.debug:
+    msg: "kmr subdomains {{ kmr_subdomain_count.matched }}"
+#  with_items: "{{ kmr_subdomain_count.files }}"
+  when: verbose
+
+- name: debug kmr subdomains
+  ansible.builtin.debug:
+    msg: "kmr subdomains {{ item.path }}"
+  with_items: "{{ kmr_subdomain_count.files }}"
+  when: (kmr_subdomain_count.matched < acMultiServerManagerCount) and kmrEnabled and verbose
+
+- name: create list of domains to request certificates for
+  ansible.builtin.set_fact:
+    sub_domains: "['{{ siteFQDN }}', 'www.{{ siteFQDN }}']"
+
+- name: add kmr subdomains to domains list
+  ansible.builtin.set_fact:
+    sub_domains: "{{ sub_domains|default([]) }} + ['kmr{{ item }}.{{ siteFQDN }}']"
+  with_sequence: start=0 end={{ acMultiServerManagerCount -1 }} format=%02x
+  when: kmrEnabled
+
+- name: cat list to a string for certbot
+  ansible.builtin.set_fact:
+    sub_domain_str: "{{ sub_domains | join(', ') }}"
+
+- name: debug list of subdomains
+  ansible.builtin.debug:
+    msg: [
+          'subdomains {{ sub_domains }}',
+          'as string {{ sub_domain_str }}'
+         ]
+  when: verbose
+
+- name: stop nginx for certs
+  ansible.builtin.service:
+    name: nginx
+    state: stopped
+  when: (cert_enabled and (kmr_subdomain_count.matched < acMultiServerManagerCount)) or
+        (cert_enabled and certbot_dir.stat.exists)
+
+- name: request letsencrypt certificates when they do not exist
+  ansible.builtin.command:
+    cmd: 'certbot certonly --standalone --non-interactive --expand --agree-tos -m mazdaspeed13b@gmail.com -d "{{ sub_domain_str }}"'
+#  args:
+#    creates: '/etc/letsencrypt/live/{{ siteFQDN }}'
+  when: (cert_enabled and (kmr_subdomain_count.matched < acMultiServerManagerCount)) or
+        (cert_enabled and not certbot_dir.stat.exists)
+  register: certbot_certonly_output
+
+- name: output of certbot
+  ansible.builtin.debug:
+    msg: "certbot output {{ certbot_certonly_output }}"
+  when: verbose
+
+- name: update existing letsencrypt certificates when path exists
+  ansible.builtin.command:
+    cmd: 'certbot renew'
+  when: cert_enabled and certbot_dir.stat.exists
+  register: certbot_renew_output
+
+- name: output of certbot renew
+  ansible.builtin.debug:
+    msg: "certbot renew output {{ certbot_renew_output }}"
+  when: verbose
+
+- name: start nginx if stopped for certs
+  ansible.builtin.service:
+    name: nginx
+    state: started
+  when: (cert_enabled and (kmr_subdomain_count.matched < acMultiServerManagerCount)) or
+        (cert_enabled and certbot_dir.stat.exists)

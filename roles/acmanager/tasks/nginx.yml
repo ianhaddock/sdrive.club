@@ -1,0 +1,122 @@
+#
+# nginx server setting for multiple kmr instances
+#
+
+---
+
+- name: check if kmr subdomains match lobby count
+  ansible.builtin.find:
+    path: '/etc/nginx/conf.d/'
+    patterns: "kmr*.conf"
+  register: kmr_subdomain_count
+
+# - name: debug kmr subdomains
+#   ansible.builtin.debug:
+#     msg: "kmr subdomains {{ kmr_subdomain_count.matched }}"
+#     msg: "kmr subdomains {{ item.path }}"
+#   with_items: "{{ kmr_subdomain_count.files }}"
+
+- name: remove kmr conf files if they do not match
+  ansible.builtin.file:
+    path: '{{ item.path }}'
+    state: absent
+  with_items: "{{ kmr_subdomain_count.files }}"
+  register: kmr_remove
+  when: ( kmr_subdomain_count.matched != acMultiServerManagerCount )
+
+- name: kmr conf files removed debug
+  ansible.builtin.debug:
+    msg: 'removed kmr conf files {{ kmr_remove }}'
+  when: verbose and kmr_remove.changed
+
+- name: add http kmr proxy per server instance
+  ansible.builtin.template:
+    src: kmrNginx_http.j2
+    dest: "/etc/nginx/conf.d/kmr{{ item }}.conf"
+    owner: "{{ webuser }}"
+    group: "{{ webgroup }}"
+    mode: '0644'
+    force: true
+  with_sequence: start=0 end={{ acMultiServerManagerCount -1 }} format=%02x
+  when: not cert_enabled
+  register: kmr_http_nginx
+
+- name: add https kmr proxy per server instance
+  ansible.builtin.template:
+    src: kmrNginx_https.j2
+    dest: "/etc/nginx/conf.d/kmr{{ item }}.conf"
+    owner: "{{ webuser }}"
+    group: "{{ webgroup }}"
+    mode: '0644'
+    force: true
+  with_sequence: start=0 end={{ acMultiServerManagerCount -1 }} format=%02x
+  when: cert_enabled
+  register: kmr_https_nginx
+
+    # - name: create {{ siteFQDN }} directory
+    #   ansible.builtin.file:
+    #     name: /var/www/{{ siteFQDN }}
+    #     state: directory
+    #     owner: nginx
+    #     group: nginx
+    #     mode: '0755'
+    #
+    # - name: create {{ siteFQDN }}/html directory
+    #   ansible.builtin.file:
+    #     name: /var/www/{{ siteFQDN }}/html
+    #     state: directory
+    #     owner: nginx
+    #     group: nginx
+    #     mode: '0755'
+    #
+    # - name: add index template
+    #   ansible.builtin.template:
+    #     src: index.html.j2
+    #     dest: /var/www/{{ siteFQDN }}/html/
+    #     owner: nginx
+    #     group: nginx
+    #     mode: '0644'
+    #
+    # - name: copy over files and images
+    #   ansible.builtin.copy:
+    #     src: "{{ item }}"
+    #     dest: /var/www/{{ siteFQDN }}/html/
+    #     owner: nginx
+    #     group: nginx
+    #     mode: '0644'
+    #   with_fileglob: "www-html/{{ siteFQDN }}/*"
+
+- name: add http site in sites-available
+  ansible.builtin.template:
+    src: domain_http.conf.j2
+    dest: /etc/nginx/sites-available/{{ siteFQDN }}.conf
+    owner: nginx
+    group: nginx
+    mode: '0644'
+  when: not cert_enabled
+  register: http_site
+
+- name: add https site in sites-available
+  ansible.builtin.template:
+    src: domain_https.conf.j2
+    dest: /etc/nginx/sites-available/{{ siteFQDN }}.conf
+    owner: nginx
+    group: nginx
+    mode: '0644'
+  when: cert_enabled
+  register: https_site
+
+- name: link site to conf.d
+  ansible.builtin.file:
+    src: /etc/nginx/sites-available/{{ siteFQDN }}.conf
+    dest: /etc/nginx/conf.d/{{ siteFQDN }}.conf
+    state: link
+    owner: nginx
+    group: nginx
+    mode: '0644'
+
+- name: reload nginx
+  ansible.builtin.service:
+    name: nginx
+    state: restarted #reloaded
+  when: kmr_http_nginx.changed or kmr_https_nginx.changed

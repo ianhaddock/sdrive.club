@@ -1,0 +1,23 @@
+# bootstrap content and custom races
+
+---
+
+- name: add content
+  ansible.builtin.unarchive:
+    src: "{{ item }}"
+    dest: "{{ acserverPath }}/"
+    owner: "{{ assettouser }}"
+    group: "{{ assettouser }}"
+    mode: '0755'
+  with_fileglob: "{{ custom_content_zip }}"
+  when: content_zip
+
+- name: add custom races
+  ansible.builtin.unarchive:
+    src: "{{ item }}"
+    dest: "{{ acmanagerStorePath }}/"
+    owner: "{{ assettouser }}"
+    group: "{{ assettouser }}"
+    mode: '0755'
+  with_fileglob: "{{ custom_races_zip }}"
+  when: races_zip

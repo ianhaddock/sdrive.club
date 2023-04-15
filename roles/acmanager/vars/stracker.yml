@@ -1,0 +1,7 @@
+# stracker vars
+
+    server00Store: /usr/local/sbin/acmanager/servers/SERVER_00/store.json
+    server01Store: /usr/local/sbin/acmanager/servers/SERVER_01/store.json
+
+    strConfig: stracker_options.json
+    install_stracker: False

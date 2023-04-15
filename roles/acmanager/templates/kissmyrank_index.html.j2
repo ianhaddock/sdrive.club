@@ -1,0 +1,2467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="dcterms.rights" content="Modification/Reuse of the code requires the author's permission.">
+    <meta name="dcterms.dateCopyrighted" content="2018">
+    <title>#SERVER_NAME# Web Stats</title>
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-beta.2/css/bootstrap.min.css"
+          crossorigin="anonymous">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/jquery-autocomplete/1.0.7/jquery.auto-complete.css"
+          crossorigin="anonymous">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/datatables/1.10.16/css/dataTables.bootstrap4.min.css"
+          crossorigin="anonymous">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.js"
+            crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js"
+            crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-beta.2/js/bootstrap.min.js"
+            crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"
+            crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery-autocomplete/1.0.7/jquery.auto-complete.js"
+            crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/datatables/1.10.16/js/jquery.dataTables.min.js"
+            crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/datatables/1.10.16/js/dataTables.bootstrap4.min.js"
+            crossorigin="anonymous"></script>
+    #CARS#
+    <script>
+        var locale = window.navigator.userLanguage || window.navigator.language;
+        var tracks = get_from_store("tracks") || {};
+        var cut_lines = get_from_store("cut_lines") || {};
+        var pit_area = get_from_store("pit_area") || {};
+        var accessory_area = get_from_store("accessory_area") || {};
+        var show_track;
+        var magnifying_factor = {x: 3, y: 3};
+        var track_edit_mode = 0;
+        var track_edit_scope = "track";
+        var track_edit_selected_point = null;
+        var time_scale = 0.6;
+        var center;
+        var race_control_hide = {overtakes: 1};
+        var race_control_pending_review_only = 0;
+        var race_control_last_first = 1;
+        var ie_version = detectIE();
+        var event_view_driver_follow_select_update_fix = detectChrome() || detectIE(), event_view_driver_follow_select_update_interval;
+        var ie_incompat = ie_version && ie_version < 12 ? true : false;
+        CanvasRenderingContext2D.prototype.draw_point = function (p, color, size) {
+            this.save();
+            this.translate(p.x, p.y)
+            this.scale(1 / magnifying_factor.x, 1 / magnifying_factor.y)
+            this.fillStyle = color;
+            this.fillRect(-size / 2, -size / 2, size, size);
+            this.restore();
+        };
+        CanvasRenderingContext2D.prototype.draw_line = function (start, end, color, width) {
+            this.save();
+            this.translate(start.x, start.y)
+            this.scale(1 / magnifying_factor.x, 1 / magnifying_factor.y)
+            this.beginPath();
+            this.lineWidth = width;
+            this.strokeStyle = color;
+            this.moveTo(0, 0);
+            this.lineTo((end.x - start.x) * magnifying_factor.x, (end.y - start.y) * magnifying_factor.y);
+            this.stroke();
+            this.restore();
+        };
+        CanvasRenderingContext2D.prototype.draw_point_on_line = function (ps, t, color, angles, label) {
+            var point = linearQxy(t, ps[0].x, ps[0].y, ps[1].x, ps[1].y);
+            this.save();
+            this.strokeStyle = color;
+            this.fillStyle = color;
+            if (angles) {
+                var gdiff = angles[1] - angles[0];
+                gdiff = Math.abs(gdiff) < Math.PI ? gdiff : -Math.sign(gdiff) * (2 * Math.PI - Math.abs(gdiff));
+                var angle = angles[0] + gdiff * t;
+                this.translate(point.x, point.y);
+                this.rotate(angle);
+            }
+            this.fillRect(-2, -1, 4, 2);
+            this.restore();
+            if (typeof label != "undefined") {
+                this.save();
+                this.translate(point.x, point.y);
+                this.scale(1 / magnifying_factor.x, 1 / magnifying_factor.y);
+                this.fillStyle = '#999';
+                this.font = "18px Arial";
+                this.fillText(label, -2, -1);
+                this.restore();
+            }
+            return point;
+        };
+        CanvasRenderingContext2D.prototype.draw_point_on_quad = function (ps, cp, t, color, angles, label) {
+            var point = quadQxy(t, ps[0].x, ps[0].y, cp.x, cp.y, ps[1].x, ps[1].y);
+            this.save();
+            this.strokeStyle = color;
+            this.fillStyle = color;
+            if (angles) {
+                var gdiff = angles[1] - angles[0];
+                gdiff = Math.abs(gdiff) < Math.PI ? gdiff : -Math.sign(gdiff) * (2 * Math.PI - Math.abs(gdiff));
+                var angle = angles[0] + gdiff * t;
+                this.translate(point.x, point.y);
+                this.rotate(angle);
+            }
+            this.fillRect(-2, -1, 4, 2);
+            this.restore();
+            if (typeof label != "undefined") {
+                this.save();
+                this.translate(point.x, point.y);
+                this.scale(1 / magnifying_factor.x, 1 / magnifying_factor.y);
+                this.fillStyle = '#999';
+                this.font = "18px Arial";
+                this.fillText(label, -2, -1);
+                this.restore();
+            }
+            return point;
+        };
+        CanvasRenderingContext2D.prototype.draw_point_on_cubic = function (ps, cps, t, color, angles, label) {
+            var point = cubicQxy(t, ps[0].x, ps[0].y, cps[0].x, cps[0].y, cps[1].x, cps[1].y, ps[1].x, ps[1].y);
+            this.save();
+            this.strokeStyle = color;
+            this.fillStyle = color;
+            if (angles) {
+                var gdiff = angles[1] - angles[0];
+                gdiff = Math.abs(gdiff) < Math.PI ? gdiff : -Math.sign(gdiff) * (2 * Math.PI - Math.abs(gdiff));
+                var angle = angles[0] + gdiff * t;
+                this.translate(point.x, point.y);
+                this.rotate(angle);
+            }
+            this.fillRect(-2, -1, 4, 2);
+            this.restore();
+            if (typeof label != "undefined") {
+                this.save();
+                this.translate(point.x, point.y);
+                this.scale(1 / magnifying_factor.x, 1 / magnifying_factor.y);
+                this.fillStyle = '#999';
+                this.font = "18px Arial";
+                this.fillText(label, -2, -1);
+                this.restore();
+            }
+            return point;
+        };
+        CanvasRenderingContext2D.prototype.draw_text = function (text, p, style, color, background) {
+            style = style ? style : '15px Arial';
+            color = color ? color : "#000";
+            this.font = style;
+            if (background) {
+                var width = this.measureText(text).width;
+                this.fillStyle = background;
+                this.fillRect(p.x, p.y - parseInt(style), width, parseInt(style) + 3);
+            }
+            this.fillStyle = color;
+            this.fillText(text, p.x, p.y);
+        };
+        CanvasRenderingContext2D.prototype.draw_area = function (left, right, fill_color, border_color, border_width, show_points, boundary_cache) {
+            var boundary_left = (boundary_cache || {}).left || process_boundary(left);
+            if (boundary_cache)
+                boundary_cache.left = boundary_left;
+            var boundary_right = (boundary_cache || {}).right || process_boundary(right);
+            if (boundary_cache)
+                boundary_cache.right = boundary_right;
+            var track = new Path2D();
+            track.draw_curve(boundary_left, false, true);
+            track.lineTo(boundary_right[boundary_right.length - 1].p.x, boundary_right[boundary_right.length - 1].p.y);
+            track.draw_curve(boundary_right, true);
+            track.closePath();
+            this.fillStyle = fill_color;
+            this.fill(track);
+            if (border_color) {
+                this.lineWidth = border_width || 1;
+                this.strokeStyle = border_color;
+                this.stroke(track);
+            }
+            if (show_points) {
+                for (var i = 0; i < boundary_left.length; i++) {
+                    var selected = track_edit_selected_point && compare_points(boundary_left[i].p, get_point(track_edit_selected_point.wp.x, track_edit_selected_point.wp.z));
+                    this.draw_point(boundary_left[i].p, selected ? "#28a745" : (boundary_left[i].nc ? "#17a2b8" : "blue"), selected ? 6 : 3);
+                }
+                for (var i = 0; i < boundary_right.length; i++) {
+                    var selected = track_edit_selected_point && compare_points(boundary_right[i].p, get_point(track_edit_selected_point.wp.x, track_edit_selected_point.wp.z));
+                    this.draw_point(boundary_right[i].p, selected ? "#28a745" : (boundary_right[i].nc ? "#17a2b8" : "blue"), selected ? 6 : 3);
+                }
+            }
+        };
+        if (!ie_incompat) {
+            Path2D.prototype.draw_curve = function (line, reverse, moveto) {
+                if (!reverse) {
+                    if (moveto)
+                        this.moveTo(line[0].p.x, line[0].p.y);
+                    this.quadraticCurveTo(line[1].cp[0].x, line[1].cp[0].y, line[1].p.x, line[1].p.y);
+                    for (var i = 1; i < line.length - 2; i++) {
+                        this.bezierCurveTo(line[i].cp[1].x, line[i].cp[1].y, line[i + 1].cp[0].x, line[i + 1].cp[0].y, line[i + 1].p.x, line[i + 1].p.y);
+                    }
+                    this.lineTo(line[line.length - 1].p.x, line[line.length - 1].p.y);
+                } else {
+                    if (moveto)
+                        this.moveTo(line[line.length - 1].p.x, line[line.length - 1].p.y);
+                    this.lineTo(line[line.length - 2].p.x, line[line.length - 2].p.y);
+                    for (var i = line.length - 2; i > 1; i--) {
+                        this.bezierCurveTo(line[i].cp[0].x, line[i].cp[0].y, line[i - 1].cp[1].x, line[i - 1].cp[1].y, line[i - 1].p.x, line[i - 1].p.y);
+                    }
+                    this.quadraticCurveTo(line[1].cp[0].x, line[1].cp[0].y, line[0].p.x, line[0].p.y);
+                }
+            };
+        }
+        function detectIE() {
+            var ua = window.navigator.userAgent;
+            var msie = ua.indexOf('MSIE ');
+            if (msie > 0) {
+                // IE 10 or older => return version number
+                return parseInt(ua.substring(msie + 5, ua.indexOf('.', msie)), 10);
+            }
+            var trident = ua.indexOf('Trident/');
+            if (trident > 0) {
+                // IE 11 => return version number
+                var rv = ua.indexOf('rv:');
+                return parseInt(ua.substring(rv + 3, ua.indexOf('.', rv)), 10);
+            }
+            var edge = ua.indexOf('Edge/');
+            if (edge > 0) {
+                // Edge (IE 12+) => return version number
+                return parseInt(ua.substring(edge + 5, ua.indexOf('.', edge)), 10);
+            }
+            // other browser
+            return false;
+        }
+        function detectChrome() {
+            var isChromium = window.chrome,
+                    winNav = window.navigator,
+                    vendorName = winNav.vendor,
+                    isOpera = winNav.userAgent.indexOf("OPR") > -1,
+                    isIEedge = winNav.userAgent.indexOf("Edge") > -1,
+                    isIOSChrome = winNav.userAgent.match("CriOS");
+
+            if (isIOSChrome) {
+                return true;
+            } else if (
+                    isChromium !== null &&
+                    typeof isChromium !== "undefined" &&
+                    vendorName === "Google Inc." &&
+                    isOpera === false &&
+                    isIEedge === false
+            ) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+        CanvasRenderingContext2D.prototype.draw_x = function (p, size, color) {
+            this.save();
+            this.translate(p.x, p.y);
+            this.scale(1 / magnifying_factor.x, 1 / magnifying_factor.y)
+            this.beginPath();
+            this.moveTo(-size, -size);
+            this.lineTo(+size, +size);
+            this.moveTo(size, -size);
+            this.lineTo(-size, +size);
+            if (color)
+                this.strokeStyle = color;
+            this.stroke();
+            this.restore();
+        };
+        CanvasRenderingContext2D.prototype.clear = function () {
+            this.save();
+            this.setTransform(1, 0, 0, 1, 0, 0);
+            this.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            this.restore();
+        };
+        function sort_by_position(oa, ob) {
+            var a = parseInt(oa.position);
+            var b = parseInt(ob.position);
+            return ((a < b) ? -1 : ((a > b) ? 1 : 0));
+        }
+        function sort_by_laptime(oa, ob) {
+            var a = parseInt(oa.laptime);
+            var b = parseInt(ob.laptime);
+            return ((a < b) ? -1 : ((a > b) ? 1 : 0));
+        }
+        function sort_by_name(oa, ob) {
+            return oa.name.localeCompare(ob.name);
+        }
+        function first_up(string) {
+            return string.charAt(0).toUpperCase() + string.slice(1);
+        }
+        function format_time(ms) {
+            if (!ms)
+                return "";
+            var seconds = 1000 * Math.floor(ms / 1000);
+            var d = new Date(seconds);
+            return d.getUTCMinutes() + ':' + ("0" + d.getUTCSeconds()).slice(-2) + ":" + ("00" + (ms % 1000)).slice(-3);
+        }
+        function generate_table(data, add_rank, table_id) {
+            add_rank = typeof add_rank != "undefined" && add_rank;
+            if (!data.length)
+                return "";
+            var thead = "<thead><tr>";
+            var tbody = "</tr></thead><tbody>";
+            var fields = Object.getOwnPropertyNames(data[0]);
+            thead += add_rank ? "<th>#</th>" : "";
+            $.each(fields, function (key, val) {
+                if (val == "ts")
+                    val = "Recorded on";
+                thead += "<th>" + first_up(val) + "</th>";
+            });
+            $.each(data, function (key, val) {
+                tbody += "<tr>" + ((add_rank) ? "<td  class='show_rank'>" + (parseInt(add_rank++)) + "</td>" : "");
+                $.each(val, function (k, v) {
+                    if (typeof v == "undefined")
+                        v = "";
+                    else if (k.toLowerCase() == "laptime" || k.match(/^sector_/) || k == "total Time" || k == "best_lap") {
+                        if (v != "DNF")
+                            v = format_time(v);
+                    } else if (k == "position" && parseInt(v) == 99)
+                        v = 99;
+                    else if (k == "name" || k == "event")
+                        v = html_encode(v);
+                    else if (k == "time")
+                        v = new Date(v).toLocaleDateString(locale) + " " + new Date(v).toLocaleTimeString(locale);
+                    else if (k == "car")
+                        v = get_car_name(v)
+                    tbody += "<td class=" + k.replace(/ /g, "_") + ">" + v + "</td>";
+                });
+                tbody += "</tr>";
+            });
+            return "<div class=\"table-responsive\"><table " + (table_id ? "id=\"" + table_id + "\" " : "") + "class='table data_table' style='margin-top: 30px;'>" + thead + tbody + "</tbody></table></div>";
+        }
+        function get_car_name(car_model) {
+            return (cars[car_model] || {}).name || car_model;
+        }
+        function format_tables() {
+            $(".data_table").DataTable({
+                "paging": false,
+                "searching": false,
+                "info": false,
+                columnDefs: [
+                    {
+                        targets: '_all',
+                        render: function (data, type, row, meta) {
+                            if (type != "display" || data.toString().match(/^765611/))
+                                return data;
+                            var val = data.toString().match(/^(-?\d+(\.\d+)?)(km|m|€|\$)?$/);
+                            if (val) {
+                                var number = parseFloat(val[1]);
+                                return number.toLocaleString(locale) + (val[3] ? val[3] : "");
+                            }
+                            return data;
+                        }
+                    }
+                ]
+            });
+        }
+        function init_data_table() {
+            $.fn.dataTable.ext.type.detect.unshift(
+                    function (d) {
+                        if (d.toString().match(/^(\-?\d+\.?\d+[^0-9\.]+)?$/)) {
+                            return "custom-unit";
+                        }
+                        return null;
+                    }
+            );
+            $.fn.dataTable.ext.type.order['custom-unit-pre'] = function (d) {
+                return d ? parseFloat(d) : 0;
+            };
+        }
+        $(document).ready(function () {
+            init_data_table();
+            var data_display = $("#data_display");
+            var section_title = $("#section_title");
+            var section_description = $("#section_description");
+            var active = $(".active");
+            var socket;
+            url = window.location.toString().split("/");
+            switch (true) {
+                case (url[3] == "tracks"):
+                    section_title.text("Tracks");
+                    active.removeClass("active");
+                    $("#tracks").addClass("active");
+                    section_description.text("Please select a track...");
+                    jQuery.getJSON("/?tracks=true", function (data) {
+                        data.sort(sort_by_name);
+                        var html = generate_table(data);
+                        if (html) {
+                            data_display.html(html);
+                            format_tables();
+                            $("td").click(function () {
+                                var track_id = $(this).parent().find(".track_id").text();
+                                window.location.pathname = "/track/" + track_id;
+                            });
+                        } else {
+                            data_display.html("<table class='table' style='margin-top: 30px;'><tbody><tr><td>No tracks to show yet.</td></tr></tbody></table>");
+                            $("td").addClass("nocursor");
+                        }
+                    });
+                    break;
+                case (url[3] == "track" && typeof url[4] == "string" && typeof url[5] != "string"):
+                    active.removeClass("active");
+                    $("#tracks").addClass("active");
+                    jQuery.getJSON("/?track=" + url[4], function (data) {
+                        section_title.text(data["name"]);
+                        section_description.text("Please select a car...");
+                        var html = generate_table(data["cars"]);
+                        if (html) {
+                            data_display.html(html);
+                            format_tables();
+                            $("td").click(function () {
+                                var car = $(this).parent().find(".car_Id").text();
+                                window.location.pathname = "/track/" + url[4] + "/" + car;
+                            });
+                        } else {
+                            data_display.html("<table class='table' style='margin-top: 30px;'><tbody><tr><td>No cars to show yet.</td></tr></tbody></table>");
+                            $("td").addClass("nocursor");
+                        }
+                    });
+                    break;
+                case (url[3] == "track" && typeof url[4] == "string" && typeof url[5] == "string"):
+                    active.removeClass("active");
+                    $("#tracks").addClass("active");
+                    jQuery.getJSON("/?track=" + url[4] + "&car=" + url[5], function (data) {
+                        section_title.text(data["name"]);
+                        section_description.text("List of times for " + get_car_name(data["car"]) + ".");
+                        var html = generate_table(data["leaderboard"], true);
+                        if (html) {
+                            data_display.html(html);
+                            format_tables();
+                            $("td").click(function () {
+                                var guid = $(this).parent().find(".guid").text();
+                                window.location.pathname = "/driver/" + guid;
+                            });
+                        } else {
+                            data_display.html("<table class='table' style='margin-top: 30px;'><tbody><tr><td>No times to show yet.</td></tr></tbody></table>");
+                            $("td").addClass("nocursor");
+                        }
+                    });
+                    break;
+                case (url[3] == "drivers"):
+                    var rank_page = (url[4] && parseInt(url[4]) ? parseInt(url[4]) : 1);
+                    active.removeClass("active");
+                    $("#drivers").addClass("active");
+                    section_title.text("Drivers");
+                    section_description.text("List of drivers ranked on this server.");
+                    jQuery.getJSON("/?drivers=true&page=" + rank_page, function (data) {
+                        var rank_max_pages = parseInt(data["pages"]);
+                        var per_page = parseInt(data["per_page"]);
+                        var html = "<div class='input-group'><input id='driver_search_input' class='form-control' placeholder='Driver search'></div>";
+                        html += generate_table(data["rank"], (rank_page - 1) * per_page + 1);
+                        if (html) {
+                            html += "<nav aria-label='Page navigation' class='col-md-4 offset-md-4 pull-md-4'><ul class='pagination'><li class='page-item'><a class='page-link' href='/drivers/" + Math.max(rank_page - 1, 1) + "'>Previous</a></li>";
+                            for (var temp_rank_page = 1; temp_rank_page < rank_max_pages + 1; temp_rank_page++)
+                                html += "<li class='page-item'><a class='page-link" + (temp_rank_page == rank_page ? " active" : "") + "' href='/drivers/" + temp_rank_page + "'>" + temp_rank_page + "</a></li>";
+                            html += "<li class='page-item'><a class='page-link' href='/drivers/" + Math.min(rank_page + 1, rank_max_pages) + "'>Next</a></li></ul></nav>";
+                            data_display.html(html);
+                            format_tables();
+                            var driver_names;
+                            $("#driver_search_input").autoComplete({
+                                minChars: 2,
+                                cache: true,
+                                source: function (term, suggest) {
+                                    driver_names = driver_names ? driver_names : data["full_rank"].map(function (x, i) {
+                                        return [x.name, x.guid, i];
+                                    });
+                                    term = term.toLowerCase();
+                                    var matches = [];
+                                    for (i = 0; i < driver_names.length; i++)
+                                        if (~(driver_names[i][0] + " " + driver_names[i][1]).toLowerCase().indexOf(term)) matches.push(driver_names[i]);
+                                    suggest(matches);
+                                },
+                                renderItem: function (item, search) {
+                                    search = search.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+                                    var re = new RegExp("(" + search.split(' ').join('|') + ")", "gi");
+                                    return '<div class="autocomplete-suggestion" data-guid="' + item[1] + '" data-index="' + item[2] + '">#' + (item[2] + 1) + " " + item[0].replace(re, "<b>$1</b>") + " (GUID: " + item[1].replace(re, "<b>$1</b>") + ')</div>';
+                                },
+                                onSelect: function (e, term, item) {
+                                    var guid = item.data("guid");
+                                    window.location.href = "/driver/" + guid;
+                                }
+                            });
+                            $("td").click(function () {
+                                var guid = $(this).parent().find(".guid").text();
+                                window.location.pathname = "/driver/" + guid;
+                            });
+                        } else {
+                            data_display.html("<table class='table' calss='data_table' style='margin-top: 30px;'><tbody><tr><td>No drivers to show yet.</td></tr></tbody></table>");
+                            $("td").addClass("nocursor");
+                        }
+                    });
+                    break;
+                case (url[3] == "driver" && typeof url[4] == "string"):
+                    active.removeClass("active");
+                    $("#drivers").addClass("active");
+                    jQuery.getJSON("/?guid=" + url[4], function (data) {
+                        section_title.text(data["name"]);
+                        section_description.html("Showing driver's stats and personal bests.");
+                        var html = "<h3 style='padding-top: 30px;'>Stats</h3>";
+                        var driver_stats = {};
+                        driver_stats["rank"] = data["rank"];
+                        driver_stats["name"] = data["name"];
+                        if (typeof data["money"] != "undefined")
+                            driver_stats["money"] = data["money"];
+                        if (typeof data["points"] != "undefined")
+                            driver_stats["points"] = data["points"];
+                        driver_stats["wins"] = data["wins"];
+                        driver_stats["podia"] = data["podia"];
+                        driver_stats["poles"] = data["poles"];
+                        driver_stats["fastL"] = data["fastL"];
+                        driver_stats["driven"] = data["driven"];
+                        driver_stats["infr"] = data["infr"];
+                        driver_stats["crashes"] = data["crashes"];
+                        driver_stats["infr/100km"] = data["infr/100km"];
+                        driver_stats["cr/100km"] = data["cr/100km"];
+                        driver_stats["guid"] = url[4];
+                        html += generate_table([driver_stats]);
+                        $.each(data["leaderboard"], function (key, val) {
+                            html += "<h3 style='padding-top: 30px;'>" + data["tracks"][key] + "</h3>";
+                            var list = [];
+                            $.each(val, function (k, vl) {
+                                vl.car = k;
+                                vl.ts = new Date(vl.ts).toLocaleDateString(locale) + " " + new Date(vl.ts).toLocaleTimeString(locale);
+                                list.push(vl);
+                            });
+                            list.sort(sort_by_laptime);
+                            html += generate_table(list);
+                        });
+                        if (html) {
+                            data_display.html(html);
+                            format_tables();
+                        } else
+                            data_display.html("<table class='table' style='margin-top: 30px;'><tbody><tr><td>No times to show yet.</td></tr></tbody></table>");
+                        $("td").addClass("nocursor");
+                    });
+                    break;
+                case (url[3] == "log"):
+                    active.removeClass("active");
+                    $("#log").addClass("active");
+                    section_title.text("Kissmyrank Log");
+                    section_description.html("Here is the recent Kissmyrank Log.");
+                    jQuery.getJSON("/?log=true", function (data) {
+                        var html = generate_table(data);
+                        if (html) {
+                            data_display.html(html);
+                        } else {
+                            data_display.html("<table class='table' style='margin-top: 30px;'><tbody><tr><td>No recent activity to show.</td></tr></tbody></table>");
+                        }
+                        $("td").addClass("nocursor");
+                    });
+                    break;
+                case (url[3] == "results"):
+                    active.removeClass("active");
+                    $("#results").addClass("active");
+                    section_title.text("Race Results");
+                    section_description.html("Please select a session.");
+                    jQuery.getJSON("/?results=true", function (data) {
+                        var html = generate_table(data, true);
+                        if (html) {
+                            data_display.html(html);
+                            format_tables();
+                            $("td").click(function () {
+                                var id = parseInt($(this).parent().find(".show_rank").text()) - 1;
+                                window.location.pathname = "/result/" + id;
+                            });
+                        } else {
+                            data_display.html("<table class='table' style='margin-top: 30px;'><tbody><tr><td>No results to show.</td></tr></tbody></table>");
+                        }
+                    });
+                    break;
+                case (url[3] == "result" && typeof url[4] == "string"):
+                    active.removeClass("active");
+                    $("#results").addClass("active");
+                    jQuery.getJSON("/?result=" + url[4], function (data) {
+                        var laps = 0;
+                        section_title.text(data["type"]);
+                        var lap_counter = {}, add_rank = 1, fastest_lap = 999999999, fastest_lap_by = "NA", fastest_lap_lap = "NA", best_lap = {}, collisions = 0, results = [], first_time, previous_time, cut_counter = {}, collision_counter = {}, ids = {}, tyre_history = {}, car_model = {}, guids = {}, winner_guid = (((data["results"]["Result"] || [])[0] || {}).DriverGuid || ""), finished_race = {}, max_time = 0, winner_name = (((data["results"]["Result"] || [])[0] || {}).DriverName || "");
+                        delete data["results"]["Result"];
+                        if (data["results"]["Laps"])
+                            $.each(data["results"]["Laps"], function (k, vl) {
+                                var name = vl.DriverName;
+                                var id = name + vl.DriverGuid;
+                                ids[vl.CarId] = id;
+                                guids[vl.CarId] = vl.DriverGuid;
+                                vl.sector_1 = vl.Sectors[0];
+                                vl.sector_2 = vl.Sectors[1];
+                                vl.sector_3 = vl.Sectors[2];
+                                car_model[id] = vl.CarModel;
+                                delete vl.Sectors;
+                                delete vl.Restrictor;
+                                delete vl.CarModel;
+                                delete vl.BallastKG;
+                                lap_counter[id] = lap_counter[id] ? lap_counter[id] + 1 : 1;
+                                if (data["type"] == "RACE") {
+                                    if (vl.DriverGuid == winner_guid)
+                                        finished_race = {};
+                                    finished_race[id] = vl.Timestamp;
+                                }
+                                delete vl.Timestamp;
+                                cut_counter[id] = cut_counter[id] ? cut_counter[id] + vl.Cuts : vl.Cuts;
+                                tyre_history[id] = tyre_history[id] || {};
+                                tyre_history[id][vl.Tyre] = tyre_history[id][vl.Tyre] ? tyre_history[id][vl.Tyre] + 1 : 1;
+                                vl.lap = lap_counter[id];
+                                laps = Math.max(laps, vl.lap);
+                                if (vl.LapTime && vl.Cuts === 0) {
+                                    if (vl.LapTime < fastest_lap) {
+                                        fastest_lap = vl.LapTime;
+                                        fastest_lap_by = name;
+                                        fastest_lap_lap = vl.lap;
+                                    }
+                                    if (!best_lap[vl.CarId] || vl.LapTime < best_lap[vl.CarId])
+                                        best_lap[vl.CarId] = vl.LapTime;
+                                }
+                                delete vl.CarId;
+                            });
+                        section_description.html("Track: " + data["track"] + ".<br>" + (data["type"] == "RACE" && laps ? "Laps: " + laps + ".<br>" : "") + "Recorded on: " + new Date(data["time"]).toLocaleDateString(locale) + " " + new Date(data["time"]).toLocaleTimeString(locale) + ".");
+                        section_description.html(section_description.html() + (fastest_lap != 999999999 ? "<br>" + (data["type"] == "RACE" ? "Fastest" : "Pole") + " lap: " + format_time(fastest_lap) + " on lap " + fastest_lap_lap + " by " + fastest_lap_by + "." : "") + "<br>Collisions: <span id='collision_count'>0</span>.");
+                        if (data["results"]["Events"])
+                            $.each(data["results"]["Events"], function (k, vl) {
+                                var name = vl.Driver.Name;
+                                vl.OtherDriver = vl.Type == "COLLISION_WITH_CAR" ? vl.OtherDriver.Name : "";
+                                vl.Type = vl.Type == "COLLISION_WITH_CAR" ? "Crash with car" : "Crash with environment";
+                                vl.Driver = name;
+                                vl.ImpactSpeed = Math.round(vl.ImpactSpeed) + "km/h";
+                                if (ids[vl.CarId])
+                                    collision_counter[ids[vl.CarId]] = collision_counter[ids[vl.CarId]] ? collision_counter[ids[vl.CarId]] + 1 : 1;
+                                delete vl.CarId;
+                                delete vl.OtherCarId;
+                                delete vl.WorldPosition;
+                                delete vl.RelPosition;
+                                collisions++;
+                            });
+                        $("#collision_count").html(collisions);
+                        if (data["results"]["Results"])
+                            $.each(data["results"]["Results"], function (k, vl) {
+                                var id = vl.rcar_id;
+                                var name = "" || data["results"]["Cars"][id].Driver.Name;
+                                var guid = "" || guids[id] || data["results"]["Cars"][id].Driver.Guid;
+                                var time = vl.rtime;
+                                max_time = Math.max(vl.rtime, max_time);
+                                if (k == 0) {
+                                    first_time = previous_time = time;
+                                }
+                                if (time && time != 999999999) {
+                                    var temp_tyre_history = "";
+                                    if (tyre_history[name + guid] && Object.keys(tyre_history[name + guid]).length) {
+                                        for (var tyre in tyre_history[name + guid])
+                                            if (tyre_history[name + guid].hasOwnProperty(tyre))
+                                                temp_tyre_history += (temp_tyre_history ? "," : "") + tyre + ":" + tyre_history[name + guid][tyre];
+                                    }
+                                    var temp_result = {
+                                        "Driver Name": name ? name : "NA",
+                                        car: car_model[name + guid] ? car_model[name + guid] : "",
+                                        "total Time": data["type"] != "RACE" || finished_race[name + guid] ? (data["type"] != "RACE" || vl.rlaps == laps ? vl.rtime : max_time + (finished_race[name + guid] - finished_race[winner_name + winner_guid])) : "DNF",
+                                        gap: data["type"] != "RACE" || vl.rlaps == laps ? "+" + ((vl.rtime - first_time) / 1000).toFixed(3) : (vl.rlaps - laps) + " lap" + (Math.abs(vl.rlaps - laps) > 1 ? "s" : ""),
+                                        "rel Gap": data["type"] != "RACE" || vl.rlaps == laps ? "+" + ((vl.rtime - previous_time) / 1000).toFixed(3) : "",
+                                        "KMR Infr": ((data["kmr"] || {}).cuts || {})[guid] ? data["kmr"].cuts[guid] : 0,
+                                        "AC Cuts": cut_counter[name + guid] ? cut_counter[name + guid] : 0,
+                                        crashes: collision_counter[name + guid] ? collision_counter[name + guid] : 0,
+                                        tyres: temp_tyre_history
+                                    };
+                                    if (data["type"] == "RACE")
+                                        temp_result.best_lap = best_lap[id] ? best_lap[id] : "";
+                                    temp_result.laps = vl.rlaps;
+                                    temp_result["Valid Laps"] = ((data["kmr"] || {}).clean_laps || {})[guid] ? data["kmr"].clean_laps[guid] : 0;
+                                    temp_result.guid = guid ? guid : "NA";
+                                    results.push(temp_result);
+                                    previous_time = time;
+                                }
+                            });
+                        data["results"]["Results"] = results;
+                        if (data["hide_laps"])
+                            delete data["results"]["Laps"];
+                        var html = "";
+                        $.each(data["results"], function (key, val) {
+                            if (key == "Cars")
+                                return;
+                            html += "<h3 style='padding-top: 30px;'>" + key + "</h3>";
+                            if (val.length)
+                                html += generate_table(val, add_rank);
+                            else
+                                html += "<table class='table' style='margin-top: 30px;'><tbody><tr><td>Nothing to show.</td></tr></tbody></table>";
+                        });
+                        if (html) {
+                            data_display.html(html);
+                            format_tables();
+                        } else
+                            data_display.html("<table class='table' style='margin-top: 30px;'><tbody><tr><td>No data to show for this session.</td></tr></tbody></table>");
+                        $("td").addClass("nocursor");
+                    });
+                    break;
+                case (url[3] == "kissmyrank_admin"):
+                    var admin_socket, wat, commands = ["login"], mouse_over = false;
+                    active.removeClass("active");
+                    section_title.text("Web Admin");
+                    section_description.html("Kissmyrank Web Admin Console.");
+                    var html = "<div id='web_console' class='col-md-10 offset-md-1 pull-md-1'><div id='web_console_output_scroll_up'>&uarr;</div><div id='web_console_output_scroll_down'>&darr;</div><ul id='web_console_output'><li>The Kissmyrank Web Admin Console is offline.</li></ul><div style='position: relative;'><span id='web_console_input_label'>&gt;</span><input id='web_console_input' type='text' disabled='disabled'/></div></div>";
+                    data_display.html(html);
+                    var web_console = $("#web_console");
+                    var web_console_output = $("#web_console_output");
+                    web_console.mouseover(function () {
+                        mouse_over = true;
+                    });
+                    web_console.mouseout(function () {
+                        mouse_over = false;
+                    });
+                    web_console_output.add_lines = function (data) {
+                        var html = "";
+                        for (var key in data)
+                            if (data.hasOwnProperty(key)) {
+                                html += "<li>" + html_encode(data[key]) + "</li>"
+                            }
+                        if (html && web_console_output) {
+                            web_console_output.html(web_console_output.html() + html);
+                            web_console_output.scrollTop(web_console_output[0].scrollHeight);
+                        }
+                    };
+                    $("#web_console_output_scroll_up").mousedown(function (event) {
+                        event.preventDefault();
+                        web_console_output.scrollTop(web_console_output.scrollTop() - 90);
+                    });
+                    $("#web_console_output_scroll_down").mousedown(function (event) {
+                        event.preventDefault();
+                        web_console_output.scrollTop(web_console_output.scrollTop() + 90);
+                    });
+                    $(window).bind('mousewheel DOMMouseScroll', function (event) {
+                        if (mouse_over) {
+                            if (event.originalEvent.wheelDelta > 0 || event.originalEvent.detail < 0) {
+                                event.preventDefault();
+                                web_console_output.scrollTop(web_console_output.scrollTop() - 30);
+                            }
+                            else {
+                                event.preventDefault();
+                                web_console_output.scrollTop(web_console_output.scrollTop() + 30);
+                            }
+                        }
+                    });
+                    var web_console_input = $("#web_console_input");
+                    web_console_input.on('keyup', function (e) {
+                        if (e.keyCode == 13) {
+                            var val = web_console_input.val();
+                            if (val)
+                                web_console_input.parse_web_console_command(val);
+                            web_console_input.val("");
+                        }
+                    });
+                    web_console_input.parse_web_console_command = function (command) {
+                        if (admin_socket) {
+                            if (command.match(/^login/)) {
+                                if (!wat) {
+                                    if (command.slice(6).length >= 3)
+                                        admin_socket.emit("login.do", {password: command.slice(6)});
+                                    else
+                                        web_console_output.add_lines(["Error: please provide a valid password. The command syntax is \"login yourpassword\"."]);
+                                } else if (web_console_output)
+                                    web_console_output.add_lines(["Error: you're already logged in."]);
+                            } else if (command.match(/^logout/)) {
+                                web_console_output.html("");
+                                admin_socket.emit("logout.do");
+                            } else if (wat) {
+                                admin_socket.emit("web_console.command", {command: command, token: wat});
+                            } else if (web_console_output) {
+                                web_console_output.add_lines(["Error: you need to login first."]);
+                            }
+                        }
+                    };
+                    web_console_input.autoComplete({
+                        minChars: 2,
+                        source: function (term, suggest) {
+                            term = term.toLowerCase();
+                            var matches = [];
+                            for (i = 0; i < commands.length; i++)
+                                if (~commands[i].toLowerCase().indexOf(term)) matches.push(commands[i]);
+                            suggest(matches);
+                        }
+                    });
+                    admin_socket = io("http://" + window.location.hostname + ":#AUTH_PORT#", {
+                        transports: ['polling', 'websocket']
+                    });
+                    admin_socket.on("connect", function () {
+                        web_console_output.html("");
+                        if (!wat)
+                            web_console_output.add_lines(["Welcome to the Kissmyrank Web Console. Type \"login password\" to login."]);
+                        else
+                            web_console_output.add_lines(["Connected."]);
+                        web_console_input.prop('disabled', false);
+                        web_console_input.focus();
+                    });
+                    admin_socket.on("login.successful", function (data) {
+                        wat = typeof data == "object" && data.token ? data.token : "";
+                    });
+                    admin_socket.on("guest.login.successful", function (data) {
+                        web_console_input.prop('disabled', true);
+                        web_console_input.hide();
+                        $("#web_console_input_label").hide();
+                    });
+                    admin_socket.on("logout.successful", function (data) {
+                        wat = "";
+                        commands = ["login"];
+                    });
+                    admin_socket.on("web_console.add_output", function (data) {
+                        web_console_output.add_lines(data);
+                    });
+                    admin_socket.on("web_console.set_command_list", function (data) {
+                        if (typeof data == "object" && data.length) {
+                            commands = data;
+                            data.push("logout");
+                        }
+                    });
+                    admin_socket.on("disconnect", function () {
+                        web_console_output.add_lines(["Connection lost."]);
+                        web_console_input.prop('disabled', true);
+                    });
+                    break;
+                case (url[3] == "race_control"):
+                    var wat, commands = ["login"], mouse_over = false;
+                    active.removeClass("active");
+                    $("#race_control_").addClass("active");
+                    section_title.text("Live Race Control");
+                    section_description.html("Shows live Race Control and allows Race Directors to judge race situations.<br><input id='race_control_password' type='password' disabled='disabled' placeholder='Your Race Director Password'/><button id='race_control_login_button' type='button' class='btn btn-primary' disabled='disabled'>Login</button><button id='race_control_deploy_vsc_button' type='button' class='btn btn-primary' disabled='disabled'>Deploy VSC</button>&nbsp;<input id='race_control_deploy_vsc_seconds_input' type='number' disabled='disabled' step=30 min=30 value=60><br><div><select id=\"race_control_session_select\" class=\"bootstrap-select\" style=\"font-size: 0.9rem; \"><option value=\"all\">All</option><option id=\"select_last_session\" value=\"last\" selected=\"selected\">Current</option></select>&nbsp;&nbsp;<input id='race_control_show_collisions' type='checkbox' checked='true' />&nbsp;Collisions&nbsp;&nbsp;<input id='race_control_show_cuts' type='checkbox' checked='true' />&nbsp;Driving Line&nbsp;&nbsp;<span id=\"race_control_show_overtakes_wrap\" style=\"display: none;\"><input id='race_control_show_overtakes' type='checkbox' />&nbsp;Overtakes&nbsp;&nbsp;</span><input id='race_control_show_generic' type='checkbox' checked='true' />&nbsp;Other&nbsp;&nbsp;<input id='race_control_show_inverse_order' type='checkbox'/>&nbsp;Inverse Order&nbsp;&nbsp;<input id='race_control_show_pending_review_only' type='checkbox'/>&nbsp;<span style='color: #6fff00'>Pending Review Only</span></div>");
+                    jQuery.getJSON("/?race_control=true", function (data) {
+                        if (data.overtakes)
+                            $("#race_control_show_overtakes_wrap").show();
+                    });
+                    var html = "<div id='race_control' class='col-md-12'><ul id='race_control_output'><li>Race Control is Offline.</li></ul></div>";
+                    data_display.html(html);
+                    var race_control_session_select = $("#race_control_session_select");
+                    race_control_session_select.last_id = 0;
+                    race_control_session_select.change(function () {
+                        var session_id = $(this).val();
+                        if (!session_id.match(/last|all/) && !$(".session_" + session_id, race_control_output).length) {
+                            race_control_session_select.find("[value=\"" + session_id + "\"]").remove();
+                            race_control_session_select.val("last");
+                        }
+                        parse_filters();
+                    });
+                    var parse_filters = function () {
+                        var show = "";
+                        !race_control_hide["collisions"] && (show += ",$.collision_entry");
+                        !race_control_hide["cuts"] && (show += ",$.cut_entry");
+                        !race_control_hide["overtakes"] && (show += ",$.overtake_entry");
+                        !race_control_hide["generic"] && (show += ",$.generic_entry");
+                        var filter = ".event_entry";
+                        race_control_pending_review_only && (filter += ".pending_review");
+                        var session_id = race_control_session_select.val();
+                        if (session_id && session_id != "all") {
+                            filter += ".session_" + (session_id == "last" ? race_control_session_select.last_id : session_id);
+                        }
+                        show = show.replace(/^,/, "").replace(/\$/g, filter);
+                        $(".event_entry:not(" + show + ")", race_control_output).hide();
+                        $(show, race_control_output).show();
+                    };
+                    $("#race_control_show_collisions").change(function () {
+                        if ($(this).is(":checked")) {
+                            race_control_hide["collisions"] = 0;
+                        } else {
+                            race_control_hide["collisions"] = 1;
+                        }
+                        parse_filters();
+                    });
+                    $("#race_control_show_cuts").change(function () {
+                        if ($(this).is(":checked")) {
+                            race_control_hide["cuts"] = 0;
+                        } else {
+                            race_control_hide["cuts"] = 1;
+                        }
+                        parse_filters();
+                    });
+                    $("#race_control_show_overtakes").change(function () {
+                        if ($(this).is(":checked")) {
+                            race_control_hide["overtakes"] = 0;
+                        } else {
+                            race_control_hide["overtakes"] = 1;
+                        }
+                        parse_filters();
+                    });
+                    $("#race_control_show_generic").change(function () {
+                        if ($(this).is(":checked")) {
+                            race_control_hide["generic"] = 0;
+                        } else {
+                            race_control_hide["generic"] = 1;
+                        }
+                        parse_filters();
+                    });
+                    $("#race_control_show_pending_review_only").change(function () {
+                        if ($(this).is(":checked")) {
+                            race_control_pending_review_only = 1;
+                        } else {
+                            race_control_pending_review_only = 0;
+                        }
+                        parse_filters();
+                    });
+                    $("#race_control_show_inverse_order").change(function () {
+                        var old = race_control_last_first;
+                        if ($(this).is(":checked")) {
+                            race_control_last_first = 0;
+                        } else {
+                            race_control_last_first = 1;
+                        }
+                        if (old != race_control_last_first) {
+                            var items = race_control_output.children('li');
+                            race_control_output.append(items.get().reverse());
+                        }
+                        parse_filters();
+                    });
+                    var race_control = $("#race_control");
+                    var race_control_output = $("#race_control_output");
+                    race_control_output.add_lines = function (data) {
+                        var html = "";
+                        for (var key in data)
+                            if (data.hasOwnProperty(key)) {
+                                html += "<li>" + html_encode(data[key]) + "</li>"
+                            }
+                        if (html && race_control_output) {
+                            if (race_control_last_first)
+                                race_control_output.prepend(html);
+                            else
+                                race_control_output.append(html);
+                        }
+                    };
+                    var race_control_password = $("#race_control_password");
+                    var race_control_login_button = $("#race_control_login_button");
+                    login = function () {
+                        var val = race_control_password.val();
+                        if (wat) {
+                            race_control_password.val("");
+                            race_control_password.parse_race_control_command("logout");
+                        } else if (val)
+                            race_control_password.parse_race_control_command("login " + val);
+                    };
+                    race_control_login_button.click(login);
+                    race_control_password.on('keyup', function (e) {
+                        if (e.keyCode == 13) {
+                            login();
+                        }
+                    });
+                    race_control_password.parse_race_control_command = function (command) {
+                        if (socket) {
+                            if (command.match(/^login/)) {
+                                if (!wat) {
+                                    if (command.slice(6).length >= 3)
+                                        socket.emit("race.director.login.do", {password: command.slice(6)});
+                                    else
+                                        race_control_password.val("");
+                                } else if (race_control_output)
+                                // already logged
+                                    race_control_password.val("********");
+                            } else if (command.match(/^logout/)) {
+                                //race_control_output.html("");
+                                socket.emit("race.director.logout.do");
+                            } else if (wat) {
+                                socket.emit("race.control.command", {command: command, token: wat});
+                            } else if (race_control_output) {
+                                race_control_output.add_lines(["Error: you need to login first."]);
+                            }
+                        }
+                    };
+                    socket = io(window.url, {
+                        transports: ['polling', 'websocket']
+                    });
+                    socket.on("connect", function () {
+                        race_control_output.html("");
+                        if (!wat)
+                            section_title.html("Live Race Control - <span style=\"color: #6fff00\">Online</span>");
+                        else
+                            section_title.html("Live Race Control - <span style=\"color: #6fff00\">Logged in</span>");
+                        race_control_password.prop('disabled', false);
+                        race_control_login_button.prop('disabled', false);
+                        race_control_password.focus();
+                    });
+                    socket.on("race.director.login.successful", function (data) {
+                        wat = typeof data == "object" && data.token ? data.token : "";
+                        race_director_action = function (type, data) {
+                            if (type == "apply_penalties")
+                                socket.emit("race.director.event.view.apply.penalties", {token: wat, data: data});
+                            else if (type == "save_track")
+                                socket.emit("race.director.event.view.save.track", {token: wat, data: data});
+                            else if (type == "deploy_vsc")
+                                socket.emit("race.director.virtual.safety.car.deploy", {token: wat, data: data});
+                        };
+                        race_control_password.val("********");
+                        race_control_login_button.text("Logout");
+                        section_title.html("Live Race Control - <span style=\"color: #6fff00\">Logged in</span>");
+                        race_control_password.prop('disabled', true);
+                        if (current_session_type && current_session_type == "race") {
+                            $("#race_control_deploy_vsc_button").prop("disabled", false);
+                            $("#race_control_deploy_vsc_seconds_input").prop("disabled", false);
+                        }
+                    });
+                    socket.on("race.director.logout.successful", function (data) {
+                        wat = "";
+                        race_director_action = undefined;
+                        race_control_password.prop('disabled', false);
+                        race_control_login_button.text("Login");
+                    });
+                    socket.on("race.control.add.output", function (data) {
+                        race_control_output.add_lines(data);
+                    });
+                    socket.on("race.control.set.track", save_track);
+                    socket.on("race.control.track.saved", function () {
+                        if (track_edit_mode) {
+                            var button = $("#event_edit_track");
+                            if (button.length) {
+                                button.text("Saved!");
+                                setTimeout(function () {
+                                    button.text("Save All");
+                                }, 3000)
+                            }
+                        }
+                    });
+                    $("#race_control_deploy_vsc_button").click(function () {
+                        if (wat && typeof race_director_action == "function") {
+                            var seconds = parseInt($("#race_control_deploy_vsc_seconds_input").val());
+                            if (seconds >= 15)
+                                race_director_action("deploy_vsc", {seconds: seconds});
+                        }
+                    });
+                    var set_button = function (type, data) {
+                        var button = $("#" + type + "_button_" + data.ts);
+                        button.data("track", data.track);
+                        button.click(function () {
+                            if (ie_incompat)
+                                return alert("This version of Internet Explorer cannot support modern drawing features. Please use any other browser that supports recent standards (Firefox, Vivaldi, Chrome, Opera, Edge).");
+                            if (wat && (type == "collision" || type == "cut"))
+                                socket.emit("race.control." + type + ".under.investigation", {
+                                    token: wat,
+                                    ts: data.ts
+                                });
+                            new Promise(function (done) {
+                                if (!tracks[data.track]) {
+                                    socket.once("race.control.set.track", function (track_data) {
+                                        done(data);
+                                    });
+                                    socket.emit("race.control.request.track", data.track);
+                                } else {
+                                    done(data);
+                                }
+                            }).then(function (data) {
+                                        return new Promise(function (done) {
+                                            if (!button.data(type + "_data")) {
+                                                socket.once("race.control.set." + type + ".data", function (data) {
+                                                    button.data(type + "_data", data);
+                                                    done(data);
+                                                });
+                                                socket.emit("race.control.request." + type + ".data", data);
+                                            } else
+                                                done(button.data(type + "_data"));
+                                        });
+                                    }).then(show_track_event);
+                        });
+                    };
+                    show_track = function (track) {
+                        new Promise(function (done) {
+                            if (!tracks[track]) {
+                                socket.once("race.control.set.track", function (track_data) {
+                                    done({track: track, event_position: {x: 0, z: 0}});
+                                });
+                                socket.emit("race.control.request.track", track);
+                            } else {
+                                done({track: track, event_position: {x: 0, z: 0}});
+                            }
+                        }).then(show_track_event);
+                    };
+                    var get_penalty_string = function (data) {
+                        var penalty_string = "";
+                        if (data.moderated && typeof data.moderated == "object" && typeof data.moderated.penalties == "object") {
+                            if (Object.keys(data.moderated.penalties).length) {
+                                var penalties = "";
+                                for (var guid in data.moderated.penalties) {
+                                    if (data.moderated.penalties.hasOwnProperty(guid) && (data.moderated.penalties[guid].penalty_hr || data.moderated.penalties[guid].action))
+                                        penalties += "<span class=\"penalty_cost penalty_info\" title=\"" + guid + "\">" + data.moderated.penalties[guid].name + ": " + (data.moderated.penalties[guid].action ? data.moderated.penalties[guid].action : " ") + (data.moderated.penalties[guid].action ? ", " : "") + (data.moderated.penalties[guid].penalty ? data.moderated.penalties[guid].penalty_hr : "") + "</span>&nbsp;";
+                                }
+                                if (penalties) {
+                                    penalty_string += "<span class=\"penalty_info\">" + (data.moderated.reviewed ? "Race Control: " : "Automated Control: " ) + "Penalties - </span>" + penalties;
+                                    penalty_string = penalty_string.slice(0, -6) + ".";
+                                } else
+                                    penalty_string += "<span class=\"penalty_info\">" + (data.moderated.reviewed ? "Race Control: no further action required." : "Automated Control: a Race Director hasn't reviewed this event yet." ) + "</span>";
+                            } else {
+                                penalty_string += "<span class=\"penalty_info\">" + (data.moderated.reviewed ? "Race Control: no further action required." : "Automated Control: a Race Director hasn't reviewed this event yet." ) + "</span>";
+                            }
+                        }
+                        return penalty_string;
+                    };
+                    var current_session_type = "";
+                    var parse_session = function (session_info) {
+                        if (session_info) {
+                            if (session_info.id && !race_control_session_select.find("[value=\"" + session_info.id + "\"]").length) {
+                                race_control_session_select.last_id = Math.max(session_info.id, race_control_session_select.last_id);
+                                race_control_session_select.find("#select_last_session").after($("<option>", {
+                                    value: session_info.id,
+                                    text: new Date(session_info.id).toLocaleDateString(locale) + " " + new Date(session_info.id).toLocaleTimeString(locale) + " - " + first_up(session_info.type)
+                                }));
+                            }
+                            if (session_info.type && session_info.type != current_session_type) {
+                                if (typeof race_director_action == "function") {
+                                    if (session_info.type == "race") {
+                                        $("#race_control_deploy_vsc_button").prop("disabled", false);
+                                        $("#race_control_deploy_vsc_seconds_input").prop("disabled", false);
+                                    } else {
+                                        $("#race_control_deploy_vsc_button").prop("disabled", true);
+                                        $("#race_control_deploy_vsc_seconds_input").prop("disabled", true);
+                                    }
+                                }
+                                current_session_type = session_info.type;
+                            }
+                        }
+                    };
+                    var add_event = {
+                        collision: function (data, replace_id) {
+                            var penalty_string = get_penalty_string(data);
+                            data.session_info && parse_session(data.session_info);
+                            var html = "<div class=\"col-sm-11\">" + new Date(data.ts).toLocaleDateString(locale) + " " + new Date(data.ts).toLocaleTimeString(locale) + " (id: " + parseInt(data.ts / 1000) + "): Collision between " + html_encode(data.car_driver_name + " (GUID: " + data.car_guid + ")") + " and " + html_encode(data.other_car_driver_name + " (GUID: " + data.other_car_guid + ")") + (penalty_string ? "<br>" + penalty_string : "" ) + "</div><div class=\"col-sm-1\"><button id=\"collision_button_" + data.ts + "\" type=\"button\" class=\"collision_button float-right event_button btn btn-info\">View</button></div>";
+                            if (html && race_control_output) {
+                                if (!replace_id) {
+                                    var fhtml = "<li id=\"event_" + data.type + "_" + data.ts + "\" class=\"event_entry collision_entry " + (data.moderated.reviewed ? "" : "pending_review ") + "session_" + data.session_info.id + " row\">" + html + "</li>";
+                                    if (race_control_last_first)
+                                        race_control_output.prepend(fhtml);
+                                    else
+                                        race_control_output.append(fhtml);
+                                } else if ($("#" + replace_id)) {
+                                    $("#" + replace_id).html(html);
+                                    $("#" + replace_id).removeClass("pending_review");
+                                    if (!data.moderated.reviewed)
+                                        $("#" + replace_id).addClass("pending_review");
+                                }
+                                set_button("collision", data);
+                                parse_filters();
+                            }
+                        },
+                        cut: function (data, replace_id) {
+                            var penalty_string = get_penalty_string(data);
+                            data.session_info && parse_session(data.session_info);
+                            var html = "<div class=\"col-sm-11\">" + new Date(data.ts).toLocaleDateString(locale) + " " + new Date(data.ts).toLocaleTimeString(locale) + " (id: " + parseInt(data.ts / 1000) + "): " + html_encode(data.car_driver_name + " (GUID: " + data.car_guid + ")") + (data.cut_type == "boundary" ? " laptime invalidated for violating the track boundaries (lap: " + data.car_lap + ", count: " + data.cut_count[1] + ")." : " driving line violation (lap: " + data.car_lap + ", " + data.cut_type + ", count: " + data.cut_count[1] + ").") + (penalty_string ? "<br>" + penalty_string : "" ) + "</div><div class=\"col-sm-1\"><button id=\"cut_button_" + data.ts + "\" type=\"button\" class=\"cut_button float-right event_button btn btn-info\">View</button></div>";
+                            if (html && race_control_output) {
+                                if (!replace_id) {
+                                    var fhtml = "<li id=\"event_" + data.type + "_" + data.ts + "\" class=\"event_entry cut_entry " + (data.moderated.reviewed ? "" : "pending_review ") + "session_" + data.session_info.id + " row\">" + html + "</li>";
+                                    if (race_control_last_first)
+                                        race_control_output.prepend(fhtml);
+                                    else
+                                        race_control_output.append(fhtml);
+                                } else if ($("#" + replace_id)) {
+                                    $("#" + replace_id).html(html);
+                                    $("#" + replace_id).removeClass("pending_review");
+                                    if (!data.moderated.reviewed)
+                                        $("#" + replace_id).addClass("pending_review");
+                                }
+                                set_button("cut", data);
+                                parse_filters();
+                            }
+                        },
+                        overtake: function (data, replace_id) {
+                            var penalty_string = get_penalty_string(data);
+                            data.session_info && parse_session(data.session_info);
+                            var html = "<div class=\"col-sm-11\">" + new Date(data.ts).toLocaleDateString(locale) + " " + new Date(data.ts).toLocaleTimeString(locale) + " (id: " + parseInt(data.ts / 1000) + "): " + html_encode(data.car_driver_name + " (GUID: " + data.car_guid + ")") + " overtook " + html_encode(data.other_car_driver_name + " and gained the " + format_position(data.race_position) + " position (GUID: " + data.other_car_guid + ")") + "." + (penalty_string ? "<br>" + penalty_string : "" ) + "</div><div class=\"col-sm-1\"><button id=\"overtake_button_" + data.ts + "\" type=\"button\" class=\"overtake_button float-right event_button btn btn-info\">View</button></div>";
+                            if (html && race_control_output) {
+                                if (!replace_id) {
+                                    var fhtml = "<li id=\"event_" + data.type + "_" + data.ts + "\" class=\"event_entry overtake_entry " + (data.moderated.reviewed ? "" : "pending_review ") + "session_" + data.session_info.id + " row\">" + html + "</li>";
+                                    if (race_control_last_first)
+                                        race_control_output.prepend(fhtml);
+                                    else
+                                        race_control_output.append(fhtml);
+                                } else if ($("#" + replace_id)) {
+                                    $("#" + replace_id).html(html);
+                                    $("#" + replace_id).removeClass("pending_review");
+                                    if (!data.moderated.reviewed)
+                                        $("#" + replace_id).addClass("pending_review");
+                                }
+                                set_button("overtake", data);
+                                parse_filters();
+                            }
+                        },
+                        generic: function (data, replace_id) {
+                            data.session_info && parse_session(data.session_info);
+                            var html = "<div class=\"col-sm-11\">" + new Date(data.ts).toLocaleDateString(locale) + " " + new Date(data.ts).toLocaleTimeString(locale) + " (id: " + parseInt(data.ts / 1000) + "): " + html_encode(data.text) + "</div><div class=\"col-sm-1\"></div>";
+                            if (html && race_control_output) {
+                                if (!replace_id) {
+                                    var fhtml = "<li id=\"event_" + data.type + "_" + data.ts + "\" class=\"event_entry generic_entry session_" + data.session_info.id + " row\">" + html + "</li>";
+                                    if (race_control_last_first)
+                                        race_control_output.prepend(fhtml);
+                                    else
+                                        race_control_output.append(fhtml);
+                                } else if ($("#" + replace_id)) {
+                                    $("#" + replace_id).html(html)
+                                }
+                                parse_filters();
+                            }
+                        }
+                    };
+                    socket.on("race.control.set.events", function (data) {
+                        if (data.length) {
+                            race_control_output.empty();
+                            for (var i = 0; i < data.length; i++) {
+                                add_event[data[i].type] && add_event[data[i].type](data[i]);
+                            }
+                        }
+                    });
+                    socket.on("race.control.update.event", function (data) {
+                        if (data.ts) {
+                            add_event[data.type] && add_event[data.type](data, "event_" + data.type + "_" + data.ts);
+                        }
+                    });
+                    socket.on("race.control.add.collision", add_event.collision);
+                    socket.on("race.control.add.cut", add_event.cut);
+                    socket.on("race.control.add.overtake", add_event.overtake);
+                    socket.on("race.control.add.generic", add_event.generic);
+                    socket.on("race.control.event.view.redraw", function (data) {
+                        if (full_screen_modal.is(":visible")) {
+                            var cb = $("#event_view_close");
+                            if (cb && cb.data("event_data") && cb.data("event_data").ts == data.ts && cb.data("event_data").type == data.type)
+                                $("#event_" + data.type + "_" + data.ts).find('.event_button').click();
+                        }
+                    });
+                    socket.on("disconnect", function () {
+                        section_title.html("Live Race Control - <span style=\"color: #ff9f9f\">Offline</span>");
+                        race_control_password.prop('disabled', true);
+                        race_control_login_button.prop('disabled', true);
+                        $("#event_view_apply").hide();
+                        $("#event_view_close").click();
+                    });
+                    break;
+                case (url[3] == "debug"):
+                    active.removeClass("active");
+                    section_title.text("Debug");
+                    section_description.html("Here is the debug log.");
+                    jQuery.getJSON("/?debug=true", function (data) {
+                        var html = generate_table(data);
+                        if (html) {
+                            data_display.html(html);
+                            format_tables();
+                        } else {
+                            data_display.html("<table class='table' style='margin-top: 30px;'><tbody><tr><td>Debug is disabled.</td></tr></tbody></table>");
+                        }
+                        $("td").addClass("nocursor");
+                    });
+                    break;
+                default:
+                    active.removeClass("active");
+                    $("#online").addClass("active");
+                    section_title.text("Online");
+                    jQuery.getJSON("/?online=true", function (data) {
+                        section_description.html("<span>Current session: " + (data["session"].type ? first_up(data["session"].type) : "NA" ) + "<br>Track: " + (data["track_name"] ? data["track_name"] : "NA" ) + "</span><br>Live server information.");
+                        var html = "";
+                        html += "<h3 style='padding-top: 30px;'>Drivers</h3>";
+                        if (data["players"].length) {
+                            data["players"].sort(sort_by_position);
+                            html += generate_table(data["players"], false, "player_list");
+                        } else {
+                            html += "<table class='table' style='margin-top: 30px;'><tbody><tr><td>No drivers online.</td></tr></tbody></table>";
+                        }
+                        html += "<h3 style='padding-top: 30px;'>Cars</h3>";
+                        if (data["cars"].length) {
+                            html += generate_table(data["cars"], false, "car_list");
+                        } else {
+                            html += "<table class='table' style='margin-top: 30px;'><tbody><tr><td>No cars to list yet.</td></tr></tbody></table>";
+                        }
+                        data_display.html(html);
+                        format_tables();
+                        if (data["players"].length)
+                            $("#player_list").find("td").click(function () {
+                                var guid = $(this).parent().find(".guid").text();
+                                window.location.pathname = "/driver/" + guid;
+                            });
+                        else
+                            $("#player_list").find("td").addClass("nocursor");
+                        $("#car_list").find("td").addClass("nocursor");
+                    });
+            }
+            full_screen_modal = $("#full_screen_modal");
+            $("#live_map").click(function () {
+                if (!socket) {
+                    socket = io(window.url, {
+                        transports: ['polling', 'websocket']
+                    });
+                    socket.on("connect", function () {
+                        socket.emit("live.track.view.request")
+                    });
+                    socket.on("race.control.set.track", save_track);
+                } else {
+                    socket.emit("live.track.view.request");
+                }
+                socket.off("live.track.view.start").on("live.track.view.start", function (data) {
+                    if (ie_incompat)
+                        return alert("This version of Internet Explorer cannot support modern drawing features. Please use any other browser that supports recent standards (Firefox, Vivaldi, Chrome, Opera, Edge).");
+                    new Promise(function (done) {
+                        if (!tracks[data.track]) {
+                            socket.once("race.control.set.track", function (track_data) {
+                                done(data);
+                            });
+                            socket.emit("race.control.request.track", data.track);
+                        } else {
+                            done(data);
+                        }
+                    }).then(show_track_event);
+                    return false;
+                });
+                socket.off("live.track.view.update").on("live.track.view.update", function (data) {
+                    if (typeof get_current_event_viewer_data == "function") {
+                        var cdata = get_current_event_viewer_data(), length;
+                        var guids = Object.keys(cdata.drivers);
+                        for (var guid in data.lap_logs) {
+                            if (data.lap_logs.hasOwnProperty(guid)) {
+                                var to_remove = guids.indexOf(guid);
+                                if (to_remove != -1)
+                                    guids.splice(to_remove, 1);
+                                cdata.lap_logs[guid] = cdata.lap_logs[guid] || [];
+                                length = cdata.lap_logs[guid] ? cdata.lap_logs[guid].length : 0;
+                                cdata.lap_logs[guid] = cdata.lap_logs[guid].concat(data.lap_logs[guid]);
+                                if (length)
+                                    process_driver_lap_log_line(cdata, guid, length - 1, 0);
+                                if (length > 30) {
+                                    cdata.lap_logs[guid].shift();
+                                    cdata.computed.drivers[guid].line.shift();
+                                    cdata.computed.drivers[guid].ci = Math.max(--cdata.computed.drivers[guid].ci, 0);
+                                }
+                            }
+                        }
+                        for (var i = 0; i < guids.length; i++) {
+                            delete cdata.drivers_layer[guids[i]];
+                            delete cdata.computed.drivers[guids[i]];
+                            delete cdata.lap_logs[guids[i]];
+                            $("#drivers_layer_" + guids[i]).remove();
+                        }
+                        cdata.leaderboard = data.leaderboard;
+                        cdata.drivers = data.drivers;
+                    }
+                });
+                socket.on("disconnect", function () {
+                    event_view_driver_follow_select_update_interval && (clearInterval(event_view_driver_follow_select_update_interval) || (event_view_driver_follow_select_update_interval = undefined));
+                });
+                stop_live_track_view = function () {
+                    socket.emit("live.track.view.close");
+                    event_view_driver_follow_select_update_interval && (clearInterval(event_view_driver_follow_select_update_interval) || (event_view_driver_follow_select_update_interval = undefined));
+                    event_view_driver_follow_id = undefined;
+                };
+            });
+        });
+        function save_to_store(id, data, exp) {
+            if (localStorage) {
+                exp = exp ? exp : 86400;
+                if (typeof data == "object") {
+                    data._store_ts = Date.now();
+                    data._store_exp = Date.now() + exp * 1000;
+                    localStorage.setItem(id, JSON.stringify(data));
+                } else {
+                    localStorage.removeItem(id);
+                }
+            }
+        }
+        function get_from_store(id) {
+            if (localStorage) {
+                var data = localStorage.getItem(id);
+                try {
+                    data = JSON.parse(data);
+                    if (typeof data == "object" && data) {
+                        if (Date.now() < data._store_exp) {
+                            return data;
+                        }
+                        localStorage.removeItem(id);
+                    }
+                } catch (e) {
+                    data && localStorage.removeItem(id);
+                }
+            }
+            return false;
+        }
+        function save_track(track_data) {
+            tracks[track_data.track] = track_data.data.boundary;
+            if (track_data.data.cut_lines) {
+                cut_lines[track_data.track] = track_data.data.cut_lines;
+                save_to_store("cut_lines", cut_lines);
+            }
+            if (track_data.data.pit_area) {
+                pit_area[track_data.track] = track_data.data.pit_area;
+                save_to_store("pit_area", pit_area);
+            }
+            if (track_data.data.accessory_area) {
+                accessory_area[track_data.track] = track_data.data.accessory_area;
+                save_to_store("accessory_area", accessory_area);
+            }
+            save_to_store("tracks", tracks);
+            if (full_screen_modal.is(":visible")) {
+                var cb = $("#event_view_close");
+                if (cb && cb.data("event_data") && cb.data("event_data").track == track_data.track)
+                    show_track_event(cb.data("event_data"));
+            }
+        }
+        function html_encode(value) {
+            return $("<div/>").text(value).html();
+        }
+        var race_director_action, get_current_event_viewer_data, stop_live_track_view;
+        var get_point, draw;
+        function generate_html(data) {
+            var html = "<div class=\"container-fluid\"><div id=\"track_event_view_wrap\"class=\"row\"><div id=\"canvas_wrap\" class=\"col-md-9\"><canvas id=\"track_layer\" style=\"position: absolute; left: 0; top: 0; z-index: 0;\"></canvas><canvas id=\"legend_layer\" style=\"position: absolute; left: 0; top: 0; z-index: 1;\"></canvas>";
+            for (var guid in data.drivers) {
+                if (data.drivers.hasOwnProperty(guid)) {
+                    html += "<canvas id=\"drivers_layer_" + guid + "\" style=\"position: absolute; left: 0; top: 0; z-index: 2;\"></canvas>";
+                }
+            }
+            html += "</div><div class=\"col-md-3\">";
+            html += "<div class=\"row\" style=\"margin: 15px auto;\">" + (data.type != "live_view" ? "<button class=\"btn btn-info col-sm-2 offset-sm-1\" id=\"event_view_previous\">&lt;&lt;</button>&nbsp;<button class=\"btn btn-success col-sm-3\" id=\"event_view_replay\">Replay</button>&nbsp;" : "") + "<button class=\"btn btn-danger col-sm-" + (data.type != "live_view" ? "3" : "12") + "\" id=\"event_view_close\">Close</button>" + (data.type != "live_view" ? "&nbsp;<button class=\"btn btn-info col-sm-2\" id=\"event_view_next\">&gt;&gt;</button>" : "") + "</div>";
+            html += "<div class=\"row\">" + (data.type != "live_view" ? "<label class=\"col-sm-6 col-form-label\" for=\"event_view_time_scale\">Time Scale:</label><input class=\"col-sm-6 border-0\" type=\"number\" step=\"0.1\" id=\"event_view_time_scale\" min=\"0.1\" value=\"" + time_scale + "\" required />" : "") + "</div><div class=\"row\"><label class=\"col-sm-6 col-form-label\" for=\"event_view_magnify\">Zoom:</label><input class=\"col-sm-6 border-0\" type=\"number\" step=\"0.1\" id=\"event_view_magnify\" min=\"0.1\" value=\"" + magnifying_factor.x + "\" required /></div><div class=\"row\"><label class=\"col-sm-6 col-form-label\" for=\"event_view_center_x\">Center X:</label><input class=\"col-sm-6 border-0\" type=\"number\" step=\"1\" id=\"event_view_center_x\" value=\"" + parseInt(center.x) + "\" required /></div><div class=\"row\"><label class=\"col-sm-6 col-form-label\" for=\"event_view_center_y\">Center Y:</label><input class=\"col-sm-6 border-0\" type=\"number\" step=\"1\" id=\"event_view_center_y\" value=\"" + parseInt(center.z) + "\" required /><label class=\"col-sm-6 col-form-label\" for=\"event_view_frames_per_second\">FPS:</label><input class=\"col-sm-6 border-0\" type=\"number\" step=\"1\" id=\"event_view_frames_per_second\" min=\"1\" value=\"" + parseInt(frames_per_second) + "\" required /></div>";
+            if (data.type != "live_view") {
+                html += "<button class=\"btn col-md-6\" id=\"event_view_save_settings\" style=\"border: 1px solid #FFF;\">Save Settings</button><button class=\"btn col-md-6\" id=\"event_view_clear_saved_settings\" style=\"border: 1px solid #FFF;\">Clear Saved</button>";
+                html += "<hr><div id=\"event_view_data_wrap\" style=\"" + (track_edit_mode ? "display: none;" : "") + "\"><h5>Status: <span style=\"color:red\">" + (data.moderated && data.moderated.reviewed ? "reviewed" : "pending review") + "</span></h5>";
+                for (var guid in data.drivers) {
+                    if (data.drivers.hasOwnProperty(guid)) {
+                        html += "<div class=\"row\"><label class=\"col-sm-6 col-form-label\" for=\"event_view_penalty_for_" + guid + "\" title=\"GUID: " + guid + "\" style=\"" + (guid == data.car_guid || guid == (data.other_car_guid || "") ? "color: red;" : "" ) + "\">" + html_encode(data.drivers[guid].name) + ":</label><span id=\"event_view_action_for_" + guid + "\" class=\"event_view_race_director_action col-sm-2 col-form-label\" style=\"padding-left: 0;text-decoration: underline overline; -webkit-user-select: none; -moz-user-select: none;-ms-user-select: none;user-select: none;" + (race_director_action ? "cursor: pointer;" : "") + "\">" + (data.moderated && typeof data.moderated.penalties[guid] == "object" && data.moderated.penalties[guid].action ? data.moderated.penalties[guid].action : "N") + "</span><input class=\"col-sm-4 penalty_input border-0\" type=\"number\" step=\"100\" id=\"event_view_penalty_for_" + guid + "\" value=\"" + (data.moderated && typeof data.moderated.penalties[guid] == "object" && data.moderated.penalties[guid].penalty ? data.moderated.penalties[guid].penalty : "") + "\" min=\"0\" " + ((data.moderated && data.moderated.reviewed) || !race_director_action ? "disabled=\"true\"" : "required") + " /></div>";
+                    }
+                }
+                html += "</div>";
+                html += "<select style=\"" + (track_edit_mode ? "" : "display: none;") + ";margin-bottom: 15px;\" id=\"track_edit_scope_select\" class=\"bootstrap-select\" style=\"font-size: 0.9rem; \">";
+                if (tracks[data.track])
+                    html += "<option value=\"track\"" + (track_edit_scope == "track" ? " selected=\"selected\"" : "") + ">Track</option>";
+                if (pit_area[data.track])
+                    html += "<option value=\"pit_area\"" + (track_edit_scope == "pit_area" ? " selected=\"selected\"" : "") + ">Pit Area</option>";
+                if (accessory_area[data.track])
+                    for (var aan in accessory_area[data.track])
+                        if (accessory_area[data.track].hasOwnProperty(aan))
+                            html += "<option value=\"accessory_area_" + aan + "\"" + (track_edit_scope == "accessory_area_" + aan ? " selected=\"selected\"" : "") + ">Accessory Area - " + aan + " </option>";
+                html += "</select>";
+                if ((!data.moderated || !data.moderated.reviewed) && race_director_action)
+                    html += "<button style=\"" + (track_edit_mode ? "display: none;" : "") + "\" class=\"btn\" id=\"event_view_apply\">Apply Penalties</button>";
+                if (race_director_action)
+                    html += "&nbsp;<button class=\"btn\" id=\"event_edit_track\">" + (track_edit_mode ? "Save All" : "Edit Track") + "</button>";
+            } else {
+                html += "<hr><h5>Auto-Follow Driver:</h5><select style=\"margin-bottom: 15px;\" id=\"event_view_driver_follow_select\" class=\"bootstrap-select col-md-12\" style=\"font-size: 0.9rem; \"><option value=\"\">None</option></select>";
+                html += "<button class=\"btn col-md-6\" id=\"event_view_save_settings\" style=\"border: 1px solid #FFF;\">Save Settings</button><button class=\"btn col-md-6\" id=\"event_view_clear_saved_settings\" style=\"border: 1px solid #FFF;\">Clear Saved</button>";
+            }
+            html += "</div></div>";
+            full_screen_modal.empty();
+            full_screen_modal.html(html);
+        }
+        function bind_controls(data) {
+            $(".event_view_race_director_action").click(function () {
+                if (race_director_action) {
+                    var options = ["N", "DT0", "DT1", "DT2", "DT3", "K", "TB30", "TB60", "TB120", "TB240", "TB360"];
+                    var cv = options.indexOf($(this).text());
+                    var nv = cv != -1 ? ++cv % options.length : 0;
+                    $(this).text(options[nv]);
+                }
+            });
+            $("#event_view_apply").click(function () {
+                var judgement = {ts: data.ts, type: data.type, penalties: {}};
+                $(".penalty_input").each(function () {
+                    var guid = $(this).attr("id").replace(/event_view_penalty_for_/, "");
+                    var penalty = $(this).val();
+                    var action = $("#event_view_action_for_" + guid).text();
+                    action = action != "N" ? action : "";
+                    if (guid && (penalty || action)) {
+                        judgement.penalties[guid] = {};
+                        if (penalty)
+                            judgement.penalties[guid].penalty = penalty;
+                        if (action)
+                            judgement.penalties[guid].action = action;
+                    }
+                });
+                race_director_action("apply_penalties", judgement);
+            });
+            $("#event_edit_track").click(function () {
+                window.cancelAnimationFrame(last_draw_request);
+                clearTimeout(last_draw_timeout);
+                if (!track_edit_mode) {
+                    $("#event_view_apply").remove();
+                    $("#event_view_data_wrap").hide();
+                    $("#track_edit_scope_select").show();
+                    $(this).text("Save All");
+                    draw();
+                    track_edit_mode = 1;
+                } else {
+                    var new_data = {track: data.track};
+                    if (tracks[data.track])
+                        new_data.boundary = tracks[data.track];
+                    if (cut_lines[data.track])
+                        new_data.cut_lines = cut_lines[data.track];
+                    if (pit_area[data.track])
+                        new_data.pit_area = pit_area[data.track];
+                    if (accessory_area[data.track])
+                        new_data.accessory_area = accessory_area[data.track];
+                    if (race_director_action)
+                        race_director_action("save_track", new_data)
+                }
+            });
+            $('#canvas_wrap').off('mousedown').on('mousedown', function (e) {
+                if (e.which == 1)
+                    $(this).data('p0', {x: e.pageX, y: e.pageY});
+                else if (e.which == 2)
+                    e.preventDefault();
+            }).off('mouseup').on('mouseup', function (e) {
+                if (e.which == 1) {
+                    var p0 = $(this).data('p0'),
+                            p1 = {x: e.pageX, y: e.pageY},
+                            d = p0 ? Math.sqrt(Math.pow(p1.x - p0.x, 2) + Math.pow(p1.y - p0.y, 2)) : 0;
+                    if (d < 4) {
+                        if (!track_edit_mode) {
+                            center.x -= Math.round((data.canvas.width / 2 - (e.offsetX || e.layerX)) / magnifying_factor.x);
+                            center.z -= Math.round((data.canvas.height / 2 - (e.offsetY || e.layerY)) / magnifying_factor.y);
+                            event_view_set_center(data, {x: center.x, z: center.z});
+                        } else {
+                            var click_point = {
+                                x: center.x - (data.canvas.width / 2 - (e.offsetX || e.layerX)) / magnifying_factor.x,
+                                z: center.z - (data.canvas.height / 2 - (e.offsetY || e.layerY)) / magnifying_factor.y
+                            };
+                            if (!track_edit_selected_point) {
+                                select_point(click_point, data.track, track_edit_scope) && $('#canvas_wrap').css('cursor', 'crosshair');
+                                show_track_event(event_view_close.data("event_data"));
+                            } else {
+                                track_edit_selected_point.wp.x = click_point.x;
+                                track_edit_selected_point.wp.z = click_point.z;
+                                track_edit_selected_point = undefined;
+                                show_track_event(event_view_close.data("event_data"));
+                            }
+                        }
+                    } else {
+                        center.x = Math.round(center.x - (p1.x - p0.x) / magnifying_factor.x);
+                        center.z = Math.round(center.z - (p1.y - p0.y) / magnifying_factor.y);
+                        if (!track_edit_mode)
+                            event_view_set_center(data, {x: center.x, z: center.z});
+                        else
+                            show_track_event(data);
+                    }
+                } else if (e.which == 3) {
+                    track_edit_selected_point = undefined;
+                    show_track_event(event_view_close.data("event_data"));
+                    return false;
+                } else if (e.which == 2) {
+                    e.preventDefault();
+                    if (track_edit_selected_point && track_edit_scope == "track") {
+                        track_edit_selected_point.nc = track_edit_selected_point.nc ? 0 : 1;
+                    }
+                    track_edit_selected_point = undefined;
+                    show_track_event(event_view_close.data("event_data"));
+                }
+            });
+            $("#canvas_wrap").contextmenu(function () {
+                return false;
+            });
+            track_edit_mode && ((track_edit_selected_point && $('#canvas_wrap').css('cursor', 'crosshair')) || $('#canvas_wrap').css('cursor', 'pointer'));
+            var event_view_close = $("#event_view_close");
+            event_view_close.click(function () {
+                center = undefined;
+                last_draw_request && window.cancelAnimationFrame(last_draw_request);
+                last_draw_timeout && clearTimeout(last_draw_timeout);
+                full_screen_modal.hide();
+                if (data.type != "live_view")
+                    $("#event_" + data.type + "_" + data.ts).get(0).scrollIntoView();
+                else {
+                    stop_live_track_view();
+                    start = undefined;
+                }
+                event_view_driver_follow_select_update_interval && (clearInterval(event_view_driver_follow_select_update_interval) || (event_view_driver_follow_select_update_interval = undefined));
+                track_edit_mode = 0;
+                track_edit_scope = "track";
+                track_edit_selected_point = undefined;
+            });
+            event_view_close.data("event_data", data);
+            $("#event_view_previous").click(function () {
+                center = undefined;
+                if (race_control_last_first)
+                    $("#event_" + data.type + "_" + data.ts).nextAll(":has(.event_button):visible").first().find('.event_button').click();
+                else
+                    $("#event_" + data.type + "_" + data.ts).prevAll(":has(.event_button):visible").first().find('.event_button').click();
+            });
+            $("#event_view_next").click(function () {
+                center = undefined;
+                if (race_control_last_first)
+                    $("#event_" + data.type + "_" + data.ts).prevAll(":has(.event_button):visible").first().find('.event_button').click();
+                else
+                    $("#event_" + data.type + "_" + data.ts).nextAll(":has(.event_button):visible").first().find('.event_button').click();
+            });
+            $("#event_view_replay").click(function () {
+                $("#event_" + data.type + "_" + data.ts).find('.event_button').click();
+            });
+            $("#event_view_time_scale").change(function () {
+                var scale = parseFloat($(this).val());
+                if (typeof scale == "number") {
+                    if (scale > 0) {
+                        start = Date.now() * (1 - time_scale / scale) + start * (time_scale / scale);
+                        time_scale = scale;
+                    } else
+                        $(this).val(scale);
+                }
+            });
+            $("#event_view_magnify").change(function () {
+                var factor = parseFloat($(this).val());
+                if (typeof factor == "number") {
+                    if (factor > 0) {
+                        if (!track_edit_mode)
+                            event_view_set_scale(data, {x: factor, y: factor});
+                        else {
+                            magnifying_factor.x = factor;
+                            magnifying_factor.y = factor;
+                            show_track_event(data);
+                        }
+                    } else
+                        $(this).val(magnifying_factor.x);
+                }
+            });
+            $("#event_view_center_x").change(function () {
+                var x = parseInt($(this).val());
+                if (typeof x == "number") {
+                    if (!track_edit_mode)
+                        event_view_set_center(data, {x: x, z: center.z});
+                    else {
+                        center.x = x;
+                        show_track_event(data);
+                    }
+                }
+            });
+            $("#event_view_center_y").change(function () {
+                var y = parseInt($(this).val());
+                if (typeof y == "number") {
+                    if (!track_edit_mode)
+                        event_view_set_center(data, {x: center.x, z: y});
+                    else {
+                        center.z = y;
+                        show_track_event(data);
+                    }
+                }
+            });
+            $("#event_view_frames_per_second").change(function () {
+                var fps = parseInt($(this).val());
+                if (typeof fps == "number") {
+                    if (fps > 0) {
+                        frames_per_second = fps;
+                    } else
+                        $(this).val(frames_per_second);
+                }
+            });
+            var event_view_driver_follow_select = $("#event_view_driver_follow_select");
+            if (event_view_driver_follow_select_update_fix) {
+                event_view_driver_follow_select_update_interval && clearInterval(event_view_driver_follow_select_update_interval);
+                var update_event_view_driver_follow_select = function () {
+                    var live_view_leaderboard = (get_current_event_viewer_data() || {}).leaderboard || "";
+                    if (live_view_leaderboard && live_view_leaderboard.length) {
+                        event_view_driver_follow_select.empty();
+                        event_view_driver_follow_select.append("<option value=\"\"" + (isNaN(event_view_driver_follow_id) ? " selected=\"true\"" : "") + ">None</option>");
+                        for (var i = 0; i < live_view_leaderboard.length; i++) {
+                            event_view_driver_follow_select.append("<option value=\"" + live_view_leaderboard[i].car_id + "\"" + (!isNaN(event_view_driver_follow_id) && event_view_driver_follow_id == live_view_leaderboard[i].car_id ? " selected=\"true\"" : "") + ">" + live_view_leaderboard[i].car_id + " - " + live_view_leaderboard[i].name + "</option>");
+                        }
+                    }
+                };
+                update_event_view_driver_follow_select();
+                event_view_driver_follow_select_update_interval = setInterval(update_event_view_driver_follow_select, 3000);
+            }
+            $("#event_view_driver_follow_select").on("click", function () {
+                var live_view_leaderboard = (get_current_event_viewer_data() || {}).leaderboard || "";
+                if (live_view_leaderboard) {
+                    $(this).empty();
+                    $(this).append("<option value=\"\"" + (isNaN(event_view_driver_follow_id) ? " selected=\"true\"" : "") + ">None</option>");
+                    for (var i = 0; i < live_view_leaderboard.length; i++) {
+                        $(this).append("<option value=\"" + live_view_leaderboard[i].car_id + "\"" + (!isNaN(event_view_driver_follow_id) && event_view_driver_follow_id == live_view_leaderboard[i].car_id ? " selected=\"true\"" : "") + ">" + live_view_leaderboard[i].car_id + " - " + live_view_leaderboard[i].name + "</option>");
+                    }
+                }
+            });
+            $("#event_view_driver_follow_select").change(function () {
+                event_view_driver_follow_id = parseInt($(this).val());
+                if (!isNaN(event_view_driver_follow_id)) {
+                    $("#event_view_center_x").prop('disabled', true);
+                    $("#event_view_center_y").prop('disabled', true);
+                } else {
+                    $("#event_view_center_x").prop('disabled', false);
+                    $("#event_view_center_y").prop('disabled', false);
+                }
+            });
+            $("#event_view_save_settings").click(function () {
+                var type = (get_current_event_viewer_data() || {}).type || "";
+                if (type) {
+                    save_to_store("event_view_settings_" + (type != "live_view" ? "rc" : "lv"), {
+                        magnifying_factor: magnifying_factor,
+                        frames_per_second: frames_per_second,
+                        time_scale: time_scale
+                    }, 1e7);
+                }
+            });
+            $("#event_view_clear_saved_settings").click(function () {
+                var type = (get_current_event_viewer_data() || {}).type || "";
+                if (type) {
+                    save_to_store("event_view_settings_" + (type != "live_view" ? "rc" : "lv"), "");
+                }
+            });
+            $("#track_edit_scope_select").change(function () {
+                track_edit_scope = $(this).val();
+                track_edit_selected_point = undefined;
+                show_track_event(event_view_close.data("event_data"));
+            });
+            $(window).off("resize").resize(function () {
+                if (full_screen_modal.is(":visible"))
+                    show_track_event(event_view_close.data("event_data"));
+            });
+        }
+        var last_draw_request, last_draw_timeout, start, frames_per_second, event_view_driver_follow_id;
+        function show_track_event(data) {
+            frames_per_second = frames_per_second ? frames_per_second : (data.type != "live_view" ? 30 : 20);
+            last_draw_request && window.cancelAnimationFrame(last_draw_request);
+            last_draw_timeout && clearTimeout(last_draw_timeout);
+            if (data.type != "live_view") {
+                start = undefined;
+            }
+            magnifying_factor = (get_from_store("event_view_settings_" + (data.type != "live_view" ? "rc" : "lv")) || {}).magnifying_factor || magnifying_factor;
+            frames_per_second = (get_from_store("event_view_settings_" + (data.type != "live_view" ? "rc" : "lv")) || {}).frames_per_second || frames_per_second;
+            time_scale = (get_from_store("event_view_settings_" + (data.type != "live_view" ? "rc" : "lv")) || {}).time_scale || time_scale;
+            get_current_event_viewer_data = function () {
+                return data;
+            };
+            if (!data.event_position && data.type == "live_view") {
+                var fail_counter = 0;
+                while (!(tracks[data.track].left[fail_counter] || {}).wp && fail_counter < tracks[data.track].left.length)
+                    fail_counter++;
+                data.event_position = fail_counter < tracks[data.track].left.length ? tracks[data.track].left[fail_counter].wp : {
+                    x: 0,
+                    y: 0,
+                    z: 0
+                };
+            }
+            var event_position = center || Object.assign({}, data.event_position);
+            center = event_position;
+            generate_html(data);
+            data.canvas = document.getElementById('track_layer');
+            bind_controls(data);
+            full_screen_modal.show();
+            $(window).scrollTop(0);
+            var canvas_wrap = document.getElementById("canvas_wrap");
+            data.size = {w: canvas_wrap.clientWidth, h: canvas_wrap.clientHeight};
+            data.canvas.width = data.size.w;
+            data.canvas.height = data.size.h;
+            data.track_layer = data.canvas.getContext('2d');
+            data.track_layer.scale(magnifying_factor.x, magnifying_factor.y);
+            data.track_layer.translate(-center.x + data.canvas.width / magnifying_factor.x * 0.5, -center.z + data.canvas.height / magnifying_factor.y * 0.5);
+            data.track_layer.save();
+            data.canvas = document.getElementById('legend_layer');
+            data.canvas.width = data.size.w;
+            data.canvas.height = data.size.h;
+            data.legend_layer = data.canvas.getContext('2d');
+            data.drivers_layer = {};
+            for (var guid in data.drivers)
+                if (data.drivers.hasOwnProperty(guid)) {
+                    data.canvas = document.getElementById('drivers_layer_' + guid);
+                    data.canvas.width = data.size.w;
+                    data.canvas.height = data.size.h;
+                    data.drivers_layer[guid] = data.canvas.getContext('2d');
+                    data.drivers_layer[guid].scale(magnifying_factor.x, magnifying_factor.y);
+                    data.drivers_layer[guid].translate(-center.x + data.canvas.width / magnifying_factor.x * 0.5, -center.z + data.canvas.height / magnifying_factor.y * 0.5);
+                    data.drivers_layer[guid].save();
+                }
+            data.computed = {drivers: {}};
+            var offset = {
+                x: data.canvas.width * 0.5 - event_position.x * magnifying_factor.x,
+                y: data.canvas.height * 0.5 - event_position.z * magnifying_factor.y
+            };
+            get_point = function (x, y) {
+                return {
+                    x: x,// * magnifying_factor.x + offset.x,
+                    y: y// * magnifying_factor.y + offset.y
+                };
+            };
+            var event_view_driver_follow_center_point;
+            draw = function () {
+                var drivers = data.computed.drivers;
+                if (track_edit_mode) {
+                    var scope = $("#track_edit_scope_select").val();
+                    for (var guid in data.drivers_layer)
+                        if (data.drivers_layer.hasOwnProperty(guid))
+                            data.drivers_layer[guid].clear();
+                    data.track_layer.clear();
+                    draw_track(data, scope);
+                }
+                else {
+                    draw_legend(data);
+                    var now = Date.now();
+                    start = start ? start : now;
+                    var t = (now - start) * (data.type != "live_view" ? time_scale : 1);
+                    if (!isNaN(event_view_driver_follow_id) && event_view_driver_follow_center_point) {
+                        event_view_set_center(data, {
+                            x: event_view_driver_follow_center_point.x,
+                            z: event_view_driver_follow_center_point.y
+                        });
+                    }
+                    for (var guid in drivers)
+                        if (drivers.hasOwnProperty(guid) && t >= drivers[guid].line[0].ts && t <= drivers[guid].line[drivers[guid].line.length - 1].ts) {
+                            let temp_point;
+                            if (!data.drivers_layer[guid]) {
+                                add_driver_layer(data, guid);
+                            }
+                            if (drivers[guid].line.length > 3) {
+                                while (true) {
+                                    if (drivers[guid].ci + 1 >= drivers[guid].line.length || drivers[guid].line[drivers[guid].ci + 1].ts > t)
+                                        break;
+                                    drivers[guid].ci++;
+                                }
+                                if (drivers[guid].line[drivers[guid].ci + 1]) {
+                                    data.drivers_layer[guid].clear();
+                                    if (drivers[guid].ci > 0 && drivers[guid].ci + 1 < drivers[guid].line.length - 1) {
+                                        temp_point = data.drivers_layer[guid].draw_point_on_cubic(
+                                                [drivers[guid].line[drivers[guid].ci].p, drivers[guid].line[drivers[guid].ci + 1].p],
+                                                [drivers[guid].line[drivers[guid].ci].cp[1], drivers[guid].line[drivers[guid].ci + 1].cp[0]],
+                                                (t - drivers[guid].line[drivers[guid].ci].ts) / (drivers[guid].line[drivers[guid].ci + 1].ts - drivers[guid].line[drivers[guid].ci].ts),
+                                                drivers[guid].color.toString(drivers[guid].line[drivers[guid].ci].l),
+                                                [drivers[guid].line[drivers[guid].ci].a, drivers[guid].line[drivers[guid].ci + 1].a],
+                                                drivers[guid].label
+                                        );
+                                    } else if (drivers[guid].ci >= 0 && drivers[guid].ci < drivers[guid].line.length) {
+                                        if (drivers[guid].ci) {
+                                            temp_point = data.drivers_layer[guid].draw_point_on_line(
+                                                    [drivers[guid].line[drivers[guid].ci].p, drivers[guid].line[drivers[guid].ci + 1].p],
+                                                    (t - drivers[guid].line[drivers[guid].ci].ts ) / (drivers[guid].line[drivers[guid].ci + 1].ts - drivers[guid].line[drivers[guid].ci].ts),
+                                                    drivers[guid].color.toString(drivers[guid].line[drivers[guid].ci].l),
+                                                    [drivers[guid].line[drivers[guid].ci].a, drivers[guid].line[drivers[guid].ci + 1].a],
+                                                    drivers[guid].label
+                                            );
+                                        } else {
+                                            temp_point = data.drivers_layer[guid].draw_point_on_quad(
+                                                    [drivers[guid].line[drivers[guid].ci].p, drivers[guid].line[drivers[guid].ci + 1].p],
+                                                    drivers[guid].line[drivers[guid].ci + 1].cp[0],
+                                                    (t - drivers[guid].line[drivers[guid].ci].ts ) / (drivers[guid].line[drivers[guid].ci + 1].ts - drivers[guid].line[drivers[guid].ci].ts),
+                                                    drivers[guid].color.toString(drivers[guid].line[drivers[guid].ci].l),
+                                                    [drivers[guid].line[drivers[guid].ci].a, drivers[guid].line[drivers[guid].ci + 1].a],
+                                                    drivers[guid].label
+                                            );
+                                        }
+                                    }
+                                    if (temp_point && !isNaN(event_view_driver_follow_id) && drivers[guid].id == event_view_driver_follow_id && (!event_view_driver_follow_center_point || distance(event_view_driver_follow_center_point, temp_point) > 0.1)) {
+                                        event_view_driver_follow_center_point = temp_point;
+                                    }
+                                }
+                            }
+                        }
+                    last_draw_timeout = setTimeout(function () {
+                        last_draw_request = window.requestAnimationFrame(draw);
+                    }, Math.round(1000 / frames_per_second));
+                }
+            };
+            var limit_x = function (x) {
+                return Math.max(0, Math.min(x, data.canvas.width));
+            };
+            var limit_y = function (y) {
+                return Math.max(0, Math.min(y, data.canvas.height));
+            };
+            draw_track(data);
+            if (data.type != "live_view") {
+                for (var guid in data.lap_logs)
+                    if (data.lap_logs.hasOwnProperty(guid)) {
+                        data.computed.time_origin = data.computed.time_origin ? Math.max(data.lap_logs[guid][0].ts, data.computed.time_origin) : data.lap_logs[guid][0].ts;
+                    }
+            } else {
+                data.computed.time_origin = data.server_ts - 3000;
+            }
+            var color_index = 0;
+            for (var guid in data.lap_logs) {
+                if (data.lap_logs.hasOwnProperty(guid)) {
+                    for (var i = 0; i < data.lap_logs[guid].length; i++) {
+                        process_driver_lap_log_line(data, guid, i, Object.keys(data.lap_logs).length);
+                    }
+                }
+            }
+            draw();
+        }
+        function event_view_set_scale(data, new_factor) {
+            magnifying_factor = new_factor;
+            if (data.track_layer) {
+                data.track_layer.clear();
+                data.track_layer.setTransform(1, 0, 0, 1, 0, 0);
+                data.track_layer.scale(new_factor.x, new_factor.y);
+                data.track_layer.translate(-center.x + data.canvas.width / new_factor.x * 0.5, -center.z + data.canvas.height / new_factor.y * 0.5)
+                data.track_layer.save();
+                draw_track(data, undefined, true);
+            }
+            for (var guid in data.drivers_layer)
+                if (data.drivers_layer.hasOwnProperty(guid)) {
+                    data.drivers_layer[guid].clear();
+                    data.drivers_layer[guid].setTransform(1, 0, 0, 1, 0, 0);
+                    data.drivers_layer[guid].scale(new_factor.x, new_factor.y);
+                    data.drivers_layer[guid].translate(-center.x + data.canvas.width / new_factor.x * 0.5, -center.z + data.canvas.height / new_factor.y * 0.5);
+                    data.drivers_layer[guid].save();
+                }
+        }
+        function event_view_set_center(data, new_center) {
+            center = new_center;
+            if (data.track_layer) {
+                data.track_layer.clear();
+                data.track_layer.setTransform(1, 0, 0, 1, 0, 0);
+                data.track_layer.scale(magnifying_factor.x, magnifying_factor.y);
+                data.track_layer.translate(-new_center.x + data.canvas.width / magnifying_factor.x * 0.5, -new_center.z + data.canvas.height / magnifying_factor.y * 0.5)
+                data.track_layer.save();
+                draw_track(data, undefined, true);
+            }
+            for (var guid in data.drivers_layer)
+                if (data.drivers_layer.hasOwnProperty(guid)) {
+                    data.drivers_layer[guid].clear();
+                    data.drivers_layer[guid].setTransform(1, 0, 0, 1, 0, 0);
+                    data.drivers_layer[guid].scale(magnifying_factor.x, magnifying_factor.y);
+                    data.drivers_layer[guid].translate(-new_center.x + data.canvas.width / magnifying_factor.x * 0.5, -new_center.z + data.canvas.height / magnifying_factor.y * 0.5);
+                    data.drivers_layer[guid].save();
+                }
+        }
+        function add_driver_layer(data, guid) {
+            $("#canvas_wrap").append("<canvas id=\"drivers_layer_" + guid + "\" style=\"position: absolute; left: 0; top: 0; z-index: 2;\"></canvas>");
+            data.canvas = document.getElementById('drivers_layer_' + guid);
+            data.canvas.width = data.size.w;
+            data.canvas.height = data.size.h;
+            data.drivers_layer[guid] = data.canvas.getContext('2d');
+            data.drivers_layer[guid].scale(magnifying_factor.x, magnifying_factor.y);
+            data.drivers_layer[guid].translate(-center.x + data.canvas.width / magnifying_factor.x * 0.5, -center.z + data.canvas.height / magnifying_factor.y * 0.5);
+            data.drivers_layer[guid].save();
+        }
+        function draw_track(data, scope, use_cache) {
+            var offset = typeof tracks[data.track].offset == "number" ? tracks[data.track].offset : 1;
+            var track_border = {
+                width: Math.abs(offset) * 2,
+                color: offset > 0 ? "#EEE" : "#444"
+            };
+            data.computed.track_boundary = data.computed.track_boundary || {};
+            data.track_layer.draw_area(tracks[data.track].left, tracks[data.track].right, "#444", track_border.color, track_border.width, scope == "track", use_cache ? data.computed.track_boundary : undefined);
+            if (accessory_area[data.track] && Object.keys(accessory_area[data.track]).length)
+                for (var aan in accessory_area[data.track])
+                    if (accessory_area[data.track].hasOwnProperty(aan)) {
+                        data.computed.accessory_boundary = data.computed.accessory_boundary || {};
+                        data.computed.accessory_boundary[aan] = data.computed.accessory_boundary[aan] || {};
+                        data.track_layer.draw_area(accessory_area[data.track][aan].left, accessory_area[data.track][aan].right, "#666", "#666", 2, scope == "accessory_area_" + aan, use_cache ? data.computed.accessory_boundary[aan] : undefined);
+                    }
+            data.computed.pit_boundary = data.computed.pit_boundary || {};
+            data.track_layer.draw_area(pit_area[data.track].left, pit_area[data.track].right, "#666", "#666", 2, scope == "pit_area", use_cache ? data.computed.pit_boundary : undefined);
+            if (cut_lines[data.track]) {
+                for (var i = 0; i < cut_lines[data.track].length; i++) {
+                    var cstart = get_point(cut_lines[data.track][i].a.x, cut_lines[data.track][i].a.z);
+                    var cend = get_point(cut_lines[data.track][i].b.x, cut_lines[data.track][i].b.z);
+                    data.track_layer.draw_line(cstart, cend, "#EEE", 1);
+                }
+            }
+        }
+        function draw_legend(data) {
+            var text_line_p = {
+                x: 0, y: 15, nl: function () {
+                    this.y += 18;
+                    return this
+                }
+            };
+            data.legend_layer.clearRect(-data.canvas.width, -data.canvas.height, 2 * data.canvas.width, 2 * data.canvas.height);
+            var drivers = data.computed.drivers;
+            if (data.type == "collision") {
+                data.track_layer.draw_x(get_point(data.event_position.x, data.event_position.z), 9, "#AAA");
+                data.legend_layer.draw_text("Collision View (id: " + parseInt(data.ts / 1000) + ")", text_line_p, undefined, "black", "#DDD");
+                text_line_p.y += 3;
+                data.legend_layer.draw_text("Track: " + data.track, text_line_p.nl(), undefined, "black", "#DDD");
+                data.legend_layer.draw_text("Session: " + new Date(data.session_info.id).toLocaleDateString(locale) + " " + new Date(data.session_info.id).toLocaleTimeString(locale) + " - " + first_up(data.session_info.type), text_line_p.nl(), undefined, "black", "#DDD");
+                data.legend_layer.draw_text("Time: " + new Date(data.ts).toLocaleDateString(locale) + " " + new Date(data.ts).toLocaleTimeString(locale), text_line_p.nl(), undefined, "black", "#DDD");
+                text_line_p.y += 3;
+                data.legend_layer.draw_text("Drivers: ", text_line_p.nl(), undefined, "black", "#DDD");
+            }
+            else if (data.type == "cut") {
+                data.track_layer.draw_x(get_point(data.event_position.x, data.event_position.z), 9, "#AAA");
+                data.legend_layer.draw_text("Cut View (id: " + parseInt(data.ts / 1000) + ")", text_line_p, undefined, "black", "#DDD");
+                text_line_p.y += 3;
+                data.legend_layer.draw_text("Track: " + data.track, text_line_p.nl(), undefined, "black", "#DDD");
+                data.legend_layer.draw_text("Session: " + new Date(data.session_info.id).toLocaleDateString(locale) + " " + new Date(data.session_info.id).toLocaleTimeString(locale) + " - " + first_up(data.session_info.type), text_line_p.nl(), undefined, "black", "#DDD");
+                data.legend_layer.draw_text("Time: " + new Date(data.ts).toLocaleDateString(locale) + " " + new Date(data.ts).toLocaleTimeString(locale), text_line_p.nl(), undefined, "black", "#DDD");
+                data.legend_layer.draw_text("Cut Type: " + ((data.cut_line || {}).name ? data.cut_line.name : data.cut_type), text_line_p.nl(), undefined, "black", "#DDD");
+                text_line_p.y += 3;
+                data.legend_layer.draw_text("Drivers: ", text_line_p.nl(), undefined, "black", "#DDD");
+                if (data.cut_line && data.cut_line.a) {
+                    var cstart = get_point(data.cut_line.a.x, data.cut_line.a.z);
+                    var cend = get_point(data.cut_line.b.x, data.cut_line.b.z);
+                    data.track_layer.draw_line(cstart, cend, "red", 1);
+                }
+            }
+            else if (data.type == "overtake") {
+                data.legend_layer.draw_text("Overtake View (id: " + parseInt(data.ts / 1000) + ")", text_line_p, undefined, "black", "#DDD");
+                text_line_p.y += 3;
+                data.legend_layer.draw_text("Track: " + data.track, text_line_p.nl(), undefined, "black", "#DDD");
+                data.legend_layer.draw_text("Session: " + new Date(data.session_info.id).toLocaleDateString(locale) + " " + new Date(data.session_info.id).toLocaleTimeString(locale) + " - " + first_up(data.session_info.type), text_line_p.nl(), undefined, "black", "#DDD");
+                data.legend_layer.draw_text("Time: " + new Date(data.ts).toLocaleDateString(locale) + " " + new Date(data.ts).toLocaleTimeString(locale), text_line_p.nl(), undefined, "black", "#DDD");
+                data.legend_layer.draw_text("Fight for: " + format_position(data.race_position), text_line_p.nl(), undefined, "black", "#DDD");
+                text_line_p.y += 3;
+                data.legend_layer.draw_text("Drivers: ", text_line_p.nl(), undefined, "black", "#DDD");
+            }
+            if (data.type != "live_view") {
+                for (var guid in data.lap_logs) {
+                    if (data.lap_logs.hasOwnProperty(guid)) {
+                        data.legend_layer.draw_text(drivers[guid].name + " (GUID:" + guid + ", lap: " + data.drivers[guid].lap + (data.drivers[guid].race_position ? ", pos: " + format_position(data.drivers[guid].race_position) : "") + ")" + (data.car_guid == guid || (data.other_car_guid || "") == guid ? " <<" : ""), text_line_p.nl(), undefined, drivers[guid].color.toOppositeString(), drivers[guid].color.toString());
+                    }
+                }
+            } else {
+                data.legend_layer.draw_text("Live Track View", text_line_p, undefined, "black", "#DDD");
+                for (var i = 0; i < data.leaderboard.length; i++) {
+                    if (drivers[data.leaderboard[i].guid])
+                        data.legend_layer.draw_text(data.leaderboard[i].car_id + ": " + data.leaderboard[i].name + " (pos: " + (i + 1) + "°, lap: " + data.leaderboard[i].lap + ")", text_line_p.nl(), undefined, drivers[data.leaderboard[i].guid].color.toOppositeString(), drivers[data.leaderboard[i].guid].color.toString());
+                }
+            }
+        }
+        function process_driver_lap_log_line(data, guid, index, total_players) {
+            var drivers = data.computed.drivers;
+            if (!drivers[guid]) {
+                var color_index = Object.keys(drivers).length * (data.type != "live_view" ? Math.floor(360 / ( total_players + 1)) : 10);
+                drivers[guid] = {
+                    name: data.drivers[guid].name,
+                    color: new Color(color_index, 100, 66),
+                    ci: 0,
+                    line: [],
+                    label: typeof data.drivers[guid].car_id != "undefined" ? data.drivers[guid].car_id : undefined,
+                    id: typeof data.drivers[guid].car_id != "undefined" ? data.drivers[guid].car_id : undefined
+                };
+            }
+            var moving, angle;
+            drivers[guid].line[index] = drivers[guid].line[index] || {};
+            drivers[guid].line[index].ts = data.lap_logs[guid][index].ts - data.computed.time_origin; // make it relative to collision time
+            drivers[guid].line[index].p = get_point(data.lap_logs[guid][index].world_position.x, data.lap_logs[guid][index].world_position.z);
+            moving = is_moving(data.lap_logs[guid][index].velocity);
+            angle = get_angle(data.lap_logs[guid][index].velocity);
+            if (moving) {
+                drivers[guid].line[index].reliable_velocity = true;
+                for (var j = index; j > 0; j--) {
+                    if (!drivers[guid].line[j].reliable_velocity)
+                        drivers[guid].line[j].a = angle;
+                    else
+                        break;
+                }
+            } else
+                drivers[guid].line[index].reliable_velocity = false;
+            drivers[guid].line[index].a = (!index || moving) ? angle : drivers[guid].line[index - 1].a;
+            if (index > 0) {
+                drivers[guid].line[index - 1].l = Math.min(35 + (data.lap_logs[guid][index - 1].velocity_modulus + data.lap_logs[guid][index].velocity_modulus) / 20, 65);
+                if (index > 1) {
+                    var cps = getControlPoints(drivers[guid].line[index - 2].p.x, drivers[guid].line[index - 2].p.y, drivers[guid].line[index - 1].p.x, drivers[guid].line[index - 1].p.y, drivers[guid].line[index].p.x, drivers[guid].line[index].p.y);
+                    drivers[guid].line[index - 1].cp = [{
+                        x: cps[0],
+                        y: cps[1]
+                    }, {
+                        x: cps[2],
+                        y: cps[3]
+                    }];
+                }
+            }
+        }
+        function Color(h, s, l) {
+            this.h = h;
+            this.s = s;
+            this.l = l;
+        }
+        Color.prototype.toString = function (l) {
+            return "hsl(" + this.h + ", " + this.s + "%, " + (l || this.l) + "%)";
+        };
+        Color.prototype.toOppositeString = function (l) {
+            return "hsl(" + ((this.h + 180) % 360) + ", " + this.s + "%, " + (l || this.l) + "%)";
+        };
+        function linearQxy(t, ax, ay, bx, by) {
+            return {
+                x: ax + (bx - ax) * t,
+                y: ay + (by - ay) * t
+            };
+        }
+        function quadQxy(t, ax, ay, bx, by, cx, cy) {
+            ax += (bx - ax) * t;
+            bx += (cx - bx) * t;
+            ay += (by - ay) * t;
+            by += (cy - by) * t;
+            return {
+                x: ax + (bx - ax) * t,
+                y: ay + (by - ay) * t
+            };
+        }
+        function cubicQxy(t, ax, ay, bx, by, cx, cy, dx, dy) {
+            ax += (bx - ax) * t;
+            bx += (cx - bx) * t;
+            cx += (dx - cx) * t;
+            ax += (bx - ax) * t;
+            bx += (cx - bx) * t;
+            ay += (by - ay) * t;
+            by += (cy - by) * t;
+            cy += (dy - cy) * t;
+            ay += (by - ay) * t;
+            by += (cy - by) * t;
+            return {
+                x: ax + (bx - ax) * t,
+                y: ay + (by - ay) * t
+            };
+        }
+        // p1 è il cp di fine per x0-x1, p2 è il cp di inizio per x1-x2
+        function getControlPoints(x0, y0, x1, y1, x2, y2, t) {
+            t = typeof t != "undefined" ? t : 0.5;
+            var d01 = Math.sqrt(Math.pow(x1 - x0, 2) + Math.pow(y1 - y0, 2));
+            var d12 = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+            var fa = (d01 + d12) ? t * d01 / (d01 + d12) : 0;   // scaling factor for triangle Ta
+            var fb = (d01 + d12) ? t * d12 / (d01 + d12) : 0;   // ditto for Tb, simplifies to fb=t-fa
+            var p1x = x1 - fa * (x2 - x0);    // x2-x0 is the width of triangle T
+            var p1y = y1 - fa * (y2 - y0);    // y2-y0 is the height of T
+            var p2x = x1 + fb * (x2 - x0);
+            var p2y = y1 + fb * (y2 - y0);
+            return [p1x, p1y, p2x, p2y];
+        }
+        function process_boundary(boundary) {
+            var temp_boundary;
+            if (!Array.isArray(boundary)) {
+                temp_boundary = boundary_obj_to_array(boundary);
+            } else {
+                temp_boundary = boundary.slice();
+            }
+            var result = [];
+            for (var i = 0; i < temp_boundary.length; i++) {
+                while (!temp_boundary[i] && i < temp_boundary.length)
+                    temp_boundary.splice(i, 1);
+                result[i] = result[i] || {};
+                if (temp_boundary[i].nc)
+                    result[i].nc = temp_boundary[i].nc;
+                result[i].p = get_point(temp_boundary[i].wp.x, temp_boundary[i].wp.z);
+                if (i > 1 && i < temp_boundary.length) {
+                    var cps = getControlPoints(result[i - 2].p.x, result[i - 2].p.y, result[i - 1].p.x, result[i - 1].p.y, result[i].p.x, result[i].p.y);
+                    result[i - 1].cp = [
+                        {x: cps[0], y: cps[1]},
+                        {x: cps[2], y: cps[3]}
+                    ];
+                }
+            }
+            return result;
+        }
+        function boundary_obj_to_array(obj) {
+            var result = [];
+            var index = obj.first;
+            while (obj[index]) {
+                result.push(obj[index]);
+                if (typeof obj[index].n == "undefined")
+                    break;
+                index = obj[index].n;
+            }
+            return result;
+        }
+        function compare_points(a, b) {
+            return a.x == b.x && a.y == b.y;
+        }
+        function world_distance(a, b) {
+            return Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.z - b.z, 2));
+        }
+        function distance(a, b) {
+            return Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2));
+        }
+        function select_point(search_point, track, scope) {
+            var data;
+            if (scope == "track")
+                data = tracks[track].left.concat(tracks[track].right);
+            else if (scope == "pit_area") {
+                data = pit_area[track];
+            } else if (scope.match(/^accessory_area/)) {
+                var an = scope.replace(/^accessory_area_/, "");
+                data = accessory_area[track][an].left.concat(accessory_area[track][an].right);
+            }
+            if (data && Array.isArray(data) && data.length) {
+                for (var i = 0; i < data.length; i++) {
+                    if (data[i] && world_distance(search_point, data[i].wp) < 1) {
+                        track_edit_selected_point = data[i];
+                        return true;
+                    }
+                }
+            } else if (data && data.left && data.right) {
+                for (var a in data.left)
+                    if (data.left.hasOwnProperty(a)) {
+                        if (data.left[a] && data.left[a].wp && world_distance(search_point, data.left[a].wp) < 1) {
+                            track_edit_selected_point = data.left[a];
+                            return true;
+                        }
+                    }
+                for (var a in data.right)
+                    if (data.right.hasOwnProperty(a)) {
+                        if (data.right[a] && data.right[a].wp && world_distance(search_point, data.right[a].wp) < 1) {
+                            track_edit_selected_point = data.right[a];
+                            return true;
+                        }
+                    }
+            }
+            return false;
+        }
+        function get_angle(a) {
+            if (typeof a != "object" || typeof a.x != "number" || typeof a.z != "number")
+                throw "error";
+            let x = a.x;
+            let y = a.z;
+            let divisor = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)) * Math.sqrt(Math.pow(1, 2) + Math.pow(0, 2));
+            // false if one of the two vectors is null
+            return divisor ? Math.sign(y) * Math.acos((x * 1 + y * 0) / divisor) : false;
+        }
+        function is_moving(a) {
+            if (typeof a != "object" || typeof a.x != "number" || typeof a.z != "number")
+                return false;
+            return Math.sqrt(Math.pow(a.x, 2) + Math.pow(a.z, 2)) > 1;
+        }
+        function format_position(position) {
+            let suffix;
+            switch (position.toString().slice(-1)) {
+                case "1":
+                    suffix = "st";
+                    break;
+                case "2":
+                    suffix = "nd";
+                    break;
+                case "3":
+                    suffix = "rd";
+                    break;
+                default:
+                    suffix = "th";
+            }
+            return position + suffix;
+        }
+    </script>
+    <style>
+        .bg-primary {
+            background-color: {{ text_background_color }} !important;
+        }
+
+        .nav-item {
+            color: rgba(138, 137, 246, 0.9) !important;
+        }
+
+        .active {
+            color: #007bff !important;
+            text-decoration: underline;
+        }
+
+        .blink_text {
+            animation: blink 0.5s linear 3;
+        }
+
+        @keyframes blink {
+            50% {
+                opacity: 0;
+            }
+        }
+
+        .overline {
+            text-decoration: overline;
+        }
+
+        td {
+            cursor: pointer;
+        }
+
+        .nocursor {
+            cursor: default !important;
+        }
+
+        #driver_search_input {
+            margin-top: 30px;
+            z-index: 0;
+        }
+
+        #web_console {
+            margin-top: 30px;
+            background: black;
+            color: lightgrey;
+            font: 12px/1.2 Menlo, Consolas, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace, serif;
+            padding: 12px;
+        }
+
+        #web_console_output_scroll_up {
+            position: absolute;
+            text-align: right;
+            right: 3px;
+            font-size: 21px;
+            cursor: pointer;
+            top: 3px;
+            -webkit-user-select: none; /* Safari */
+            -moz-user-select: none; /* Firefox */
+            -ms-user-select: none; /* IE10+/Edge */
+            user-select: none; /* Standard */
+            width: 30px;
+            height: 30px
+        }
+
+        #web_console_output_scroll_down {
+            position: absolute;
+            text-align: right;
+            right: 3px;
+            font-size: 21px;
+            cursor: pointer;
+            bottom: 18px;
+            -webkit-user-select: none; /* Safari */
+            -moz-user-select: none; /* Firefox */
+            -ms-user-select: none; /* IE10+/Edge */
+            user-select: none; /* Standard */
+            width: 30px;
+            height: 30px
+        }
+
+        #web_console_output {
+            list-style: none;
+            margin: 0 0 15px 0;
+            padding: 0;
+            overflow: auto;
+        }
+
+        #web_console_input_label {
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+
+        #web_console_input {
+            width: 100%;
+            border: none;
+            background: transparent;
+            color: inherit;
+            font: inherit;
+            padding-left: 12px;
+        }
+
+        #race_control {
+            margin-top: 30px;
+            padding: 12px;
+        }
+
+        #race_control_output {
+            list-style: none;
+            margin: 0 0 15px 0;
+            padding: 0;
+            height: auto;
+            overflow-x: hidden;
+            overflow-y: visible;
+        }
+
+        #race_control_password {
+            border: none;
+            background: transparent;
+            color: inherit;
+            font: inherit;
+        }
+
+        #race_control_login_button {
+            margin-bottom: 3px;
+        }
+
+        #race_control_deploy_vsc_seconds_input {
+            border: none;
+            background: transparent;
+            color: inherit;
+            font: inherit;
+            width: 45px;
+            font-size: 1rem;
+        }
+
+        #race_control_deploy_vsc_button {
+            margin-bottom: 3px;
+            margin-left: 30px;
+        }
+
+        #full_screen_modal {
+            box-sizing: border-box;
+            position: absolute;
+            min-height: 100vh;
+            width: 100%;
+            background: white;
+            display: none;
+            top: 0;
+            left: 0;
+            border: 6px solid rgba(138, 137, 246, 0.9);
+            overflow: hidden;
+        }
+
+        #canvas_wrap {
+            height: 100vh;
+            background: #EEE;
+            cursor: move;
+        }
+
+        #race_control_output li {
+            padding-top: 3px;
+            padding-bottom: 3px;
+        }
+
+        .event_entry {
+            background: #42ff204d;
+            border: 1px solid #FFF;
+        }
+
+        .pending_review {
+            background: #fff6004d;
+        }
+
+        .generic_entry {
+            background: #006cff4d;
+        }
+
+        .penalty_info {
+            background: #a37d7d1a;
+        }
+
+        .event_button {
+            margin-right: 12px;
+        }
+
+        .content_wrap {
+            width: 91vw;
+            margin: auto;
+        }
+    </style>
+</head>
+<body>
+    <a class="d-block p-3 text-center text-white bg-primary b4b">#SERVER_NAME# Web Stats</a>
+    <header class="navbar navbar-light navbar-expand-md bd-navbar">
+        <nav class="content_wrap">
+            <div class="d-flex justify-content-between hidden-lg-up" style="min-height: 42px;">
+                <button style="position: absolute; right: 30px;" class="navbar-toggler" type="button"
+                        data-toggle="collapse" data-target="#bd-main-nav" aria-controls="bd-main-nav"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="bd-main-nav">
+                    <ul class="nav navbar-nav">
+                        <li id="online" class="nav-item active">
+                            <a class="nav-item nav-link active" href="/">Online</a>
+                        </li>
+                        <li id="race_control_" class="nav-item active">
+                            <a class="nav-item nav-link active" href="/race_control">Race Control</a>
+                        </li>
+                        <li id="drivers" class="nav-item">
+                            <a class="nav-item nav-link" href="/drivers">Drivers</a>
+                        </li>
+                        <li id="tracks" class="nav-item">
+                            <a class="nav-item nav-link" href="/tracks">Tracks</a>
+                        </li>
+                        <li id="log" class="nav-item">
+                            <a class="nav-item nav-link" href="/log">Log</a>
+                        </li>
+                        <li id="results" class="nav-item">
+                            <a class="nav-item nav-link" href="/results">Results</a>
+                        </li>
+                        <li id="live_map" class="nav-item">
+                            <a class="nav-item nav-link blink_text overline" href="#live_map">#LIVE_MAP#</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <div class="bd-pageheader"
+         style="color: white; background-color: {{ text_background_color }}; padding-top: 20px; padding-bottom: 20px;">
+        <div class="content_wrap">
+            <h1 id="section_title">Loading...</h1>
+            <p id="section_description" class="lead">
+            </p>
+        </div>
+    </div>
+    <div class="content_wrap">
+        <div id="data_display" class="">
+            <div id="stage">
+                <canvas id="track_layer" width="900" height="900"
+                        style="position: absolute; left: 0; top: 0; z-index: 0;"></canvas>
+                <canvas id="drivers_layer" width="900" height="900"
+                        style="position: absolute; left: 0; top: 0; z-index: 1;"></canvas>
+            </div>
+        </div>
+    </div>
+    <footer class="bd-footer text-muted small" style="padding-top: 90px;">
+        <div class="text-center">
+            <p>
+                Powered by the Kissmyrank Assetto Corsa Server Plugin v#KMR_VERSION#<br>
+                <small>The plugin is provided AS IS without warranty of any kind.<br>
+                    Data treatment and policies are under the exclusive responsibility of those running the service.<br>
+                    If you need any assistance about this or any other matter, please contact the server administrator.
+                </small>
+            </p>
+            <div>
+                Support Kissmyrank Development
+                <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top"
+                      style="margin-top: 15px;">
+                    <input type="hidden" name="cmd" value="_s-xclick">
+                    <input type="hidden" name="hosted_button_id" value="HF5QBLDW8VB5E">
+                    <input type="image" src="https://www.paypalobjects.com/en_GB/i/btn/btn_donate_LG.gif" border="0"
+                           name="submit" alt="PayPal – The safer, easier way to pay online!">
+                    <img alt="" border="0" src="https://www.paypalobjects.com/it_IT/i/scr/pixel.gif" width="1"
+                         height="1">
+                </form>
+            </div>
+        </div>
+    </footer>
+    <div id="full_screen_modal"></div>
+</body>
+</html>

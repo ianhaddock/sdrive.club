@@ -1,0 +1,23 @@
+# Production east server
+
+---
+verbose: True
+
+public_key: do_ny3.pub
+
+zram_ratio: 0.8
+cert_enabled: true
+acMultiServerManagerCount: 4
+
+siteFQDN: ddock.net
+gameServerName: Spirited Drive Club
+gameServerShort: asdc
+gameServerIcon: https://{{ siteFQDN }}/SDC-round-200px.png
+gameServerIconSmall: SDC-round-200px.png
+gameServerIconLarge: SDC-round.png
+
+text_background_color: '#210E6F'
+navbar_border: '#C59955'
+badge_danger: '#D5172D'
+border_danger: '#DD4556'
+border_color: '#F1F0D3'

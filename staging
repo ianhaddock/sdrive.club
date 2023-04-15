@@ -1,0 +1,14 @@
+# staging environment
+---
+  all:
+    hosts:
+      192.168.4.31:
+      192.168.1.32:
+
+    children:
+      west:
+        hosts:
+          192.168.4.31: #
+      east:
+        hosts:
+          192.168.1.30: #freenasVM

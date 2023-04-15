@@ -1,0 +1,53 @@
+#  vars:
+
+    # steam cli setup
+    steamcmd_path: /usr/local/sbin/steamcmd  #steam pulls free AC server app
+    steamcmdForceUpdate: false
+
+    # Emperor Server AC Manager setup
+    acmanagerPath: /usr/local/sbin/acmanager #this is from EmperorServers
+    acmanagerConfig: config.yml
+    acmanagerLicense: ACSM.License
+    acmanagerSystemd: server-manager.service         # choose for single server
+
+    # multi server
+    acMultiServerManagerSystemd: multi-server-manager.service   # choose for multi server
+      #    acMultiServerManagerCount: 4 ### moved to host_vars
+    acMultiServerManagerStorePath:
+
+    sysctlSettings: acmanager_ipv4_settings.conf
+    sysctlSettingsPath: /etc/sysctl.d
+
+    lobby_port_prefix: 95
+    udp_port_prefix: 96
+    tcp_port_prefix: 97
+
+    httpHostname: 0.0.0.0:8772
+    httpSessionKey: T3PkZJ&4[L4`KKqY
+    admin_password_override: Power500*
+    acmanager_base_URL: "https://{{ siteFQDN }}"
+    #acmanagerSessionStoreType: cookie
+    acmanagerSessionStorePath: "{{ acmanagerPath }}/session-store"
+    acmanagerSessionMaxAge: 720h  # 720h is the default
+
+    enableContentManager: 1
+    upnp_enabled: 'false'
+      #upnpState: 'false'
+    kmrZip: kmr_*.zip
+
+    acmanagerStoreType: json
+      #acmanagerStoreSharedDataPath: "{{ acmanagerPath }}/shared_data"
+    acmanagerStoreScheduledEventCheckLoop: 0s # 0s is the default
+    acmanagerMapRefreshInterval_ms: 500 # 500 is the default
+
+    acmanagerDisablePlugins: false
+    acmanagerPerformanceMode: false
+    acmanagerScanContentFolder: true
+
+    acmanagerPersistSessionResults: false # the default is false
+
+    acmanagerIndexLaps: true
+    acmanagerIndexCrashes: false
+
+    acmanagerRecaptchaSiteKey: ""
+    acmanagerRecaptchaSecretKey: ""

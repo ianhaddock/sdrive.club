@@ -1,0 +1,137 @@
+
+#  systemctl
+
+    sysctlSettings: acmanager_ipv4_settings.conf
+    sysctlSettingsPath: /etc/sysctl.d
+
+#  acmanager vars:
+    assetto_user: "{{ assettouser }}"
+    assetto_uid: 1200
+    assetto_group: "{{ assettogroup }}"
+    assetto_gid: 1200
+
+    app_name: acsm
+    app_port: 8772
+
+    assettouser: assetto
+    assettogroup: assetto
+    acmanagerPath: /usr/local/sbin/acmanager #this is from EmperorServers
+    acmanagerZip: acsm_v2.*_linux-amd64.zip
+    acmanagerZipArm32: acsm_v2.*_linux-arm32.zip
+    acmanagerConfig: config.yml
+    acmanagerLicense: ACSM.License
+
+    acmanagerSystemd: server-manager.service
+    acMultiServerManagerSystemd: multi-server-manager.service
+
+    acmanagerSessionStoreType: filesystem
+    acmanagerSessionStorePath: "{{ acmanagerPath }}/session-store"
+    acmanagerSessionMaxAge: 720h  # 720h is the default
+
+    acmanagerTLSEnabled: False
+    acmanagerCertPath: "/etc/letsencrypt/live/{{ siteFQDN }}/cert.pem"
+    acmanagerKeyPath: "/etc/letsencrypt/live/{{ siteFQDN }}/privkey.pem"
+
+    acmanagerMonitoring: False
+
+    acmanagerStoreType: json
+    acmanagerStorePath: "{{ acmanagerPath }}/shared_store.json"
+    acmanagerStoreSharedDataPath: "{{ acmanagerPath }}/shared_store.json"
+    acmanagerStoreScheduledEventCheckLoop: 0s # 0s is the default
+    acmanagerMapRefreshInterval_ms: 500 # 500 is the default
+
+    acmanagerDisablePlugins: false
+    acmanagerPerformanceMode: false
+    acmanagerScanContentFolder: true
+
+    acmanagerPersistSessionResults: false # the default is false
+
+    acmanagerIndexLaps: true
+    acmanagerIndexCrashes: false
+
+    acmanagerRecaptchaSiteKey: ""
+    acmanagerRecaptchaSecretKey: ""
+
+    acmanagerLuaEnabled: False
+
+# nginx
+    webuser: nginx
+    webgroup: nginx
+
+    acmanager_base_URL: "https://{{ siteFQDN }}"
+
+    httpHostname: 0.0.0.0:8772
+    httpSessionKey: T3PkZJ&4[L4`KKqY
+
+    admin_password_override: Power500*
+    admin_chat_password: "220401"
+
+    backup_hours: "4,14"
+    backup_path: "/home/{{ assettouser }}/backups"
+    backup_destination: '/mnt/media/acsm_backups'
+    backup_user: ian #generated admin account on west good enough?
+    backup_key: id_rsa #use west generated key from ian admin account?
+
+    races_zip: True ## base custom races
+    custom_races_zip: acsm_v*_custom_races.zip
+    content_zip: True ## base content
+    custom_content_zip: acsm_v*_content.zip
+
+    # host_var files include cert_enabled value
+    url_prefix: "{{ 'https' if cert_enabled else 'http' }}"
+
+# acserver
+    acserverPath: '/usr/local/sbin/acserver'
+    acserver_path: '/usr/local/sbin/acserver'
+
+# steamcmd
+    steamcmd_path: /usr/local/sbin/steamcmd  #steam pulls free AC server app
+    steamcmdForceUpdate: false
+
+# multiserver
+
+  # acMultiServerManagerCount: 4 ### moved to host_vars
+    acMultiServerManagerStorePath:
+
+    lobby_port_prefix: 95
+    udp_port_prefix: 96
+    tcp_port_prefix: 97
+
+
+    enableContentManager: 1
+    upnp_enabled: 'false'
+      #upnpState: 'false'
+
+# kmr
+
+    install_kmr: True
+    kmrZip: kmr_*.zip
+    kmr_web_console_password: "RmANiCALpaTEb"
+    kmr_race_control_password: "22040100" # password must be 8 characters or more
+    live_track_view: 1
+    kmrConfig: kissmyrank_options.json
+    kmrEnabled: 'true'
+    web_stats_interface: 1
+    right_to_be_forgotten: 1
+    show_race_control_link: 1
+    admin_uuids: '    "76561198028957221",\n    "76561198340411287"'
+    cut_lines_enabled: 0
+
+# stand alone ACSM server
+ #    UDPPluginLocalPort: 12000
+  #    UDPPluginAddress: '127.0.0.1:12001'
+
+# multi-server ACSM
+    plugin_udp_local_port_prefix: 12
+    plugin_udp_address: '127.0.0.1'
+    plugin_udp_port_prefix: 11
+    kmr_web_auth_port: '001'
+    kmr_ac_app_link_prefix: 13
+    kmr_web_stats_port_prefix: 77
+    kmr_database_port: 8701
+
+
+# stracker
+
+    strConfig: stracker_options.json
+    install_stracker: False

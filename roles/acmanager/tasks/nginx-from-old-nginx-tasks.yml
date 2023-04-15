@@ -1,0 +1,129 @@
+#
+# configure nginx
+#
+# - Cleaner server groups for blog domain
+# - flask + python blog
+# - 502, 404 redirect to redirect page
+# - Maintinance page during updates
+# - Patreon account link and info
+# - Brave browser link and info
+
+---
+
+- name: install epel-release
+  ansible.builtin.package:
+    name: epel-release
+    state: present
+  when: ansible_os_family == 'RedHat'
+
+- name: install nginx
+  ansible.builtin.package:
+    name: nginx
+    state: present
+
+- name: install firewalld
+  ansible.builtin.package:
+    name: firewalld
+    state: present
+
+      # - name: install lynx  # this needs tweaking for centos-stream-8
+      #   ansible.builtin.package:
+      #     name: lynx
+      #     state: present
+
+- name: start Firewalld
+  ansible.builtin.service:
+    name: firewalld
+    state: started
+
+###
+
+- name: set firewalld rules
+  include_tasks: firewalld.yml
+
+###
+
+
+- name: create var/www directory
+  ansible.builtin.file:
+    name: /var/www
+    state: directory
+    owner: nginx
+    group: nginx
+    mode: '0755'
+
+- name: create {{ siteFQDN }} directory
+  ansible.builtin.file:
+    name: /var/www/{{ siteFQDN }}
+    state: directory
+    owner: nginx
+    group: nginx
+    mode: '0755'
+
+- name: create {{ siteFQDN }}/html directory
+  ansible.builtin.file:
+    name: /var/www/{{ siteFQDN }}/html
+    state: directory
+    owner: nginx
+    group: nginx
+    mode: '0755'
+
+- name: add index template
+  ansible.builtin.template:
+    src: index.html.j2
+    dest: /var/www/{{ siteFQDN }}/html/
+    owner: nginx
+    group: nginx
+    mode: '0644'
+
+- name: copy over files and images
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: /var/www/{{ siteFQDN }}/html/
+    owner: nginx
+    group: nginx
+    mode: '0644'
+  with_fileglob: "www-html/{{ siteFQDN }}/*"
+
+- name: create sites-available directory
+  ansible.builtin.file:
+    name: /etc/nginx/sites-available
+    state: directory
+    owner: nginx
+    group: nginx
+    mode: '0644'
+
+- name: add https site in sites-available
+  ansible.builtin.template:
+    src: domain_https.conf.j2
+    dest: /etc/nginx/sites-available/{{ siteFQDN }}.conf
+    owner: nginx
+    group: nginx
+    mode: '0644'
+  when: cert_enabled
+  register: https_site
+
+- name: add http site in sites-available
+  ansible.builtin.template:
+    src: domain_http.conf.j2
+    dest: /etc/nginx/sites-available/{{ siteFQDN }}.conf
+    owner: nginx
+    group: nginx
+    mode: '0644'
+  when: not cert_enabled
+  register: http_site
+
+- name: link site to conf.d
+  ansible.builtin.file:
+    src: /etc/nginx/sites-available/{{ siteFQDN }}.conf
+    dest: /etc/nginx/conf.d/{{ siteFQDN }}.conf
+    state: link
+    owner: nginx
+    group: nginx
+    mode: '0644'
+
+- name: reload nginx if site conf changed
+  ansible.builtin.service:
+    name: nginx
+    state: reloaded
+  when: https_site.changed or http_site.changed

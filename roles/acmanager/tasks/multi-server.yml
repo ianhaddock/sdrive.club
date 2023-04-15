@@ -1,0 +1,57 @@
+# installing ACSM multi manager
+
+---
+
+- name: stop "{{ acmanagerSystemd }}" service
+  ansible.builtin.systemd:
+    name: "{{ acmanagerSystemd }}"
+    state: stopped
+
+- name: start "{{ acMultiServerManagerSystemd }}"
+  ansible.builtin.systemd:
+    name: "{{ acMultiServerManagerSystemd }}"
+    daemon_reload: true
+    state: started
+
+- name: wait for multi-server-manager to settle
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:8772/login"
+    status_code: 200
+  register: result
+  until: result.status == 200
+  retries: 720 # 720 * 5 = 1 hour
+  delay: 5
+
+- name: modify CSS
+  import_tasks: css_mods.yml
+
+- name: add messages
+  import_tasks: messages.yml
+  when: acmanager_path.changed
+
+- name: update server_options file
+  import_tasks: multi-options.yml
+
+- name: configure KMR servers
+  import_tasks: multi-kmr.yml
+  when: ansible_architecture == 'x86_64' and install_kmr
+
+- name: debug notify tet
+  ansible.builtin.debug:
+    msg: 'restart acsm multi'
+  changed_when: True
+  notify: restart acsm multi
+
+    #- name: restart multi-server-manager service
+    #  ansible.builtin.systemd:
+    #    name: "{{ acMultiServerManagerSystemd }}"
+    #    state: restarted
+    #
+    #- name: wait for multi-server-manager to settle
+    #  ansible.builtin.uri:
+    #    url: "http://127.0.0.1:8772/login"
+    #    status_code: 200
+    #  register: result
+    #  until: result.status == 200
+    #  retries: 720 # 720 * 5 = 1 hour
+    #  delay: 5

@@ -1,0 +1,30 @@
+# Vagrant east server development
+
+---
+verbose: true
+
+public_key: assetto.pub
+
+files_server: 'http://files.ianhaddock.lan'
+
+zram_ratio: 0.8
+cert_enabled: false
+acMultiServerManagerCount: 2
+
+siteFQDN: ddock.lan
+site_fqdn: "{{ siteFQDN }}"
+
+containers: true
+containers_path: '/mnt/containers'
+
+gameServerName: The Vagrant Dock
+gameServerShort: tvd
+gameServerIcon: https://{{ siteFQDN }}/VagrantDock_200px.png
+gameServerIconSmall: VagrantDock_200px.png
+gameServerIconLarge: VagrantDock.png
+
+text_background_color: '#36753f'
+navbar_border: '#2b3a78'
+badge_danger: '#D5172D'
+border_danger: '#DD4556'
+border_color: '#b9c6fa'

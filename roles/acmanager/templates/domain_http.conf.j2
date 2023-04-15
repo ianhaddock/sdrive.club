@@ -1,0 +1,46 @@
+# server {
+#   listen 443 ssl;
+#   listen [::]:443 ssl;
+#   server_name www.{{ siteFQDN }};
+#   client_max_body_size 256m;
+#
+#   root /var/www/{{ siteFQDN }}/html;
+#
+#   index index.html;
+#
+#   ssl_certificate /etc/letsencrypt/live/{{ siteFQDN }}/fullchain.pem;
+#   ssl_certificate_key /etc/letsencrypt/live/{{ siteFQDN }}/privkey.pem;
+#   include /etc/letsencrypt/options-ssl-nginx.conf;
+#   ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+#
+#   # only allow static file serving
+#   location ~* \.(jpg|jpeg|gif|png|bmp|ico|pdf|flv|swf|exe|html|htm|txt|css|js) {
+#      add_header        Cache-Control public;
+#      add_header        Cache-Control must-revalidate;
+#      expires           7d;
+#   }
+#
+#   # otherwise 301 redirect to the game server
+#   location  / {
+#      deny all;
+#      return 301 https://{{ siteFQDN }}$request_uri;
+#   }
+# }
+
+server {
+  listen 80;
+  listen [::]:80;
+  server_name "" www.{{ siteFQDN }};
+  client_max_body_size 256m;
+
+  root /var/www/{{ siteFQDN }}/html;
+
+  index index.html;
+
+  #only allow static file serving
+#  location ~* \.(jpg|jpeg|gif|png|bmp|ico|pdf|flv|swf|exe|html|htm|txt|css|js) {
+#     add_header        Cache-Control public;
+#     add_header        Cache-Control must-revalidate;
+#     expires           7d;
+#  }
+}

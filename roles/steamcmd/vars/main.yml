@@ -1,0 +1,8 @@
+# steamcmd vars
+---
+steam_user: steam
+steam_uid: 12001
+steam_group: steam
+steam_gid: 12001
+
+steamcmd_path: '/usr/local/sbin/steamcmd'

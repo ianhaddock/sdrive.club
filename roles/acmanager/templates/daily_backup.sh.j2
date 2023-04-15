@@ -1,0 +1,49 @@
+#!/bin/bash -e
+###
+# backup running acsm files
+# exclude content and license files
+# requires version script to be installed to name files
+# Added by Ansible {{ ansible_date_time.date }} {{ansible_date_time.time}}
+###
+
+destination="{{ backup_path }}"
+acserver="{{ acserverPath }}"
+acmanager="{{ acmanagerPath }}"
+accontent="{{ acserverPath }}/content"
+datestamp="$(date +%Y%m%d.%H%m%S)" # for file name
+
+# check version script is installed
+version="$(/usr/local/sbin/acmanager/get_version.sh)"
+if [ $? != 0 ]; then
+    echo "$(date +%Y%m%d:%H%M%S): Exiting. Script requries get_version.sh \
+        to run.";
+    exit 1;
+fi
+
+# check if storage is available
+used_space="$(df -k / | grep vda | awk '{print $5}' | sed 's/%//g')"
+if [ $used_space -gt 79 ]; then
+    echo "$(date +%Y%m%d:%H%M%S): Exiting. Not enough space available, over $used_space% full";
+    exit 1;
+fi
+
+# compress files
+echo "$(date +%Y%m%d:%H%M%S): Starting backup."
+
+#tar -czf "$destination"/"$version"_"$datestamp".tar.gz \
+#    "$acmanager" "$acserver" --exclude="$accontent" \
+#    --exclude=ACSM.License --exclude=*.zip
+
+zip -y -r "$destination"/"$version"_"$datestamp".zip \
+    "$acmanager" "$acserver" -x "$accontent"/\* -x \*.License \
+    -x \*.zip -li -lf "$destination"/"$version"_"$datestamp".log
+
+# check if the backup worked
+if [ $? != 0 ]; then
+    echo "$(date +%Y%m%d:%H%M%S): backup failed. Exiting"
+    exit 1;
+fi
+
+# exit out
+echo "$(date +%Y%m%d:%H%M%S): Backup complete. Exiting"
+exit

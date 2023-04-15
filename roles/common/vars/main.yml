@@ -1,0 +1,6 @@
+# common role vars
+---
+admin_user: ian
+admin_uid: 1100
+admin_group: ian
+admin_gid: 1100

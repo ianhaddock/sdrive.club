@@ -1,0 +1,15 @@
+# Vagrant Provision Play
+
+---
+
+- name: common settings
+  hosts: blog:east:west
+  become: true
+  gather_facts: true
+
+  vars:
+  - public_key: assetto.pub
+  # when you run this: -e public_key=<choose_public_key>
+
+  roles:
+  - common

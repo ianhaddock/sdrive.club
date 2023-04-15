@@ -1,0 +1,45 @@
+#
+# configure redirect domains in nginx
+#
+
+---
+- name: check if epel-release is installed
+  ansible.builtin.package: # noqa latest-version
+    name: epel-release
+    state: present
+  when: ansible_os_family == 'RedHat'
+
+- name: check if nginx is installed
+  ansible.builtin.package: # noqa latest-version
+    name: nginx
+    state: present
+
+# remove nginx conf file entry for fqdn if file exists
+
+- name: setup https reverse proxy for server-manager
+  ansible.builtin.template:
+    src: nginx-proxy-acsm-https.conf.j2
+    dest: /etc/nginx/conf.d/server-manager-proxy.conf
+    owner: nginx
+    group: nginx
+    mode: '0644'
+    force: true
+  when: cert_enabled
+  register: redirect
+
+- name: setup http reverse proxy for server-manager
+  ansible.builtin.template:
+    src: nginx-proxy-acsm-http.conf.j2
+    dest: /etc/nginx/conf.d/server-manager-proxy.conf
+    owner: nginx
+    group: nginx
+    mode: '0644'
+    force: true
+  when: not cert_enabled
+  register: redirect
+
+- name: reload nginx
+  ansible.builtin.service:
+    name: nginx
+    state: reloaded
+  when: redirect.changed
