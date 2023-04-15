@@ -34,14 +34,26 @@
 - name: create file for swap
   ansible.builtin.command:
     cmd: fallocate -l 512M /var/swap
-  when: not swapfile_check.stat.exists
+  when: not swapfile_check.stat.exists and not ansible_facts.distribution_major_version == "7"
+
+- name: create file for swap on Centos7
+  ansible.builtin.command:
+    cmd: dd if=/dev/zero of=/var/swap bs=512 count=1000
+  when: ansible_facts.distribution == "CentOS" and ansible_facts.distribution_major_version == "7"
 
 - name: config file as swapfile
   ansible.builtin.command:
     cmd: mkswap /var/swap
   when: not swapfile_check.stat.exists
 
+- name: set permissions on swapfile
+  ansible.builtin.file:
+    path: /var/swap
+    mode: '0600'
+  when: not swapfile_check.stat.exists
+
 - name: enable swapfile
+  become: true
   ansible.builtin.command:
     cmd: swapon /var/swap
   when: not swapfile_check.stat.exists

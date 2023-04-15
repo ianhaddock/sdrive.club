@@ -1,18 +1,14 @@
-# Ansible Vagrant Hosts Develop Environment
+# Vagrant Dev Environment
 ---
   all:
     hosts:
-      192.168.40.40:
-      192.168.40.41:
-      192.168.40.42:
+      192.168.40.45:
+      192.168.40.46:
 
     children:
       west:
         hosts:
-          192.168.40.42: #vagrantVM
-      blog:
-        hosts:
-          192.168.40.41: #vagrantVM
+          192.168.40.46:
       east:
         hosts:
-          192.168.40.40: #vagrantVM
+          192.168.40.45:

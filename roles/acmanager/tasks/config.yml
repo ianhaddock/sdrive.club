@@ -32,15 +32,12 @@
     regexp: '^  force_update: false'
     line: '  force_update: {{ steamcmdForceUpdate }}'
 
-- name: Set https hostname
+- name: Set hostname
   ansible.builtin.lineinfile:
     dest: "{{ acmanagerPath }}/{{ acmanagerConfig }}"
     state: present
     regexp: '^  hostname: '
-    line: '  hostname: {{ httpHostname }}'
-      # when https is enabiled
-
-#- name: set http hostname
+    line: '  hostname: 0.0.0.0:8772'
 
 - name: Set http session key
   ansible.builtin.lineinfile:
@@ -49,12 +46,21 @@
     regexp: '^  session_key: '
     line: '  session_key: {{ httpSessionKey }}'
 
-- name: Set server manager base URL
+- name: Set server manager base URL https
   ansible.builtin.lineinfile:
     dest: "{{ acmanagerPath }}/{{ acmanagerConfig }}"
     state: present
     regexp: '^  server_manager_base_URL:'
-    line: '  server_manager_base_URL: {{ acmanager_base_URL }}'
+    line: '  server_manager_base_URL: https://{{ site_fqdn }}'
+  when: cert_enabled
+
+- name: Set server manager base URL http
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanagerPath }}/{{ acmanagerConfig }}"
+    state: present
+    regexp: '^  server_manager_base_URL:'
+    line: '  server_manager_base_URL: http://{{ site_fqdn }}'
+  when: not cert_enabled
 
 - name: set session store type
   ansible.builtin.lineinfile:
@@ -167,7 +173,7 @@
     state: present
     regexp: '^  admin_password_override:$'
     line: '  admin_password_override: {{ admin_password_override }}'
-  when: not admin_account.stat.exists
+  when: admin_account.stat.exists and resetpw
 
 - name: Set live map refresh interval to "{{ acmanagerMapRefreshInterval_ms }}"ms
   ansible.builtin.lineinfile:
