@@ -54,7 +54,7 @@
   ansible.builtin.lineinfile:
     dest: "{{ acmanagerPath }}/servers/SERVER_{{ item }}/store.json/{{ kmrConfig }}"
     regexp: '^  "web_stats_public_url": '
-    line: '  "web_stats_public_url": "http://kmr{{ item }}.{{ siteFQDN }}",'
+    line: '  "web_stats_public_url": "http://kmr{{ item }}.{{ site_fqdn }}",'
   with_sequence: start=0 end={{ acMultiServerManagerCount -1 }} format=%02x
   when: not cert_enabled
 
@@ -62,7 +62,7 @@
   ansible.builtin.lineinfile:
     dest: "{{ acmanagerPath }}/servers/SERVER_{{ item }}/store.json/{{ kmrConfig }}"
     regexp: '^  "web_stats_public_url": '
-    line: '  "web_stats_public_url": "https://kmr{{ item }}.{{ siteFQDN }}",'
+    line: '  "web_stats_public_url": "https://kmr{{ item }}.{{ site_fqdn }}",'
   with_sequence: start=0 end={{ acMultiServerManagerCount -1 }} format=%02x
   when: cert_enabled
 

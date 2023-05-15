@@ -3,7 +3,7 @@
 ---
 
 - name: common settings
-  hosts: blog:east:west
+  hosts: neweast:blog:east:west
   become: true
   gather_facts: true
 

@@ -1,5 +1,4 @@
 # install steamcmd cli
-
 ---
 - name: create isolation user and group. Enable linger
   ansible.builtin.include_role:
@@ -28,9 +27,9 @@
       - libstdc++.i686
     state: present
 
-- name: untar steamcmd_linux.tar.gz
+- name: pull steamcmd_linux.tar.gz
   ansible.builtin.unarchive:
-    src: 'https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz'  # '{{ files_server }}/{{ steam_user }}_files/steamcmd_linux.tar.gz'
+    src: 'https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz'
     dest: "{{ steamcmd_path }}"
     owner: "{{ steam_user }}"
     group: "{{ steam_group }}"

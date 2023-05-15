@@ -5,11 +5,11 @@ server {
 #  listen [::]:443 ssl ipv6only=on;
   listen 443 ssl;
 
-  server_name kmr{{ item }}.{{ siteFQDN }};
+  server_name kmr{{ item }}.{{ site_fqdn }};
   client_max_body_size 256m;
 
-  ssl_certificate /etc/letsencrypt/live/{{ siteFQDN }}/fullchain.pem;
-  ssl_certificate_key /etc/letsencrypt/live/{{ siteFQDN }}/privkey.pem;
+  ssl_certificate /etc/letsencrypt/live/{{ site_fqdn }}/fullchain.pem;
+  ssl_certificate_key /etc/letsencrypt/live/{{ site_fqdn }}/privkey.pem;
   include /etc/letsencrypt/options-ssl-nginx.conf;
   ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
 

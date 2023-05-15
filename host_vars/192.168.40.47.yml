@@ -1,8 +1,10 @@
-# Vagrant east server development
+# Vagrant new_east server development
 ---
 verbose: true
 zram_ratio: 0.8
 public_key: assetto.pub
+
+hostname: new_east
 
 files_server: 'http://files.ianhaddock.lan'
 
@@ -14,6 +16,9 @@ containers_path: '/mnt/containers'
 
 site_fqdn: ddock.lan
 
+# login account for steamcmd
+steamcmd_user: 'JTR2018RTJ'
+steamcmd_password: 'POORLY-martini-europe-1#'
 
 # Server Manager
 acMultiServerManagerCount: 2
@@ -27,8 +32,8 @@ httpSessionKey: T3PkZJ&4[L4`KKqY
 
 
 # Public Server
-gameServerName: The Vagrant Dock
-gameServerShort: tvd
+gameServerName: The New Vagrant Dock
+gameServerShort: tnvd
 gameServerIcon: https://{{ site_fqdn }}/VagrantDock_200px.png
 gameServerIconSmall: VagrantDock_200px.png
 gameServerIconLarge: VagrantDock.png

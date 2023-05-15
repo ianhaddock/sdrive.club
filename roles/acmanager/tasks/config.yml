@@ -173,7 +173,7 @@
     state: present
     regexp: '^  admin_password_override:$'
     line: '  admin_password_override: {{ admin_password_override }}'
-  when: admin_account.stat.exists and resetpw
+  when: admin_account.stat.exists and admin_pw_reset
 
 - name: Set live map refresh interval to "{{ acmanagerMapRefreshInterval_ms }}"ms
   ansible.builtin.lineinfile:

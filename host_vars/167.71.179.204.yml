@@ -1,18 +1,21 @@
 # Production east server
 
 ---
-verbose: True
+verbose: true
 
 public_key: do_ny3.pub
 
 zram_ratio: 0.8
+
 cert_enabled: true
+certbot_email: "mazdaspeed13b@gmail.com"
+
 acMultiServerManagerCount: 4
 
 siteFQDN: ddock.net
 gameServerName: Spirited Drive Club
 gameServerShort: asdc
-gameServerIcon: https://{{ siteFQDN }}/SDC-round-200px.png
+gameServerIcon: "https://{{ site_fqdn }}/{{ gameServerIconSmall }}"
 gameServerIconSmall: SDC-round-200px.png
 gameServerIconLarge: SDC-round.png
 
@@ -21,3 +24,10 @@ navbar_border: '#C59955'
 badge_danger: '#D5172D'
 border_danger: '#DD4556'
 border_color: '#F1F0D3'
+
+httpSessionKey: T3PkZJ&4[L4`KKqY
+admin_password_override: Power500*
+
+# login account for steamcmd
+steamcmd_user: 'JTR2018RTJ'
+steamcmd_password: 'POORLY-martini-europe-1#'

@@ -38,4 +38,16 @@ Vagrant.configure("2") do |config|
     east.vm.post_up_message = "East server runs ACSM."
   end
 
+  config.vm.define "neweast" do |neweast|
+    neweast.vm.box = "bento/centos-stream-8"
+    neweast.vm.hostname = "neweast"
+    neweast.vm.define "neweast" # update default vm definition name
+    neweast.vm.hostname = "neweast"
+    neweast.vm.network "private_network", # private for ansible
+      ip: "192.168.40.47"
+    neweast.vm.network "public_network", # public network
+      use_dhcp_assigned_default_route: true
+    neweast.vm.post_up_message = "New East server runs ACSM Centos Stream 8."
+  end
+
 end

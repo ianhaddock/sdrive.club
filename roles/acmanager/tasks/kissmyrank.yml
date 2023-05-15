@@ -90,14 +90,14 @@
   ansible.builtin.lineinfile:
     dest: "{{ acmanagerStorePath }}/kissmyrank_options.json"
     regexp: '^  "web_stats_public_url":'
-    line: '  "web_stats_public_url": "http://kmr00.{{ siteFQDN }}",'
+    line: '  "web_stats_public_url": "http://kmr00.{{ site_fqdn }}",'
   when: not cert_enabled
 
 - name: set web stats public https URL
   ansible.builtin.lineinfile:
     dest: "{{ acmanagerStorePath }}/kissmyrank_options.json"
     regexp: '^  "web_stats_public_url":'
-    line: '  "web_stats_public_url": "https://kmr00.{{ siteFQDN }}",'
+    line: '  "web_stats_public_url": "https://kmr00.{{ site_fqdn }}",'
   when: cert_enabled
 
 - name: set web stat console password

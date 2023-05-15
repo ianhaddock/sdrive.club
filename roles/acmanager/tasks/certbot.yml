@@ -24,7 +24,7 @@
 
 - name: check if cerbot certificate directory exists
   ansible.builtin.stat:
-    path: '/etc/letsencrypt/live/{{ siteFQDN }}'
+    path: '/etc/letsencrypt/live/{{ site_fqdn }}'
   register: certbot_dir
 
 - name: check if kmr subdomains match lobby count
@@ -47,11 +47,11 @@
 
 - name: create list of domains to request certificates for
   ansible.builtin.set_fact:
-    sub_domains: "['{{ siteFQDN }}', 'www.{{ siteFQDN }}']"
+    sub_domains: "['{{ site_fqdn }}', 'www.{{ site_fqdn }}']"
 
 - name: add kmr subdomains to domains list
   ansible.builtin.set_fact:
-    sub_domains: "{{ sub_domains|default([]) }} + ['kmr{{ item }}.{{ siteFQDN }}']"
+    sub_domains: "{{ sub_domains|default([]) }} + ['kmr{{ item }}.{{ site_fqdn }}']"
   with_sequence: start=0 end={{ acMultiServerManagerCount -1 }} format=%02x
   when: kmrEnabled
 
@@ -76,9 +76,9 @@
 
 - name: request letsencrypt certificates when they do not exist
   ansible.builtin.command:
-    cmd: 'certbot certonly --standalone --non-interactive --expand --agree-tos -m mazdaspeed13b@gmail.com -d "{{ sub_domain_str }}"'
+    cmd: 'certbot certonly --standalone --non-interactive --expand --agree-tos -m "{{ certbot_email }}" -d "{{ sub_domain_str }}"'
 #  args:
-#    creates: '/etc/letsencrypt/live/{{ siteFQDN }}'
+#    creates: '/etc/letsencrypt/live/{{ site_fqdn }}'
   when: (cert_enabled and (kmr_subdomain_count.matched < acMultiServerManagerCount)) or
         (cert_enabled and not certbot_dir.stat.exists)
   register: certbot_certonly_output

@@ -12,8 +12,7 @@
 
     # multi server
     acMultiServerManagerSystemd: multi-server-manager.service   # choose for multi server
-      #    acMultiServerManagerCount: 4 ### moved to host_vars
-    acMultiServerManagerStorePath:
+      #    acMultiServerManagerStorePath:
 
     sysctlSettings: acmanager_ipv4_settings.conf
     sysctlSettingsPath: /etc/sysctl.d
@@ -23,9 +22,7 @@
     tcp_port_prefix: 97
 
     httpHostname: 0.0.0.0:8772
-    httpSessionKey: T3PkZJ&4[L4`KKqY
-    admin_password_override: Power500*
-    acmanager_base_URL: "https://{{ siteFQDN }}"
+    acmanager_base_URL: "https://{{ site_fqdn }}"
     #acmanagerSessionStoreType: cookie
     acmanagerSessionStorePath: "{{ acmanagerPath }}/session-store"
     acmanagerSessionMaxAge: 720h  # 720h is the default

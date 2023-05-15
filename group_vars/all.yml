@@ -5,10 +5,10 @@ verbose: True
 
 zram_ratio: 0.8
 cert_enabled: false
-siteFQDN: example.tld
+site_fqdn: example.tld
 
 containers: true
 containers_path: '/mnt/containers'
 
 # acsm backup
-acsmFQDN: game_server.tld
+acsm_fqdn: game_server.tld

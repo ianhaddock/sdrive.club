@@ -1,7 +1,3 @@
----
-gitea: none
-include_toc: true
----
 # Asetto Corsa Server
 This builds an Assetto Corsa server with KMR on a VPS.
 

@@ -52,17 +52,17 @@
     group: nginx
     mode: '0755'
 
-- name: create {{ siteFQDN }} directory
+- name: create {{ site_fqdn }} directory
   ansible.builtin.file:
-    name: /var/www/{{ siteFQDN }}
+    name: /var/www/{{ site_fqdn }}
     state: directory
     owner: nginx
     group: nginx
     mode: '0755'
 
-- name: create {{ siteFQDN }}/html directory
+- name: create {{ site_fqdn }}/html directory
   ansible.builtin.file:
-    name: /var/www/{{ siteFQDN }}/html
+    name: /var/www/{{ site_fqdn }}/html
     state: directory
     owner: nginx
     group: nginx
@@ -71,7 +71,7 @@
 - name: add index template
   ansible.builtin.template:
     src: index.html.j2
-    dest: /var/www/{{ siteFQDN }}/html/
+    dest: /var/www/{{ site_fqdn }}/html/
     owner: nginx
     group: nginx
     mode: '0644'
@@ -79,11 +79,11 @@
 - name: copy over files and images
   ansible.builtin.copy:
     src: "{{ item }}"
-    dest: /var/www/{{ siteFQDN }}/html/
+    dest: /var/www/{{ site_fqdn }}/html/
     owner: nginx
     group: nginx
     mode: '0644'
-  with_fileglob: "www-html/{{ siteFQDN }}/*"
+  with_fileglob: "www-html/{{ site_fqdn }}/*"
 
 - name: create sites-available directory
   ansible.builtin.file:
@@ -96,7 +96,7 @@
 - name: add https site in sites-available
   ansible.builtin.template:
     src: domain_https.conf.j2
-    dest: /etc/nginx/sites-available/{{ siteFQDN }}.conf
+    dest: /etc/nginx/sites-available/{{ site_fqdn }}.conf
     owner: nginx
     group: nginx
     mode: '0644'
@@ -106,7 +106,7 @@
 - name: add http site in sites-available
   ansible.builtin.template:
     src: domain_http.conf.j2
-    dest: /etc/nginx/sites-available/{{ siteFQDN }}.conf
+    dest: /etc/nginx/sites-available/{{ site_fqdn }}.conf
     owner: nginx
     group: nginx
     mode: '0644'
@@ -115,8 +115,8 @@
 
 - name: link site to conf.d
   ansible.builtin.file:
-    src: /etc/nginx/sites-available/{{ siteFQDN }}.conf
-    dest: /etc/nginx/conf.d/{{ siteFQDN }}.conf
+    src: /etc/nginx/sites-available/{{ site_fqdn }}.conf
+    dest: /etc/nginx/conf.d/{{ site_fqdn }}.conf
     state: link
     owner: nginx
     group: nginx

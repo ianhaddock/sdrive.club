@@ -1,70 +1,25 @@
-#
 #  vars for plugins chaining:
-#
-    install_kmr: True
+---
+install_kmr: true
 
-    kmr_web_console_password: "RmANiCALpaTEb"
-    kmr_race_control_password: "22040100" # password must be 8 characters or more
-    live_track_view: 1
-    kmrConfig: kissmyrank_options.json
-    kmrEnabled: 'true'
-    web_stats_interface: 1
-    right_to_be_forgotten: 1
-    show_race_control_link: 1
-    admin_uuids: '    "76561198028957221",\n    "76561198340411287"'
-    cut_lines_enabled: 0
+live_track_view: 1
+kmrConfig: kissmyrank_options.json
+kmrEnabled: 'true'
+web_stats_interface: 1
+right_to_be_forgotten: 1
+show_race_control_link: 1
+
+cut_lines_enabled: 0
 
 # stand alone ACSM server
-    UDPPluginLocalPort: 12000
-    UDPPluginAddress: '127.0.0.1:12001'
+UDPPluginLocalPort: 12000
+UDPPluginAddress: '127.0.0.1:12001'
 
 # multi-server ACSM
-    plugin_udp_local_port_prefix: 12
-    plugin_udp_address: '127.0.0.1'
-    plugin_udp_port_prefix: 11
-    kmr_web_auth_port: '001'
-    kmr_ac_app_link_prefix: 13
-    kmr_web_stats_port_prefix: 77
-    kmr_database_port: 8701
-
-
-#    s00UDPPluginLocalPort: 12000
-#    s00UDPPluginAddress: '127.0.0.1:12001'
-#
-#    s01UDPPluginLocalPort: 12100
-#    s01UDPPluginAddress: '127.0.0.1:12101'
-#
-#    s02UDPPluginLocalPort: 12200
-#    s02UDPPluginAddress: '127.0.0.1:12201'
-
-# KMR vars:
-
-#    server00Store: /usr/local/sbin/acmanager/servers/SERVER_00/store.json
-#    server01Store: /usr/local/sbin/acmanager/servers/SERVER_01/store.json
-#    server02Store: /usr/local/sbin/acmanager/servers/SERVER_02/store.json
-
-### KMR CURRENCY SYMBOL ' _SDC' ###
-
-# # server00
-#     server00web_auth_server_port: 12001
-#     server00ac_app_link_udp_port: 12002
-#     server00web_auth_relay_to: 12xxx
-#     s00web_stats_server_port: 7700
-#     s00databaseName: "svr00"
-#     s00databasePort: 8701
-#
-# # server01
-#     server01web_auth_server_port: 12101
-#     server01ac_app_link_udp_port: 12102
-#     server01web_auth_relay_to: 121xx
-#     s01web_stats_server_port: 7701
-#     s01databaseName: "svr01"
-#     s01databasePort: 8701
-#
-# # server02
-#     server02web_auth_server_port: 12201
-#     server02ac_app_link_udp_port: 12202
-#     server02web_auth_relay_to: 121xx
-#     s02web_stats_server_port: 7702
-#     s02databaseName: "svr02"
-#     s02databasePort: 8701
+plugin_udp_local_port_prefix: 12
+plugin_udp_address: '127.0.0.1'
+plugin_udp_port_prefix: 11
+kmr_web_auth_port: '001'
+kmr_ac_app_link_prefix: 13
+kmr_web_stats_port_prefix: 77
+kmr_database_port: 8701
