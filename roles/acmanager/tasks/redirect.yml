@@ -27,6 +27,28 @@
   when: cert_enabled
   register: redirect
 
+- name: create http root directory
+  ansible.builtin.file:
+    dest: "{{ item }}"
+    owner: nginx
+    group: nginx
+    mode: '0750'
+    state: directory
+  with_items:
+    - /var/www
+    - /var/www/{{ site_fqdn }}
+    - /var/www/{{ site_fqdn }}/html
+  when: cert_enabled
+
+- name: install http redirect to https html
+  ansible.builtin.template:
+    src: redirect.html.j2
+    dest: /var/www/{{ site_fqdn }}/html/index.html
+    owner: nginx
+    group: nginx
+    mode: '0640'
+  when: cert_enabled
+
 - name: setup http reverse proxy for server-manager
   ansible.builtin.template:
     src: nginx-proxy-acsm-http.conf.j2

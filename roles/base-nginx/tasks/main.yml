@@ -25,12 +25,12 @@
     - 80/tcp
     - 443/tcp
 
-- name: setup certs
-  ansible.builtin.import_tasks: certbot.yml
-  when: cert_enabled
+      #  - name: setup certs
+      #    ansible.builtin.import_tasks: certbot.yml
+      #    when: cert_enabled
 
-- name: enable nginx
-  ansible.builtin.service:
-    name: nginx
-    enabled: true
-    state: restarted
+      # - name: enable nginx
+      #   ansible.builtin.service:
+      #     name: nginx
+      #     enabled: true
+      #     state: restarted

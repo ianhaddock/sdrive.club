@@ -6,10 +6,10 @@
     name: nginx
     state: latest
 
-#- name: certbot nginx plugin
-#  ansible.builtin.package: # noqa package-latest
-#    name: python2-certbot-nginx
-#    state: present
+- name: certbot nginx plugin
+  ansible.builtin.package: # noqa package-latest
+    name: python3-certbot-nginx
+    state: present
 
 - name: install epel-release
   ansible.builtin.package: # noqa package-latest
@@ -71,8 +71,9 @@
   ansible.builtin.service:
     name: nginx
     state: stopped
-  when: (cert_enabled and (kmr_subdomain_count.matched < acMultiServerManagerCount)) or
-        (cert_enabled and certbot_dir.stat.exists)
+      #  when: (cert_enabled and (kmr_subdomain_count.matched < acMultiServerManagerCount)) or
+      #        (cert_enabled and certbot_dir.stat.exists)
+      ## logic fails when changing existing setup to use SSL
 
 - name: request letsencrypt certificates when they do not exist
   ansible.builtin.command:
@@ -99,9 +100,18 @@
     msg: "certbot renew output {{ certbot_renew_output }}"
   when: verbose
 
+    # - name: add options-ssl-nginx.conf file if was not installed
+    #   ansible.builtin.copy:
+    #     src: options-ssl-nginx.conf
+    #     dest: /etc/letsencrypt/options-ssl-nginx.conf
+    #     owner: root
+    #     group: root
+    #     mode: '0640'
+
 - name: start nginx if stopped for certs
   ansible.builtin.service:
     name: nginx
     state: started
-  when: (cert_enabled and (kmr_subdomain_count.matched < acMultiServerManagerCount)) or
-        (cert_enabled and certbot_dir.stat.exists)
+      #   when: (cert_enabled and (kmr_subdomain_count.matched < acMultiServerManagerCount)) or
+      #         (cert_enabled and certbot_dir.stat.exists)
+      ## logic fails when turning existing setup to use SSL         
