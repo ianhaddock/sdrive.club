@@ -2,17 +2,13 @@
 ---
   all:
     hosts:
-      192.168.40.45:
       192.168.40.46:
       192.168.40.47:
 
     children:
-      west:
+      acserver:
         hosts:
           192.168.40.46:
-      east:
-        hosts:
-          192.168.40.45:
-      neweast:
+      acbackup:
         hosts:
           192.168.40.47:

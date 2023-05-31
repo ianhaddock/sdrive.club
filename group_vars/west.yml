@@ -1,9 +1,0 @@
-# west group variables
-
----
-
-# login account for steamcmd
-steamcmd_user: 'JTR2018RTJ'
-steamcmd_password: 'm9t2TWcWpJjMdq&6'
-
-fwd_proxy: true

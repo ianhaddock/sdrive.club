@@ -12,42 +12,28 @@ Vagrant.configure("2") do |config|
     ansible.playbook = "vagrant.yml"
   end
 
-  config.vm.define "west" do |west|
-    west.vm.box = "bento/centos-7.9"
-    west.vm.box_version = "202110.25.0"
-    west.vm.hostname = "west"
-    west.vm.define "west" # update default vm definition name
-    west.vm.hostname = "west"
-    west.vm.network "private_network", # private for ansible
+  config.vm.define "acserver" do |acserver|
+    acserver.vm.box = "bento/centos-stream-9"
+    acserver.vm.hostname = "acserver"
+    acserver.vm.define "acserver" # update default vm definition name
+    acserver.vm.hostname = "acserver"
+    acserver.vm.network "private_network", # private for ansible
       ip: "192.168.40.46"
-    west.vm.network "public_network", # public network
+    acserver.vm.network "public_network", # public network
       use_dhcp_assigned_default_route: true
-    west.vm.post_up_message = "West server runs AC backup."
+    acserver.vm.post_up_message = "AC Server"
   end
 
-  config.vm.define "east" do |east|
-    east.vm.box = "bento/centos-7.9"
-    east.vm.box_version = "202110.25.0"
-    east.vm.hostname = "east"
-    east.vm.define "east" # update default vm definition name
-    east.vm.hostname = "east"
-    east.vm.network "private_network", # private for ansible
-      ip: "192.168.40.45"
-    east.vm.network "public_network", # public network
-      use_dhcp_assigned_default_route: true
-    east.vm.post_up_message = "East server runs ACSM."
-  end
-
-  config.vm.define "neweast" do |neweast|
-    neweast.vm.box = "bento/centos-stream-8"
-    neweast.vm.hostname = "neweast"
-    neweast.vm.define "neweast" # update default vm definition name
-    neweast.vm.hostname = "neweast"
-    neweast.vm.network "private_network", # private for ansible
+  config.vm.define "acbackup" do |acbackup|
+    acbackup.vm.box = "bento/centos-stream-9"
+    acbackup.vm.hostname = "acbackup"
+    acbackup.vm.define "acbackup" # update default vm definition name
+    acbackup.vm.hostname = "acbackup"
+    acbackup.vm.network "private_network", # private for ansible
       ip: "192.168.40.47"
-    neweast.vm.network "public_network", # public network
+    acbackup.vm.network "public_network", # public network
       use_dhcp_assigned_default_route: true
-    neweast.vm.post_up_message = "New East server runs ACSM Centos Stream 8."
+    acbackup.vm.post_up_message = "AC Backup"
   end
 
 end

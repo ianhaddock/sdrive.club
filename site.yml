@@ -20,9 +20,9 @@
         name: network
         state: reloaded
 
-### new east server ###
+### acserver server ###
 
-- hosts: neweast
+- hosts: acserver
   become: true
 
   roles:
@@ -47,28 +47,16 @@
         state: restarted
 
 
-### east server ###
+### acbackup server ###
 
-- hosts: east
+- hosts: acbackup
   become: true
 
   roles:
     - base-nginx
-    - steamcmd
-    - acmanager
 
   handlers:
     - name: reload nginx
       ansible.builtin.systemd:
         name: nginx
         state: reloaded
-
-    - name: restart acsm
-      ansible.builtin.systemd:
-        name: server-manager
-        state: restarted
-
-    - name: restart acsm multi
-      ansible.builtin.systemd:
-        name: multi-server-manager
-        state: restarted
