@@ -10,13 +10,13 @@
     path: /etc/systemd/system/zram.service
   register: zram_systemd_check
 
-- name: comment out swap mounts
-  ansible.builtin.lineinfile:
-    path: /etc/fstab
-    regexp: '(^\/.*swap.*)' # starts with '/' and has swap in line
-    line: '# \1'
-    backrefs: true
-    state: present
+    # - name: comment out swap mounts
+    #   ansible.builtin.lineinfile:
+    #     path: /etc/fstab
+    #     regexp: '(^\/.*swap.*)' # starts with '/' and has swap in line
+    #     line: '# \1'
+    #     backrefs: true
+    #     state: present
 
 - name: comment out swap UUIDs
   ansible.builtin.lineinfile:
@@ -52,17 +52,11 @@
     mode: '0600'
   when: not swapfile_check.stat.exists
 
-- name: enable swapfile
-  become: true
-  ansible.builtin.command:
-    cmd: swapon /var/swap
-  when: not swapfile_check.stat.exists
-
 - name: add swapfile to fstab
   ansible.builtin.lineinfile:
     path: /etc/fstab
     regexp: ^(?=.*UUID)(?=.*swap).*$
-    line: "/var/swap   none  swap  defaults 0 0"
+    line: "/var/swap   none  swap  sw,pri=1   0 0"
   when: swapfile_check.stat.exists
 
 - name: install modules-load.d file
@@ -96,6 +90,12 @@
     owner: root
     group: root
     mode: '0644'
+
+- name: enable swapfile
+  become: true
+  ansible.builtin.command:
+    cmd: swapon -p 1 /var/swap
+  when: not swapfile_check.stat.exists
 
 - name: enable zram on next restart
   ansible.builtin.service:

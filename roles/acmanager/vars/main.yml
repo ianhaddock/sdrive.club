@@ -6,9 +6,9 @@
 
 #  acmanager vars:
     assetto_user: "{{ assettouser }}"
-    assetto_uid: 1200
+    assetto_uid: 1210
     assetto_group: "{{ assettogroup }}"
-    assetto_gid: 1200
+    assetto_gid: 1210
 
     app_name: acsm
     app_port: 8772

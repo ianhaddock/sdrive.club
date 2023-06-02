@@ -3,8 +3,8 @@
 - name: set selinux to permissive
   ansible.builtin.lineinfile:
     path: /etc/selinux/config
-    regexp: '^SELINUX=enforcing'
-    line: 'SELINUX=permissive'
+    regexp: '^SELINUX='
+    line: 'SELINUX=disabled'
     state: present
     backrefs: true
   register: selinux_status
