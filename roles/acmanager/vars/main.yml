@@ -1,6 +1,4 @@
-
 #  systemctl
-
     sysctlSettings: acmanager_ipv4_settings.conf
     sysctlSettingsPath: /etc/sysctl.d
 
@@ -62,15 +60,10 @@
 
     httpHostname: 0.0.0.0:8772
 
-    backup_hours: "4,14"
-    backup_path: "/home/{{ assettouser }}/backups"
-    backup_destination: '/mnt/media/acsm_backups'
-    backup_user: ian #generated admin account on west good enough?
-    backup_key: id_rsa #use west generated key from ian admin account?
-
-    races_zip: true ## base custom races
+# Server Backup
+    races_zip: true  ## base custom races
     custom_races_zip: acsm_v*_custom_races.zip
-    content_zip: true ## base content
+    content_zip: true  ## base content
     custom_content_zip: acsm_v*_content.zip
 
     # host_var files include cert_enabled value

@@ -1,5 +1,4 @@
 # install acserver, acmanager, plugins
-
 ---
 
 - name: add system accounts
@@ -10,19 +9,17 @@
 
 - name: install systemd files
   ansible.builtin.import_tasks: systemd.yml
-    #when: acmanager_path.changed
 
-- name: setup acserver with steamcmd
+- name: install acserver with steamcmd
   ansible.builtin.import_tasks: steamcmd.yml
 
 - name: add firewalld rules
-  include_tasks: firewalld.yml
-
+  ansible.builtin.import_tasks: firewalld.yml
 
 ###
 
 - name: install or update AC Server Manager
-  import_tasks: install.yml
+  ansible.builtin.import_tasks: install.yml
   # this sets acmanager_path variable
 
 - name: setup acsm config.yml
@@ -56,7 +53,7 @@
 ###
 
 - name: add acsm login accounts
-  import_tasks: accounts.yml
+  ansible.builtin.import_tasks: accounts.yml
 
 - name: add custom server messages
   ansible.builtin.import_tasks: messages.yml
@@ -83,7 +80,7 @@
   when: install_kmr
 
 - name: add nginx conf.d files for kmr
-  import_tasks: nginx.yml
+  ansible.builtin.import_tasks: nginx.yml
   when: install_kmr and ansible_architecture == 'x86_64'
 
 - name: add nginx redirect for ac server manager

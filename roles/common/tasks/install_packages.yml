@@ -23,31 +23,26 @@
       - smartmontools
       - rsync
       - figlet
+      - certbot
     state: latest  # noqa package-latest
 
-- name: install container tools
-  ansible.builtin.package:
-    name:
-      - podman
-    state: latest  # noqa package-latest
-  when: containers
+      # - name: install container tools
+      #   ansible.builtin.package:
+      #     name:
+      #       - podman
+      #     state: latest  # noqa package-latest
+      #   when: containers
 
-- name: set rootless storage path
-  ansible.builtin.lineinfile:
-    path: /etc/containers/storage.conf
-    regexp: '^# rootless_storage_path'
-    line: 'rootless_storage_path =
-      "{{ containers_path }}/$USER/storage"'
-  when: containers
+      # - name: set rootless storage path
+      #   ansible.builtin.lineinfile:
+      #     path: /etc/containers/storage.conf
+      #     regexp: '^# rootless_storage_path'
+      #     line: 'rootless_storage_path =
+      #       "{{ containers_path }}/$USER/storage"'
+      #   when: containers
 
     # - name: set cgroupsv2
     #   become: true
     #   ansible.builtin.command:
     #     cmd: grubby --update-kernel=/boot/vmlinuz-$(uname -r) --args='systemd.unified_cgroup_hierarchy=1'
     #   when: containers
-
-- name: install letsencrypt certbot
-  ansible.builtin.package:
-    name: certbot
-    state: latest  # noqa package-latest
-  when: cert_enabled

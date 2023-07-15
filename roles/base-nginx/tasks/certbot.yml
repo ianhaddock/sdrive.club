@@ -6,7 +6,7 @@
     cmd: "certbot certificates"
   register: certbot_check
 
-- name: output of certboti check
+- name: output of certbot check
   ansible.builtin.debug:
     msg: "certbot certificates: {{ certbot_check }}"
   when: verbose

@@ -1,5 +1,4 @@
 # install acserver with steamcmd cli
-
 ---
 - name: create "{{ acserver_path }}"
   ansible.builtin.file:
@@ -11,7 +10,6 @@
   register: acserver_path_check
 
 - name: add acserver steamcmd script
-  #  become_user: "{{ steam_user }}"
   ansible.builtin.template:
     src: acserver_install_script.txt.j2
     dest: "/home/{{ assettouser }}/acserver_install_script.txt"
@@ -21,7 +19,7 @@
   when: acserver_path_check.changed
 
 - name: install acServer with steamcmd script
-  become_user: "{{ assettouser }}"  #assetto
+  become_user: "{{ assettouser }}"
   ansible.builtin.command:
     cmd: '/usr/local/sbin/steamcmd.sh +@sSteamCmdForcePlatformType windows +runscript /home/{{ assettouser }}/acserver_install_script.txt'
   register: steam_install
@@ -31,18 +29,3 @@
   ansible.builtin.debug:
     msg: 'debug {{ steam_install }}'
   when: verbose
-
-    # - name: bootstrap cars tracks and weather from content.zip
-    #   ansible.builtin.unarchive:
-    #     src: "content.zip"
-    #     dest: "{{ acserver_path }}"
-    #     owner: "{{ assettouser }}"
-    #     group: "{{ assettogroup }}"
-    #     mode: '0755'
-    #   when: acserver_path_check.changed
-    #
-    # - name: remove __MACOSX directory
-    #   ansible.builtin.file:
-    #     path: "{{ acserver_path }}/__MACOSX"
-    #     state: absent
-    #   when: acserver_path_check.changed

@@ -12,7 +12,6 @@
 
     # multi server
     acMultiServerManagerSystemd: multi-server-manager.service   # choose for multi server
-      #    acMultiServerManagerStorePath:
 
     sysctlSettings: acmanager_ipv4_settings.conf
     sysctlSettingsPath: /etc/sysctl.d
@@ -23,17 +22,14 @@
 
     httpHostname: 0.0.0.0:8772
     acmanager_base_URL: "https://{{ site_fqdn }}"
-    #acmanagerSessionStoreType: cookie
     acmanagerSessionStorePath: "{{ acmanagerPath }}/session-store"
     acmanagerSessionMaxAge: 720h  # 720h is the default
 
     enableContentManager: 1
     upnp_enabled: 'false'
-      #upnpState: 'false'
     kmrZip: kmr_*.zip
 
     acmanagerStoreType: json
-      #acmanagerStoreSharedDataPath: "{{ acmanagerPath }}/shared_data"
     acmanagerStoreScheduledEventCheckLoop: 0s # 0s is the default
     acmanagerMapRefreshInterval_ms: 500 # 500 is the default
 

@@ -2,19 +2,20 @@ terraform {
   required_providers {
     digitalocean = {
       source  = "digitalocean/digitalocean"
-      version = "1.22.2"
+      version = "2.28.1"
     }
   }
 }
 
 # variable "do_token" {}
 variable "pvt_key" {}
+variable "pub_key_name" {}
 
 provider "digitalocean" {
-  # token = var.do_token
+  # token = var.do_token  ## use export DIGITALOCEAN_TOKEN instead
 }
 
 data "digitalocean_ssh_key" "terraform" {
-  name = "ansible.pub"
+  name = var.pub_key_name
 }
 

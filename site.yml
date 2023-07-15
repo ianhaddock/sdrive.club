@@ -46,17 +46,10 @@
         name: multi-server-manager
         state: restarted
 
-
 ### acbackup server ###
 
 - hosts: acbackup
   become: true
 
   roles:
-    - base-nginx
-
-  handlers:
-    - name: reload nginx
-      ansible.builtin.systemd:
-        name: nginx
-        state: reloaded
+    - acsm_backup

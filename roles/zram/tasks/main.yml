@@ -1,9 +1,5 @@
 # zRAM kernel module
-#
-# from: https://scatterpated.net/?p=69
-# "zRAM is a kernel module which creates swapspace in compressed RAM. The speed
-# benefits of having swapspace in RAM far outweigh the minor cost of compression
-# in CPU cycles.
+# https://scatterpated.net/?p=69
 ---
 - name: check if systemd zram.service file exists
   ansible.builtin.stat:
@@ -25,6 +21,12 @@
     line: '# \1'
     backrefs: true
     state: present
+
+- name: add swapfile to fstab
+  ansible.builtin.lineinfile:
+    path: /etc/fstab
+    regexp: ^(?=.*UUID)(?=.*swap).*$
+    line: "/var/swap   none  swap  sw,pri=1   0 0"
 
 - name: check for swap file
   ansible.builtin.stat:
@@ -50,14 +52,6 @@
   ansible.builtin.file:
     path: /var/swap
     mode: '0600'
-  when: not swapfile_check.stat.exists
-
-- name: add swapfile to fstab
-  ansible.builtin.lineinfile:
-    path: /etc/fstab
-    regexp: ^(?=.*UUID)(?=.*swap).*$
-    line: "/var/swap   none  swap  sw,pri=1   0 0"
-  when: swapfile_check.stat.exists
 
 - name: install modules-load.d file
   ansible.builtin.copy:
@@ -91,11 +85,11 @@
     group: root
     mode: '0644'
 
-- name: enable swapfile
-  become: true
-  ansible.builtin.command:
-    cmd: swapon -p 1 /var/swap
-  when: not swapfile_check.stat.exists
+      # - name: enable swapfile
+      #   become: true
+      #   ansible.builtin.command:
+      #     cmd: swapon -p 1 /var/swap
+      #   when: not swapfile_check.stat.exists
 
 - name: enable zram on next restart
   ansible.builtin.service:
