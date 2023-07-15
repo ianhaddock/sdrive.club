@@ -35,15 +35,13 @@
     mode: '0750'
     state: directory
   with_items:
-    - /var/www
-    - /var/www/{{ site_fqdn }}
-    - /var/www/{{ site_fqdn }}/html
+    - "{{ nginx_path }}/{{ site_fqdn }}/html"
   when: cert_enabled
 
 - name: install http redirect to https html
   ansible.builtin.template:
     src: redirect.html.j2
-    dest: /var/www/{{ site_fqdn }}/html/index.html
+    dest: "{{ nginx_path }}/{{ site_fqdn }}/html/index.html"
     owner: nginx
     group: nginx
     mode: '0640'
@@ -52,7 +50,7 @@
 - name: add site images in html folder
   ansible.builtin.copy:
     src: "www-html/{{ site_fqdn }}/"
-    dest: "/var/www/{{ site_fqdn }}/html"
+    dest: "{{ nginx_path }}/{{ site_fqdn }}/html"
     owner: nginx
     group: nginx
     mode: '0750'

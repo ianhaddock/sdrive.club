@@ -24,3 +24,6 @@
   with_items:
     - 80/tcp
     - 443/tcp
+
+- name: add domain pages
+  ansible.builtin.import_tasks: domain_pages.yml      

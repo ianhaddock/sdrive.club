@@ -55,9 +55,9 @@
 # nginx
     webuser: nginx
     webgroup: nginx
-
+    
     acmanager_base_URL: "https://{{ site_fqdn }}"
-
+    nginx_path: "/usr/share/nginx/html"
     httpHostname: 0.0.0.0:8772
 
 # Server Backup
@@ -81,7 +81,6 @@
     lobby_port_prefix: 95
     udp_port_prefix: 96
     tcp_port_prefix: 97
-
 
     enableContentManager: 1
     upnp_enabled: 'false'

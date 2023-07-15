@@ -20,7 +20,7 @@
         name: network
         state: reloaded
 
-### acserver server ###
+### acserver ###
 
 - hosts: acserver
   become: true
@@ -45,11 +45,3 @@
       ansible.builtin.systemd:
         name: multi-server-manager
         state: restarted
-
-### acbackup server ###
-
-- hosts: acbackup
-  become: true
-
-  roles:
-    - acsm_backup

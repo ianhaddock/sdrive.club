@@ -13,6 +13,16 @@ server {
 #  include /etc/letsencrypt/options-ssl-nginx.conf;
 #  ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
 
+  error_page 404 /404/404-error.html;
+  location /404 {
+        root {{ nginx_path }}/error_pages;
+  }
+
+  error_page 500 502 503 504 /50x/50x-error.html;
+  location /50x {
+        root {{ nginx_path }}/error_pages;
+  }
+
   location / {
     proxy_pass http://localhost:77{{ item }};
     proxy_set_header Host $host;

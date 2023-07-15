@@ -52,9 +52,6 @@
 
 ###
 
-- name: add acsm login accounts
-  ansible.builtin.import_tasks: accounts.yml
-
 - name: add custom server messages
   ansible.builtin.import_tasks: messages.yml
   when: acmanager_path.changed

@@ -1,5 +1,4 @@
 # custom error and index pages
-#
 ---
 - name: add custom error pages
   ansible.builtin.copy:

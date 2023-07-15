@@ -6,8 +6,12 @@ This builds an Assetto Corsa server with KMR on a VPS.
 * Brioche's [Kiss My Rank plugin (KMR)][2]
 * Ansible
 
-
-
+## Migration:
+manually backup kmr stats
+unzip files
+chown to assetto
+rebuild indexes in GUI (~10 minutes)
+run ansible play
 
 [1]: https://github.com/JustaPenguin/assetto-server-manager
 [2]: https://www.racedepartment.com/downloads/kissmyrank-local-assetto-corsa-server-plugin.17667/

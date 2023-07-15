@@ -3,7 +3,7 @@ server {
   server_name www.{{ site_fqdn }};
   client_max_body_size 256m;
 
-  root /var/www/www.{{ site_fqdn }}/html;
+  root {{ nginx_path }}/www.{{ site_fqdn }}/html;
 
   index index.html;
 
@@ -46,7 +46,7 @@ server {
 #        listen 80;
 #        listen [::]:80;
 #
-#        root /var/www/www.{{ site_fqdn }}/html;
+#        root {{ nginx_path }}/www.{{ site_fqdn }}/html;
 #        index index.html;
 #
 #        server_name www.{{ site_fqdn }};

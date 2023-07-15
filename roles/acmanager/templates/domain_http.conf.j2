@@ -4,7 +4,7 @@
 #   server_name www.{{ site_fqdn }};
 #   client_max_body_size 256m;
 #
-#   root /var/www/{{ site_fqdn }}/html;
+#   root {{ nginx_path }}/{{ site_fqdn }}/html;
 #
 #   index index.html;
 #
@@ -33,7 +33,17 @@ server {
   server_name "" www.{{ site_fqdn }};
   client_max_body_size 256m;
 
-  root /var/www/{{ site_fqdn }}/html;
+  root {{ nginx_path }}/{{ site_fqdn }}/html;
+
+  error_page 404 /404/404-error.html;
+  location /404 {
+        root {{ nginx_path }}/error_pages;
+  }
+
+  error_page 500 502 503 504 /50x/50x-error.html;
+  location /50x {
+        root {{ nginx_path }}/error_pages;
+  }
 
   index index.html;
 
