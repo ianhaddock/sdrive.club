@@ -21,7 +21,7 @@
     dest: "{{ acserverPath }}"
     owner: "{{ assettouser }}"
     group: "{{ assettogroup }}"
-    remote_src: true  
+    remote_src: true
   when: not kmr_path.stat.exists
 
 - name: remove windows KMR files

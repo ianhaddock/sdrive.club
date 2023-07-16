@@ -1,20 +1,18 @@
 # systemd file installs
-
 ---
-
-- name: install "{{ acmanagerSystemd }}" file
-  ansible.builtin.copy:
-    src: "{{ acmanagerSystemd }}"
-    dest: "/usr/lib/systemd/system/{{ acmanagerSystemd }}"
+- name: install server-manager systemd file
+  ansible.builtin.template:
+    src: "server-manager.service.j2"
+    dest: "/usr/lib/systemd/system/{{ systemd_single }}"
     owner: root
     group: root
     mode: '0644'
   register: acmanager_systemd
 
-- name: install "{{ acMultiServerManagerSystemd }}" file
-  ansible.builtin.copy:
-    src: "{{ acMultiServerManagerSystemd }}"
-    dest: "/usr/lib/systemd/system/{{ acMultiServerManagerSystemd }}"
+- name: install multi-server-manager.service systemd file
+  ansible.builtin.template:
+    src: "multi-server-manager.service.j2"
+    dest: "/usr/lib/systemd/system/{{ systemd_multi }}"
     owner: root
     group: root
     mode: '0644'
@@ -22,5 +20,5 @@
 
 - name: reload systemd daemon
   ansible.builtin.systemd:
-    daemon_reload: True
+    daemon_reload: true
   when: acmanager_systemd.changed or acmulti_systemd.changed

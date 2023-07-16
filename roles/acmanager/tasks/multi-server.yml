@@ -1,15 +1,13 @@
 # installing ACSM multi manager
-
 ---
-
-- name: stop "{{ acmanagerSystemd }}" service
+- name: stop "{{ systemd_single }}" service
   ansible.builtin.systemd:
-    name: "{{ acmanagerSystemd }}"
+    name: "{{ systemd_single }}"
     state: stopped
 
-- name: start "{{ acMultiServerManagerSystemd }}"
+- name: start "{{ systemd_multi }}"
   ansible.builtin.systemd:
-    name: "{{ acMultiServerManagerSystemd }}"
+    name: "{{ systemd_multi }}"
     daemon_reload: true
     state: started
 

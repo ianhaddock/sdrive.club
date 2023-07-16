@@ -35,7 +35,7 @@
 
 - name: start ACSM to generate config files and paths
   ansible.builtin.systemd:
-    name: "{{ acmanagerSystemd }}"
+    name: "{{ systemd_single }}"
     daemon_reload: true
     state: started
   when: acmanager_path.changed

@@ -17,10 +17,9 @@
     acmanagerZip: acsm_v2.*_linux-amd64.zip
     acmanagerZipArm32: acsm_v2.*_linux-arm32.zip
     acmanagerConfig: config.yml
-    acmanagerLicense: ACSM.License
 
-    acmanagerSystemd: server-manager.service
-    acMultiServerManagerSystemd: multi-server-manager.service
+    systemd_single: server-manager.service
+    systemd_multi: multi-server-manager.service
 
     acmanagerSessionStoreType: filesystem
     acmanagerSessionStorePath: "{{ acmanagerPath }}/session-store"

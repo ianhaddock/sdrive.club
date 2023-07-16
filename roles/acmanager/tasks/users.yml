@@ -1,5 +1,4 @@
 # add ACSM user account
-
 ---
 - name: create isolation user and group. Enable linger
   ansible.builtin.include_role:
@@ -12,11 +11,8 @@
     gid: "{{ assetto_gid }}"
     comment: "acsm app account"
 
-- name: install authorized keys
+- name: install authorized key for backup script
   ansible.posix.authorized_key:
     user: "{{ assetto_user }}"
     state: present
-    key: '{{ item }}'
-  with_file:
-    - public_keys/acsm_backups.pub
-      # {{ backup_key }}.pub #instead use id_rsa generated on west
+    key: "{{ files_server }}/{{ backup_pub_key }}"

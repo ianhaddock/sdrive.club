@@ -115,10 +115,11 @@
   with_fileglob: "{{ acmanagerZipArm32 }}"
   when: acsm_zip_arm32.changed and ansible_architecture == 'arm32'
 
-- name: add AC Server Manager License
-  ansible.builtin.copy:
-    src: "{{ acmanagerLicense }}"
-    dest: "{{ acmanagerPath }}/{{ acmanagerLicense }}"
+- name: add ACSM License
+  ansible.builtin.unarchive:
+    src: "{{ files_server }}/{{ acsm_license }}"
+    dest: "{{ acmanagerPath }}"
     owner: "{{ assettouser }}"
     group: "{{ assettogroup }}"
     mode: '0600'
+    remote_src: true

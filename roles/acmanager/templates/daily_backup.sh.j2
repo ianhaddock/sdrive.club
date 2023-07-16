@@ -1,49 +1,63 @@
 #!/bin/bash -e
-###
-# backup running acsm files
-# exclude content and license files
-# requires version script to be installed to name files
-# Added by Ansible {{ ansible_date_time.date }} {{ansible_date_time.time}}
-###
+
+# # #
+#
+# v20230715: v2 rewrite
+#
+# Added by Ansible {{ ansible_date_time.date }}
+#
+# # #
+
+function usage() {
+  echo "";
+  echo "Backup ACSM game server files excluding license files."
+  echo "Requires get_version.sh script to run.";
+  echo "";
+  echo " -h: This help menu.";
+  echo "";
+}
 
 destination="{{ backup_path }}"
 acserver="{{ acserverPath }}"
 acmanager="{{ acmanagerPath }}"
 accontent="{{ acserverPath }}/content"
-datestamp="$(date +%Y%m%d.%H%m%S)" # for file name
+datestamp="$(date +%Y%m%d.%H%m%S)"
+PIDFILE=/tmp/acsm_backup.PID
+used_space="$(df -k / | tail -n1 | awk '{print $5}' | sed 's/%//g')"
 
-# check version script is installed
+# sanity checks
 version="$(/usr/local/sbin/acmanager/get_version.sh)"
 if [ $? != 0 ]; then
-    echo "$(date +%Y%m%d:%H%M%S): Exiting. Script requries get_version.sh \
-        to run.";
+    usage;
+    echo "$(date +%Y%m%d:%H%M%S): Script requries get_version.sh to run. Exiting.";
     exit 1;
-fi
-
-# check if storage is available
-used_space="$(df -k / | grep vda | awk '{print $5}' | sed 's/%//g')"
-if [ $used_space -gt 79 ]; then
+elif [ $used_space -gt 79 ]; then
+    usage;
     echo "$(date +%Y%m%d:%H%M%S): Exiting. Not enough space available, over $used_space% full";
     exit 1;
+elif [ -f $PIDFILE ]; then
+    echo "WARNING: acsm_backup script already running. Exiting.";
+    exit 0;
 fi
+
+trap 'rm -f $PIDFILE' EXIT
+echo $$ > $PIDFILE
 
 # compress files
 echo "$(date +%Y%m%d:%H%M%S): Starting backup."
 
-#tar -czf "$destination"/"$version"_"$datestamp".tar.gz \
-#    "$acmanager" "$acserver" --exclude="$accontent" \
-#    --exclude=ACSM.License --exclude=*.zip
-
-zip -y -r "$destination"/"$version"_"$datestamp".zip \
+zip -y -r {{ backup_path }}/"$version"_"$datestamp".zip \
     "$acmanager" "$acserver" -x "$accontent"/\* -x \*.License \
-    -x \*.zip -li -lf "$destination"/"$version"_"$datestamp".log
+    -x \*.zip -li -lf {{ backup_path }}/"$version"_"$datestamp".log
 
-# check if the backup worked
-if [ $? != 0 ]; then
-    echo "$(date +%Y%m%d:%H%M%S): backup failed. Exiting"
-    exit 1;
-fi
+zip -y -r {{ backup_path }}/content.zip \
+    {{ acserverPath }}/content
 
-# exit out
+zip -y -r {{ backup_path }}/shared_data.zip \
+    {{ acmanagerPath }}/shared_data
+
+
+# exit
 echo "$(date +%Y%m%d:%H%M%S): Backup complete. Exiting"
-exit
+rm -f "$PIDFILE";
+exit 0;

@@ -1,7 +1,5 @@
 # backup acserver and acmanager
-
 ---
-
 - name: set timestamp for backup
   ansible.builtin.command: 'date +%Y%m%d.%H%M%S'
   register: timestamp
@@ -24,7 +22,7 @@
 - name: backup game content; cars, tracks, weather
   ansible.builtin.archive:
     path: "{{ acserverPath }}/content"
-    dest: "{{ backup_path }}/{{ acsm_version.stdout }}_content.zip"
+    dest: "{{ backup_path }}/acsm_content.zip"
     owner: "{{ assettouser }}"
     group: "{{ assettogroup }}"
     mode: '0644'

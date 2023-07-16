@@ -49,7 +49,7 @@
 
 - name: add site images in html folder
   ansible.builtin.copy:
-    src: "www-html/{{ site_fqdn }}/"
+    src: "www-html/"
     dest: "{{ nginx_path }}/{{ site_fqdn }}/html"
     owner: nginx
     group: nginx
