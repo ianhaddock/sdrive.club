@@ -50,10 +50,8 @@
     validate: visudo -cf %s
   when: ansible_os_family == 'Debian'
 
-- name: install authorized keys
+- name: install pub key
   ansible.posix.authorized_key:
     user: "{{ admin_user }}"
     state: present
-    key: "{{ item }}"
-  with_file:
-    - "public_keys/{{ public_key }}"
+    key: "{{ files_server }}/{{ public_key }}"
