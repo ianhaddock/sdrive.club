@@ -8,6 +8,7 @@ This builds an Assetto Corsa server with KMR on a VPS.
 
 ## Migration:
 manually backup kmr stats
+copy the certs over / setup for new certs
 unzip files
 chown to assetto
 rebuild indexes in GUI (~10 minutes)
