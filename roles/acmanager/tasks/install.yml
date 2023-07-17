@@ -115,11 +115,27 @@
   with_fileglob: "{{ acmanagerZipArm32 }}"
   when: acsm_zip_arm32.changed and ansible_architecture == 'arm32'
 
-- name: add ACSM License
+- name: try remote ACSM License install
   ansible.builtin.unarchive:
     src: "{{ files_server }}/{{ acsm_license }}"
-    dest: "{{ acmanagerPath }}"
+    dest: "{{ acmanagerPath }}/"
     owner: "{{ assettouser }}"
     group: "{{ assettogroup }}"
     mode: '0600'
     remote_src: true
+  ignore_errors: true
+  register: license_install
+
+- name: debug
+  ansible.builtin.debug:
+    var: license_install
+  when: verbose
+
+- name: try local ACSM License install
+  ansible.builtin.copy:
+    src: "{{ acsm_license }}"
+    dest: "{{ acmanagerPath }}/"
+    owner: "{{ assettouser }}"
+    group: "{{ assettogroup }}"
+    mode: '0600'
+  when: license_install.failed
