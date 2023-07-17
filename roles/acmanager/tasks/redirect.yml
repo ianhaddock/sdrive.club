@@ -48,12 +48,13 @@
   when: cert_enabled
 
 - name: add site images in html folder
-  ansible.builtin.copy:
-    src: "www-html/"
+  ansible.builtin.unarchive:
+    src: "{{ files_server }}/acsm_html.zip"
     dest: "{{ nginx_path }}/{{ site_fqdn }}/html"
     owner: nginx
     group: nginx
     mode: '0750'
+    remote_src: true
 
 - name: setup http reverse proxy for server-manager
   ansible.builtin.template:

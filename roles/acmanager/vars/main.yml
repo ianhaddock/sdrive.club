@@ -1,3 +1,7 @@
+#  daily backup
+    backup_hours: "4"
+    backup_path: "/home/{{ assettouser }}/backups"
+
 #  systemctl
     sysctlSettings: acmanager_ipv4_settings.conf
     sysctlSettingsPath: /etc/sysctl.d
@@ -58,12 +62,6 @@
     acmanager_base_URL: "https://{{ site_fqdn }}"
     nginx_path: "/usr/share/nginx/html"
     httpHostname: 0.0.0.0:8772
-
-# Server Backup
-    races_zip: true  ## base custom races
-    custom_races_zip: acsm_v*_custom_races.zip
-    content_zip: true  ## base content
-    custom_content_zip: acsm_v*_content.zip
 
     # host_var files include cert_enabled value
     url_prefix: "{{ 'https' if cert_enabled else 'http' }}"

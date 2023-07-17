@@ -26,4 +26,4 @@
     - 443/tcp
 
 - name: add domain pages
-  ansible.builtin.import_tasks: domain_pages.yml      
+  ansible.builtin.import_tasks: domain_pages.yml

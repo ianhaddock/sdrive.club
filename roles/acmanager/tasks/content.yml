@@ -1,23 +1,21 @@
-# bootstrap content and custom races
-
+# pull latest archive of game content and shared data
 ---
-
 - name: add content
   ansible.builtin.unarchive:
-    src: "{{ item }}"
+    src: "{{ files_server }}/acsm_content.zip"
     dest: "{{ acserverPath }}/"
     owner: "{{ assettouser }}"
     group: "{{ assettouser }}"
     mode: '0755'
-  with_fileglob: "{{ custom_content_zip }}"
-  when: content_zip
+    remote_src: true
+    ignore_errors: true
 
 - name: add custom races
   ansible.builtin.unarchive:
-    src: "{{ item }}"
+    src: "{{ files_server }}/acsm_shared_data.zip"
     dest: "{{ acmanagerStorePath }}/"
     owner: "{{ assettouser }}"
     group: "{{ assettouser }}"
     mode: '0755'
-  with_fileglob: "{{ custom_races_zip }}"
-  when: races_zip
+    remote_src: true
+    ignore_errors: true

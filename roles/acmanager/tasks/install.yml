@@ -48,7 +48,7 @@
 - name: add cron job for backup script
   become_user: "{{ assettouser }}"
   ansible.builtin.cron:
-    name: twice daily acsm backup
+    name: daily acsm backup
     minute: "15"
     hour: "{{ backup_hours }}"
     job: "{{ acmanagerPath }}/daily_backup.sh >> /var/log/daily_backup_acsm.log 2>&1"

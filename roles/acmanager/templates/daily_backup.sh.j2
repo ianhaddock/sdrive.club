@@ -21,7 +21,7 @@ destination="{{ backup_path }}"
 acserver="{{ acserverPath }}"
 acmanager="{{ acmanagerPath }}"
 accontent="{{ acserverPath }}/content"
-datestamp="$(date +%Y%m%d.%H%m%S)"
+datestamp="$(date +%Y%m%d)"
 PIDFILE=/tmp/acsm_backup.PID
 used_space="$(df -k / | tail -n1 | awk '{print $5}' | sed 's/%//g')"
 
@@ -50,10 +50,10 @@ zip -y -r {{ backup_path }}/"$version"_"$datestamp".zip \
     "$acmanager" "$acserver" -x "$accontent"/\* -x \*.License \
     -x \*.zip -li -lf {{ backup_path }}/"$version"_"$datestamp".log
 
-zip -y -r {{ backup_path }}/content.zip \
+zip -y -r {{ backup_path }}/acsm_content.zip \
     {{ acserverPath }}/content
 
-zip -y -r {{ backup_path }}/shared_data.zip \
+zip -y -r {{ backup_path }}/acsm_shared_data.zip \
     {{ acmanagerPath }}/shared_data
 
 
