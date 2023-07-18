@@ -11,16 +11,16 @@
     #   ansible.builtin.unarchive:
     #     src: ac_kissmyrank.zip
     #     dest: "{{ acserverPath }}"
-    #     owner: "{{ assettouser }}"
-    #     group: "{{ assettogroup }}"
+    #     owner: "{{ assetto_user }}"
+    #     group: "{{ assetto_group }}"
     #   when: not kmr_path.stat.exists
 
 - name: install kissmyrank if missing
   ansible.builtin.unarchive:
     src: 'https://www.dropbox.com/sh/7lp4mobixpdx7x3/AAACmLqtFgNf7yMtQvqZj8sJa/ac_kissmyrank.zip?dl=1'
     dest: "{{ acserverPath }}"
-    owner: "{{ assettouser }}"
-    group: "{{ assettogroup }}"
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
     remote_src: true
   when: not kmr_path.stat.exists
 
@@ -35,8 +35,8 @@
     remote_src: true
     src: "{{ acserverPath }}/ac_kissmyrank_linux/"
     dest: "{{ acserverPath }}/kissmyrank"
-    owner: "{{ assettouser }}"
-    group: "{{ assettogroup }}"
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
     mode: '0755'
   when: not kmr_path.stat.exists
 
@@ -50,8 +50,8 @@
   ansible.builtin.template:
     src: templates/kissmyrank_index.html.j2
     dest: "{{ acserverPath }}/kissmyrank/index.html"
-    owner: '{{ assettouser }}'
-    group: '{{ assettogroup }}'
+    owner: '{{ assetto_user }}'
+    group: '{{ assetto_group }}'
     mode: '0644'
 
 - name: check for kmr options file
@@ -63,8 +63,8 @@
   ansible.builtin.template:
     src: templates/kissmyrank_options.json.j2
     dest: "{{ acmanagerStorePath }}/kissmyrank_options.json"
-    owner: "{{ assettouser }}"
-    group: "{{ assettogroup }}"
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
     mode: '0644'
   when: not kmr_options_file_check.stat.exists
 

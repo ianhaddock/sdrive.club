@@ -6,8 +6,8 @@
   ansible.builtin.template:
     src: motd.j2
     dest: "{{ acserverPath}}/motd.txt"
-    owner: "{{ assettouser }}"
-    group: "{{ assettogroup }}"
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
     mode: '0644'
 
 - name: insert join message for single server
@@ -34,8 +34,8 @@
   ansible.builtin.template:
     src: motd.j2
     dest: "{{ acmanagerPath }}/servers/SERVER_{{ item }}/assetto/motd.txt"
-    owner: "{{ assettouser }}"
-    group: "{{ assettogroup }}"
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
     mode: '0644'
   with_sequence: start=0 end={{ acMultiServerManagerCount -1 }} format=%02x
   when: acMultiServerManagerCount > 1 and acmm_installed.stat.exists

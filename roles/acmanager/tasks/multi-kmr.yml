@@ -12,8 +12,8 @@
   ansible.builtin.template:
     src: templates/kissmyrank_options.json.j2
     dest: "{{ acmanagerPath }}/servers/SERVER_{{ item.item }}/store.json/{{ kmrConfig }}"
-    owner: "{{ assettouser }}"
-    group: "{{ assettogroup }}"
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
     mode: '0644'
   when: item.stat.exists == False
   loop: "{{ kmr_options_file.results }}"
@@ -24,8 +24,8 @@
   ansible.builtin.template:
     src: templates/kissmyrank_index.html.j2
     dest: "{{ acmanagerPath }}/servers/SERVER_{{ item }}/assetto/kissmyrank/index.html"
-    owner: '{{ assettouser }}'
-    group: '{{ assettogroup }}'
+    owner: '{{ assetto_user }}'
+    group: '{{ assetto_group }}'
     mode: '0644'
   with_sequence: start=0 end={{ acMultiServerManagerCount -1 }} format=%02x
 

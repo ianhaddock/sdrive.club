@@ -6,8 +6,8 @@
   ansible.builtin.file:
     path: "{{ acmanagerPath }}"
     state: directory
-    owner: "{{ assettouser }}"
-    group: "{{ assettogroup }}"
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
     mode: '0755'
   register: acmanager_path
 
@@ -15,8 +15,8 @@
   ansible.builtin.file:
     path: "{{ backup_path }}"
     state: directory
-    owner: "{{ assettouser }}"
-    group: "{{ assettogroup }}"
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
     mode: '0750'
 
 ###
@@ -25,28 +25,28 @@
   ansible.builtin.template:
     src: get_version.sh.j2
     dest: "{{ acmanagerPath }}/get_version.sh"
-    owner: "{{ assettouser }}"
-    group: "{{ assettogroup }}"
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
     mode: '0740'
 
 - name: add helper script for backups
   ansible.builtin.template:
     src: daily_backup.sh.j2
     dest: "{{ acmanagerPath }}/daily_backup.sh"
-    owner: "{{ assettouser }}"
-    group: "{{ assettogroup }}"
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
     mode: '0740'
 
 - name: create daily backup acsm log file
   ansible.builtin.file:
     state: touch
     path: /var/log/daily_backup_acsm.log
-    owner: "{{ assettouser }}"
-    group: "{{ assettogroup }}"
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
     mode: '0644'
 
 - name: add cron job for backup script
-  become_user: "{{ assettouser }}"
+  become_user: "{{ assetto_user }}"
   ansible.builtin.cron:
     name: daily acsm backup
     minute: "15"
@@ -57,8 +57,8 @@
   ansible.builtin.copy:
     src: "{{ item }}"
     dest: "{{ acmanagerPath }}"
-    owner: "{{ assettouser }}"
-    group: "{{ assettogroup }}"
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
     mode: '0640'
   with_fileglob: "{{ acmanagerZip }}"
   when: ansible_architecture == 'x86_64'
@@ -68,8 +68,8 @@
   ansible.builtin.copy:
     src: "{{ item }}"
     dest: "{{ acmanagerPath }}"
-    owner: "{{ assettouser }}"
-    group: "{{ assettogroup }}"
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
     mode: '0640'
   with_fileglob: "{{ acmanagerZip }}"
   when: ansible_architecture == 'arm32'
@@ -99,8 +99,8 @@
   ansible.builtin.unarchive:
     src: "{{ item }}"
     dest: "{{ acmanagerPath }}"
-    owner: "{{ assettouser }}"
-    group: "{{ assettogroup }}"
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
     mode: '0755'
   with_fileglob: "{{ acmanagerZip }}"
   when: acsm_zip_x86.changed and ansible_architecture == 'x86_64'
@@ -109,8 +109,8 @@
   ansible.builtin.unarchive:
     src: "{{ item }}"
     dest: "{{ acmanagerPath }}"
-    owner: "{{ assettouser }}"
-    group: "{{ assettogroup }}"
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
     mode: '0755'
   with_fileglob: "{{ acmanagerZipArm32 }}"
   when: acsm_zip_arm32.changed and ansible_architecture == 'arm32'
@@ -119,8 +119,8 @@
   ansible.builtin.unarchive:
     src: "{{ files_server }}/{{ acsm_license }}"
     dest: "{{ acmanagerPath }}/"
-    owner: "{{ assettouser }}"
-    group: "{{ assettogroup }}"
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
     mode: '0600'
     remote_src: true
   ignore_errors: true
@@ -135,7 +135,7 @@
   ansible.builtin.copy:
     src: "{{ acsm_license }}"
     dest: "{{ acmanagerPath }}/"
-    owner: "{{ assettouser }}"
-    group: "{{ assettogroup }}"
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
     mode: '0600'
   when: license_install.failed

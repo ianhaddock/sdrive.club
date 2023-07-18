@@ -1,107 +1,110 @@
-#  daily backup
-    backup_hours: "4"
-    backup_path: "/home/{{ assettouser }}/backups"
+# acmanager vars
+---
 
-#  systemctl
-    sysctlSettings: acmanager_ipv4_settings.conf
-    sysctlSettingsPath: /etc/sysctl.d
+assetto_user: assetto
+assetto_uid: 1210
+assetto_group: assetto
+assetto_gid: 1210
 
-#  acmanager vars:
-    assetto_user: "{{ assettouser }}"
-    assetto_uid: 1210
-    assetto_group: "{{ assettogroup }}"
-    assetto_gid: 1210
+app_name: acsm
+app_port: 8772
 
-    app_name: acsm
-    app_port: 8772
+install_kmr: true   # this is a bool
+kmrEnabled: 'true'  # this is a string
+acmanagerMonitoring: false
 
-    assettouser: assetto
-    assettogroup: assetto
-    acmanagerPath: /usr/local/sbin/acmanager #this is from EmperorServers
-    acmanagerZip: acsm_v2.*_linux-amd64.zip
-    acmanagerZipArm32: acsm_v2.*_linux-arm32.zip
-    acmanagerConfig: config.yml
+backup_hours: "4"
+backup_path: "/home/{{ assetto_user }}/backups"
 
-    systemd_single: server-manager.service
-    systemd_multi: multi-server-manager.service
+acmanagerPath: /usr/local/sbin/acmanager
+acmanagerZip: acsm_v2.*_linux-amd64.zip
+acmanagerZipArm32: acsm_v2.*_linux-arm32.zip
+acmanagerLicense: ACSM.License
+acmanagerConfig: config.yml
 
-    acmanagerSessionStoreType: filesystem
-    acmanagerSessionStorePath: "{{ acmanagerPath }}/session-store"
-    acmanagerSessionMaxAge: 720h  # 720h is the default
+systemd_single: server-manager.service
+systemd_multi: multi-server-manager.service
 
-    acmanagerTLSEnabled: false
-    acmanagerCertPath: "/etc/letsencrypt/live/{{ site_fqdn }}/cert.pem"
-    acmanagerKeyPath: "/etc/letsencrypt/live/{{ site_fqdn }}/privkey.pem"
+acmanagerSessionStoreType: filesystem
+acmanagerSessionStorePath: "{{ acmanagerPath }}/session-store"
+acmanagerSessionMaxAge: 720h  # 720h is the default
 
-    acmanagerMonitoring: false
+acmanagerTLSEnabled: false
+acmanagerCertPath: "/etc/letsencrypt/live/{{ site_fqdn }}/cert.pem"
+acmanagerKeyPath: "/etc/letsencrypt/live/{{ site_fqdn }}/privkey.pem"
 
-    acmanagerStoreType: json
-    acmanagerStorePath: "{{ acmanagerPath }}/shared_store.json"
-    acmanagerStoreSharedDataPath: "{{ acmanagerPath }}/shared_store.json"
-    acmanagerStoreScheduledEventCheckLoop: 0s # 0s is the default
-    acmanagerMapRefreshInterval_ms: 500 # 500 is the default
+acmanagerStoreType: json
+acmanagerStorePath: "{{ acmanagerPath }}/shared_store.json"
+acmanagerStoreSharedDataPath: "{{ acmanagerPath }}/shared_store.json"
+acmanagerStoreScheduledEventCheckLoop: 0s  # 0s is the default
+acmanagerMapRefreshInterval_ms: 500  # 500 is the default
 
-    acmanagerDisablePlugins: false
-    acmanagerPerformanceMode: false
-    acmanagerScanContentFolder: true
+acmanagerDisablePlugins: false
+acmanagerPerformanceMode: false
+acmanagerScanContentFolder: true
 
-    acmanagerPersistSessionResults: false # the default is false
+acmanagerPersistSessionResults: false  # the default is false
 
-    acmanagerIndexLaps: true
-    acmanagerIndexCrashes: false
+acmanagerIndexLaps: true
+acmanagerIndexCrashes: false
 
-    acmanagerRecaptchaSiteKey: ""
-    acmanagerRecaptchaSecretKey: ""
+acmanagerRecaptchaSiteKey: ""
+acmanagerRecaptchaSecretKey: ""
 
-    acmanagerLuaEnabled: false
+acmanagerLuaEnabled: false
 
 # nginx
-    webuser: nginx
-    webgroup: nginx
-    
-    acmanager_base_URL: "https://{{ site_fqdn }}"
-    nginx_path: "/usr/share/nginx/html"
-    httpHostname: 0.0.0.0:8772
 
-    # host_var files include cert_enabled value
-    url_prefix: "{{ 'https' if cert_enabled else 'http' }}"
+# acmanager_base_URL: "https://{{ site_fqdn }}"
+nginx_path: "/usr/share/nginx/html"
+httpHostname: 0.0.0.0:8772
+
+# host_var files include cert_enabled value
+url_prefix: "{{ 'https' if cert_enabled else 'http' }}"
 
 # acserver
-    acserverPath: '/usr/local/sbin/acserver'
-    acserver_path: '/usr/local/sbin/acserver'
+acserver_path: '/usr/local/sbin/acserver'
 
 # steamcmd
-    steamcmd_path: /usr/local/sbin/steamcmd  #steam pulls free AC server app
-    steamcmdForceUpdate: false
+steamcmd_path: /usr/local/sbin/steamcmd  #steam pulls free AC server app
+steamcmdForceUpdate: false
 
 # multiserver
-    lobby_port_prefix: 95
-    udp_port_prefix: 96
-    tcp_port_prefix: 97
+lobby_port_prefix: 95
+udp_port_prefix: 96
+tcp_port_prefix: 97
 
-    enableContentManager: 1
-    upnp_enabled: 'false'
+enableContentManager: 1
+upnp_enabled: 'false'
 
 # kmr
-    install_kmr: true
-    kmrZip: kmr_*.zip
-    live_track_view: 1
-    kmrConfig: kissmyrank_options.json
-    kmrEnabled: 'true'
-    web_stats_interface: 1
-    right_to_be_forgotten: 1
-    show_race_control_link: 1
-    cut_lines_enabled: 0
+kmrZip: kmr_*.zip
+live_track_view: 1
+kmrConfig: kissmyrank_options.json
+
+web_stats_interface: 1
+right_to_be_forgotten: 1
+show_race_control_link: 1
+cut_lines_enabled: 0
 
 # multi-server ACSM
-    plugin_udp_local_port_prefix: 12
-    plugin_udp_address: '127.0.0.1'
-    plugin_udp_port_prefix: 11
-    kmr_web_auth_port: '001'
-    kmr_ac_app_link_prefix: 13
-    kmr_web_stats_port_prefix: 77
-    kmr_database_port: 8701
+plugin_udp_local_port_prefix: 12
+plugin_udp_address: '127.0.0.1'
+plugin_udp_port_prefix: 11
+kmr_web_auth_port: '001'
+kmr_ac_app_link_prefix: 13
+kmr_web_stats_port_prefix: 77
+kmr_database_port: 8701
 
 # stracker
-    strConfig: stracker_options.json
-    install_stracker: false
+strConfig: stracker_options.json
+install_stracker: false
+#  vars:
+
+
+acmanagerSystemd: server-manager.service  # single server
+acMultiServerManagerSystemd: multi-server-manager.service
+
+# stand alone ACSM server
+UDPPluginLocalPort: 12000
+UDPPluginAddress: '127.0.0.1:12001'

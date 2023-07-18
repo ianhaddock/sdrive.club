@@ -1,7 +1,4 @@
-#
 # nginx server setting for multiple kmr instances
-#
-
 ---
 
 - name: check if kmr subdomains match lobby count
@@ -10,11 +7,11 @@
     patterns: "kmr*.conf"
   register: kmr_subdomain_count
 
-# - name: debug kmr subdomains
-#   ansible.builtin.debug:
-#     msg: "kmr subdomains {{ kmr_subdomain_count.matched }}"
-#     msg: "kmr subdomains {{ item.path }}"
-#   with_items: "{{ kmr_subdomain_count.files }}"
+- name: debug kmr subdomains
+  ansible.builtin.debug:
+    msg: "count: {{ kmr_subdomain_count.matched }} subdomains {{ item.path }}"
+  with_items: "{{ kmr_subdomain_count.files }}"
+  when: verbose
 
 - name: remove kmr conf files if they do not match
   ansible.builtin.file:
@@ -33,8 +30,8 @@
   ansible.builtin.template:
     src: kmrNginx_http.j2
     dest: "/etc/nginx/conf.d/kmr{{ item }}.conf"
-    owner: "{{ webuser }}"
-    group: "{{ webgroup }}"
+    owner: nginx
+    group: nginx
     mode: '0644'
     force: true
   with_sequence: start=0 end={{ acMultiServerManagerCount -1 }} format=%02x
@@ -45,46 +42,13 @@
   ansible.builtin.template:
     src: kmrNginx_https.j2
     dest: "/etc/nginx/conf.d/kmr{{ item }}.conf"
-    owner: "{{ webuser }}"
-    group: "{{ webgroup }}"
+    owner: nginx
+    group: nginx
     mode: '0644'
     force: true
   with_sequence: start=0 end={{ acMultiServerManagerCount -1 }} format=%02x
   when: cert_enabled
   register: kmr_https_nginx
-
-    # - name: create {{ site_fqdn }} directory
-    #   ansible.builtin.file:
-    #     name: /var/www/{{ site_fqdn }}
-    #     state: directory
-    #     owner: nginx
-    #     group: nginx
-    #     mode: '0755'
-    #
-    # - name: create {{ site_fqdn }}/html directory
-    #   ansible.builtin.file:
-    #     name: /var/www/{{ site_fqdn }}/html
-    #     state: directory
-    #     owner: nginx
-    #     group: nginx
-    #     mode: '0755'
-    #
-    # - name: add index template
-    #   ansible.builtin.template:
-    #     src: index.html.j2
-    #     dest: /var/www/{{ site_fqdn }}/html/
-    #     owner: nginx
-    #     group: nginx
-    #     mode: '0644'
-    #
-    # - name: copy over files and images
-    #   ansible.builtin.copy:
-    #     src: "{{ item }}"
-    #     dest: /var/www/{{ site_fqdn }}/html/
-    #     owner: nginx
-    #     group: nginx
-    #     mode: '0644'
-    #   with_fileglob: "www-html/{{ site_fqdn }}/*"
 
 - name: add http site in sites-available
   ansible.builtin.template:

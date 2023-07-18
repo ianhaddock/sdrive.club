@@ -14,8 +14,8 @@
       - "{{ acmanagerPath }}/*.zip"
       - "{{ acmanagerPath }}/ACSM.License"
     dest: "{{ backup_path }}/{{ acsm_version.stdout }}_{{ timestamp.stdout }}.zip"
-    owner: "{{ assettouser }}"
-    group: "{{ assettogroup }}"
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
     mode: '0644'
     format: zip
 
@@ -23,7 +23,7 @@
   ansible.builtin.archive:
     path: "{{ acserverPath }}/content"
     dest: "{{ backup_path }}/acsm_content.zip"
-    owner: "{{ assettouser }}"
-    group: "{{ assettogroup }}"
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
     mode: '0644'
     format: zip
