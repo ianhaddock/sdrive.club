@@ -29,3 +29,26 @@
   ansible.builtin.debug:
     msg: 'debug {{ steam_install }}'
   when: verbose
+
+- name: insert motd message for single server
+  ansible.builtin.template:
+    src: motd.j2
+    dest: "{{ acserver_path }}/motd.txt"
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
+    mode: '0644'
+
+- name: check if AC multi manager is installed
+  ansible.builtin.stat:
+    path: "{{ acmanager_path }}/servers/SERVER_00/" #store.json/server_options.json"
+  register: acmm_installed
+
+- name: insert motd message for multi servers
+  ansible.builtin.template:
+    src: motd.j2
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/assetto/motd.txt"
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
+    mode: '0644'
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+  when: server_count > 1 and acmm_installed.stat.exists

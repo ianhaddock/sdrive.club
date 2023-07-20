@@ -1,44 +1,42 @@
-# install acserver, acmanager, plugins
+# install acmanager, plugins
 ---
 
-- name: add system accounts
-  ansible.builtin.import_tasks: users.yml
+- name: create isolation user and group. Enable linger
+  ansible.builtin.include_role:
+    name: common
+    tasks_from: create_user.yml
+  vars:
+    user: "{{ assetto_user }}"
+    uid: "{{ assetto_uid }}"
+    group: "{{ assetto_group }}"
+    gid: "{{ assetto_gid }}"
+    comment: "acsm app account"
 
-- name: set sysctl values
-  ansible.builtin.import_tasks: sysctl.yml
+- name: install authorized key for backup script
+  ansible.posix.authorized_key:
+    user: "{{ assetto_user }}"
+    state: present
+    key: "{{ files_server }}/{{ backup_pub_key }}"
 
-- name: install systemd files
-  ansible.builtin.import_tasks: systemd.yml
-
-- name: install acserver with steamcmd
-  ansible.builtin.import_tasks: steamcmd.yml
-
-- name: add firewalld rules
-  ansible.builtin.import_tasks: firewalld.yml
-
-###
+- name: install or update acserver via steamcmd
+  ansible.builtin.import_tasks: acserver.yml
 
 - name: install or update AC Server Manager
   ansible.builtin.import_tasks: install.yml
-  # this sets acmanager_path variable
+  # this sets acmanager_path_state
 
-- name: setup acsm config.yml
-  ansible.builtin.import_tasks: config.yml
-
-- name: set game lobby count to "{{ acMultiServerManagerCount }}"
+- name: set game lobby count to "{{ server_count }}"
   ansible.builtin.lineinfile:
-    dest: "{{ acmanagerPath }}/servers.yml"
+    dest: "{{ acmanager_path }}/servers.yml"
     regexp: '^servers: '
-    line: 'servers: {{ acMultiServerManagerCount }}'
-
-###
+    line: 'servers: {{ server_count }}'
 
 - name: start ACSM to generate config files and paths
   ansible.builtin.systemd:
     name: "{{ systemd_single }}"
     daemon_reload: true
     state: started
-  when: acmanager_path.changed
+  when: acmanager_path_state.changed and server_count == 1
 
 - name: wait for server-manager to settle
   ansible.builtin.uri:
@@ -46,19 +44,25 @@
     status_code: 200
   register: result
   until: result.status == 200
-  retries: 720 # 720 * 5 = 1 hour
+  retries: 720  # 720 * 5 = 1 hour
   delay: 5
-  when: acmanager_path.changed
+  when: acmanager_path_state.changed and server_count == 1
 
 ###
 
+- name: setup acsm config.yml
+  ansible.builtin.import_tasks: config.yml
+
+- name: add daily backups
+  ansible.builtin.import_tasks: daily_backup.yml
+
 - name: add custom server messages
   ansible.builtin.import_tasks: messages.yml
-  when: acmanager_path.changed
+  when: acmanager_path_state.changed
 
 - name: add cars, tracks, weather, and custom races
   ansible.builtin.import_tasks: content.yml
-  when: acmanager_path.changed
+  when: acmanager_path_state.changed
 
 - name: add settings in server options
   ansible.builtin.import_tasks: server_options.yml
@@ -66,15 +70,13 @@
 - name: insert custom CSS
   ansible.builtin.import_tasks: css_mods.yml
 
-###
-
 - name: update or get certs with certbot
   ansible.builtin.import_tasks: certbot.yml
   when: cert_enabled
 
-- name: setup kissmyrank plugin
-  ansible.builtin.import_tasks: kissmyrank.yml
-  when: install_kmr
+    #- name: setup kissmyrank plugin
+    #  ansible.builtin.import_tasks: kissmyrank.yml
+    #  when: install_kmr
 
 - name: add nginx conf.d files for kmr
   ansible.builtin.import_tasks: nginx.yml
@@ -83,17 +85,13 @@
 - name: add nginx redirect for ac server manager
   ansible.builtin.import_tasks: redirect.yml
 
-- name: install stracker plugin
-  ansible.builtin.import_tasks: stracker.yml
-  when: install_stracker
-
 ###
 
 - name: load changes to ACSM with restart
   ansible.builtin.systemd:
     name: "{{ acmanagerSystemd }}"
     state: restarted
-  when: acMultiServerManagerCount == 1 or acmanager_path.changed
+  when: server_count == 1 or acmanager_path_state.changed
 
 - name: wait for AC Server Manager to settle
   ansible.builtin.uri:
@@ -103,7 +101,7 @@
   until: result.status == 200
   retries: 720 # 720 * 5 = 1 hour
   delay: 5
-  when: acMultiServerManagerCount == 1 or acmanager_path.changed
+  when: server_count == 1 or acmanager_path_state.changed
 
 ###
 
@@ -111,10 +109,10 @@
   ansible.builtin.systemd:
     name: "{{ acMultiServerManagerSystemd }}"
     state: stopped
-  when: acMultiServerManagerCount == 1
+  when: server_count == 1
 
 ###
 
 - name: continue to multi-server setup when server count is >1
   ansible.builtin.import_tasks: multi-server.yml
-  when: acMultiServerManagerCount > 1
+  when: server_count > 1

@@ -30,9 +30,9 @@
 - name: update server_options file
   import_tasks: multi-options.yml
 
-- name: configure KMR servers
-  import_tasks: multi-kmr.yml
-  when: ansible_architecture == 'x86_64' and install_kmr
+    #- name: configure KMR servers
+    #  import_tasks: multi-kmr.yml
+    #  when: ansible_architecture == 'x86_64' and install_kmr
 
 - name: debug reload nginx
   ansible.builtin.debug:

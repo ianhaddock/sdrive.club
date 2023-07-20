@@ -1,40 +1,40 @@
-# install kissmyrank single server
-
+# install kissmyrank
 ---
-
-- name: check for "{{ acserverPath }}/kissmyrank"
+- name: check for "{{ acserver_path }}/kissmyrank"
   ansible.builtin.stat:
-    path: "{{ acserverPath }}/kissmyrank"
+    path: "{{ acserver_path }}/kissmyrank"
   register: kmr_path
 
-    # - name: install kissmyrank if missing
-    #   ansible.builtin.unarchive:
-    #     src: ac_kissmyrank.zip
-    #     dest: "{{ acserverPath }}"
-    #     owner: "{{ assetto_user }}"
-    #     group: "{{ assetto_group }}"
-    #   when: not kmr_path.stat.exists
-
-- name: install kissmyrank if missing
+- name: install kissmyrank from dropbox source if missing
   ansible.builtin.unarchive:
     src: 'https://www.dropbox.com/sh/7lp4mobixpdx7x3/AAACmLqtFgNf7yMtQvqZj8sJa/ac_kissmyrank.zip?dl=1'
-    dest: "{{ acserverPath }}"
+    dest: "{{ acserver_path }}"
     owner: "{{ assetto_user }}"
     group: "{{ assetto_group }}"
     remote_src: true
+  ignore_errors: true
   when: not kmr_path.stat.exists
+  register: kmr_install_stat
+
+    # - name: install kissmyrank from files_store if missing
+    #   ansible.builtin.unarchive:
+    #     src: "{{ files_server }}/ac_kissmyrank.zip"
+    #     dest: "{{ acserver_path }}"
+    #     owner: "{{ assetto_user }}"
+    #     group: "{{ assetto_group }}"
+    #   when: not kmr_path.stat.exists and kmr_install_stat.failed 
 
 - name: remove windows KMR files
   ansible.builtin.file:
-    dest: "{{ acserverPath }}/ac_kissmyrank_win"
+    dest: "{{ acserver_path }}/ac_kissmyrank_win"
     state: absent
   when: not kmr_path.stat.exists
 
 - name: rename KMR folder
   ansible.builtin.copy:
     remote_src: true
-    src: "{{ acserverPath }}/ac_kissmyrank_linux/"
-    dest: "{{ acserverPath }}/kissmyrank"
+    src: "{{ acserver_path }}/ac_kissmyrank_linux/"
+    dest: "{{ acserver_path }}/kissmyrank"
     owner: "{{ assetto_user }}"
     group: "{{ assetto_group }}"
     mode: '0755'
@@ -42,14 +42,14 @@
 
 - name: make kissmyrank executable
   ansible.builtin.file:
-    dest: "{{ acserverPath }}/kissmyrank/ac_kissmyrank-linux"
+    dest: "{{ acserver_path }}/kissmyrank/ac_kissmyrank-linux"
     mode: '0744'
   when: not kmr_path.stat.exists
 
 - name: install custom index.html file
   ansible.builtin.template:
     src: templates/kissmyrank_index.html.j2
-    dest: "{{ acserverPath }}/kissmyrank/index.html"
+    dest: "{{ acserver_path }}/kissmyrank/index.html"
     owner: '{{ assetto_user }}'
     group: '{{ assetto_group }}'
     mode: '0644'
@@ -174,3 +174,7 @@
     before: '(  \],)'
     regexp: '^    \"\"'
     replace: "{{ admin_uuids }}"
+
+- name: configure KMR servers
+  ansible.builtin.import_tasks: multi-kmr.yml
+  when: server_count > 1 and ansible_architecture == 'x86_64' and install_kmr

@@ -6,49 +6,49 @@
 
 - name: Set steamcmd username
   ansible.builtin.lineinfile:
-    dest: "{{ acmanagerPath }}/{{ acmanagerConfig }}"
+    dest: "{{ acmanager_path }}/config.yml"
     state: present
     regexp: '^  username: foobar'
     line: '  username: {{ steamcmd_user }}'
 
 - name: Set steamcmd password
   ansible.builtin.lineinfile:
-    dest: "{{ acmanagerPath }}/{{ acmanagerConfig }}"
+    dest: "{{ acmanager_path }}/config.yml"
     state: present
     regexp: '^  password: hunter2'
     line: '  password: {{ steamcmd_password }}'
 
 - name: Set acserver path
   ansible.builtin.lineinfile:
-    dest: "{{ acmanagerPath }}/{{ acmanagerConfig }}"
+    dest: "{{ acmanager_path }}/config.yml"
     state: present
     regexp: '^  install_path: assetto'
-    line: '  install_path: {{ acserverPath }}'
+    line: '  install_path: {{ acserver_path }}'
 
 - name: Set steamcmd force update to "{{ steamcmdForceUpdate }}"
   ansible.builtin.lineinfile:
-    dest: "{{ acmanagerPath }}/{{ acmanagerConfig }}"
+    dest: "{{ acmanager_path }}/config.yml"
     state: present
     regexp: '^  force_update: false'
     line: '  force_update: {{ steamcmdForceUpdate }}'
 
 - name: Set hostname
   ansible.builtin.lineinfile:
-    dest: "{{ acmanagerPath }}/{{ acmanagerConfig }}"
+    dest: "{{ acmanager_path }}/config.yml"
     state: present
     regexp: '^  hostname: '
     line: '  hostname: 0.0.0.0:8772'
 
 - name: Set http session key
   ansible.builtin.lineinfile:
-    dest: "{{ acmanagerPath }}/{{ acmanagerConfig }}"
+    dest: "{{ acmanager_path }}/config.yml"
     state: present
     regexp: '^  session_key: '
     line: '  session_key: {{ httpSessionKey }}'
 
 - name: Set server manager base URL https
   ansible.builtin.lineinfile:
-    dest: "{{ acmanagerPath }}/{{ acmanagerConfig }}"
+    dest: "{{ acmanager_path }}/config.yml"
     state: present
     regexp: '^  server_manager_base_URL:'
     line: '  server_manager_base_URL: https://{{ site_fqdn }}'
@@ -56,7 +56,7 @@
 
 - name: Set server manager base URL http
   ansible.builtin.lineinfile:
-    dest: "{{ acmanagerPath }}/{{ acmanagerConfig }}"
+    dest: "{{ acmanager_path }}/config.yml"
     state: present
     regexp: '^  server_manager_base_URL:'
     line: '  server_manager_base_URL: http://{{ site_fqdn }}'
@@ -64,88 +64,88 @@
 
 - name: set session store type
   ansible.builtin.lineinfile:
-    dest: "{{ acmanagerPath }}/{{ acmanagerConfig }}"
+    dest: "{{ acmanager_path }}/config.yml"
     state: present
     regexp: '^  session_store_type: '
     line: '  session_store_type: {{ acmanagerSessionStoreType }}'
 
 - name: set session store path
   ansible.builtin.lineinfile:
-    dest: "{{ acmanagerPath }}/{{ acmanagerConfig }}"
+    dest: "{{ acmanager_path }}/config.yml"
     state: present
     regexp: '^  session_store_path: '
     line: '  session_store_path: {{ acmanagerSessionStorePath }}'
 
 - name: set session session max age
   ansible.builtin.lineinfile:
-    dest: "{{ acmanagerPath }}/{{ acmanagerConfig }}"
+    dest: "{{ acmanager_path }}/config.yml"
     state: present
     regexp: '^  # session_max_age: '
     line: '  session_max_age: {{ acmanagerSessionMaxAge }}'
 
 - name: set TLS to "{{ acmanagerTLSEnabled }}"
   ansible.builtin.replace:
-    path: "{{ acmanagerPath }}/{{ acmanagerConfig }}"
+    path: "{{ acmanager_path }}/config.yml"
     regexp: 'listen on port 443.\n    enabled: false'
     replace: 'listen on port 443.\n    enabled: {{ acmanagerTLSEnabled }}'
 
 - name: set TLS cert_path
   ansible.builtin.lineinfile:
-    dest: "{{ acmanagerPath }}/{{ acmanagerConfig }}"
+    dest: "{{ acmanager_path }}/config.yml"
     state: present
     regexp: '^    cert_path:'
     line: '    cert_path: {{ acmanagerCertPath }}'
 
 - name: set TLS key_path
   ansible.builtin.lineinfile:
-    dest: "{{ acmanagerPath }}/{{ acmanagerConfig }}"
+    dest: "{{ acmanager_path }}/config.yml"
     state: present
     regexp: '^    key_path:'
     line: '    key_path: {{ acmanagerKeyPath }}'
 
 - name: set monitoring to "{{ acmanagerMonitoring }}"
   ansible.builtin.replace:
-    path: "{{ acmanagerPath }}/{{ acmanagerConfig }}"
+    path: "{{ acmanager_path }}/config.yml"
     regexp: '(^monitoring:\n  enabled: true)'
     replace: 'monitoring:\n  enabled: {{ acmanagerMonitoring }}'
 
 - name: set Store Type to "{{ acmanagerStoreType }}"
   ansible.builtin.lineinfile:
-    dest: "{{ acmanagerPath }}/{{ acmanagerConfig }}"
+    dest: "{{ acmanager_path }}/config.yml"
     state: present
     regexp: '^  type: '
     line: '  type: {{ acmanagerStoreType }}'
 
 - name: set Store Path to "{{ acmanagerStorePath }}"
   ansible.builtin.lineinfile:
-    dest: "{{ acmanagerPath }}/{{ acmanagerConfig }}"
+    dest: "{{ acmanager_path }}/config.yml"
     state: present
     regexp: '^  path: '
     line: '  path: {{ acmanagerStorePath }}'
 
 - name: set Store Shared Data Path to " {{ acmanagerStoreSharedDataPath }}"
   ansible.builtin.lineinfile:
-    dest: "{{ acmanagerPath }}/{{ acmanagerConfig }}"
+    dest: "{{ acmanager_path }}/config.yml"
     state: present
     regexp: '^  shared_data_path:'
     line: '  shared_data_path: {{ acmanagerStoreSharedDataPath }}'
 
 - name: set Store Scheduled Event Check Loop to " {{ acmanagerStoreScheduledEventCheckLoop }}"
   ansible.builtin.lineinfile:
-    dest: "{{ acmanagerPath }}/{{ acmanagerConfig }}"
+    dest: "{{ acmanager_path }}/config.yml"
     state: present
     regexp: '^  scheduled_event_check_loop:'
     line: '  scheduled_event_check_loop: {{ acmanagerStoreScheduledEventCheckLoop }}'
 
 - name: check for old store.json directory
   ansible.builtin.stat:
-    path: "{{ acmanagerPath }}/store.json"
+    path: "{{ acmanager_path }}/store.json"
   register: store_json_path
 
 - name: move store.json files to new "{{ acmanagerStorePath }}"
   ansible.builtin.copy:
     remote_src: True
-    src: "{{ acmanagerPath }}/store.json/"
+    src: "{{ acmanager_path }}/store.json/"
     dest: "{{ acmanagerStorePath }}/"
     owner: "{{ assettouser }}"
     group: "{{ assettogroup }}"
@@ -153,7 +153,7 @@
 
 - name: remove old store.json directory
   ansible.builtin.file:
-    path: "{{ acmanagerPath }}/store.json"
+    path: "{{ acmanager_path }}/store.json"
     state: absent
   when: store_json_path.stat.exists
 
@@ -169,7 +169,7 @@
 
 - name: Set admin_password_override in acmanager config.yml if new install
   ansible.builtin.lineinfile:
-    dest: "{{ acmanagerPath }}/{{ acmanagerConfig }}"
+    dest: "{{ acmanager_path }}/config.yml"
     state: present
     regexp: '^  admin_password_override:$'
     line: '  admin_password_override: {{ admin_password_override }}'
@@ -177,69 +177,69 @@
 
 - name: Set live map refresh interval to "{{ acmanagerMapRefreshInterval_ms }}"ms
   ansible.builtin.lineinfile:
-    dest: "{{ acmanagerPath }}/{{ acmanagerConfig }}"
+    dest: "{{ acmanager_path }}/config.yml"
     state: present
     regexp: '^  refresh_interval_ms:'
     line: '  refresh_interval_ms: {{ acmanagerMapRefreshInterval_ms }}'
 
-- name: Set Disable Plugins to "{{ acmanagerDisablePlugins }}"
+- name: Set Disable Plugins to "{{ disable_plugins }}"
   ansible.builtin.lineinfile:
-    dest: "{{ acmanagerPath }}/{{ acmanagerConfig }}"
+    dest: "{{ acmanager_path }}/config.yml"
     state: present
     regexp: '^  disable_plugins:'
-    line: '  disable_plugins: {{ acmanagerDisablePlugins }}'
+    line: '  disable_plugins: {{ disable_plugins }}'
 
-- name: Set Performance Mode to "{{ acmanagerPerformanceMode }}"
+- name: Set Performance Mode to "{{ performance_mode }}"
   ansible.builtin.lineinfile:
-    dest: "{{ acmanagerPath }}/{{ acmanagerConfig }}"
+    dest: "{{ acmanager_path }}/config.yml"
     state: present
     regexp: '^  performance_mode:'
-    line: '  performance_mode: {{ acmanagerPerformanceMode }}'
+    line: '  performance_mode: {{ performance_mode }}'
 
-- name: Set scan content folder to "{{ acmanagerScanContentFolder }}"
+- name: Set scan content folder to "{{ scan_content_folder }}"
   ansible.builtin.lineinfile:
-    dest: "{{ acmanagerPath }}/{{ acmanagerConfig }}"
+    dest: "{{ acmanager_path }}/config.yml"
     state: present
     regexp: '^  scan_content_folder_for_changes:'
-    line: '  scan_content_folder_for_changes: {{ acmanagerScanContentFolder }}'
+    line: '  scan_content_folder_for_changes: {{ scan_content_folder }}'
 
 - name: Set Persist Session Results to "{{ acmanagerPersistSessionResults }}"
   ansible.builtin.lineinfile:
-    dest: "{{ acmanagerPath }}/{{ acmanagerConfig }}"
+    dest: "{{ acmanager_path }}/config.yml"
     state: present
     regexp: '^  persist_mid_session_results:'
     line: '  persist_mid_session_results: {{ acmanagerPersistSessionResults }}'
 
 - name: Set index laps to "{{ acmanagerIndexLaps }}"
   ansible.builtin.lineinfile:
-    dest: "{{ acmanagerPath }}/{{ acmanagerConfig }}"
+    dest: "{{ acmanager_path }}/config.yml"
     state: present
     regexp: '^    index_laps:'
     line: '    index_laps: {{ acmanagerIndexLaps }}'
 
 - name: Set index crashes to "{{ acmanagerIndexCrashes }}"
   ansible.builtin.lineinfile:
-    dest: "{{ acmanagerPath }}/{{ acmanagerConfig }}"
+    dest: "{{ acmanager_path }}/config.yml"
     state: present
     regexp: '^    index_crashes:'
     line: '    index_crashes: {{ acmanagerIndexCrashes }}'
 
 - name: Set Recaptcha Site Key
   ansible.builtin.lineinfile:
-    dest: "{{ acmanagerPath }}/{{ acmanagerConfig }}"
+    dest: "{{ acmanager_path }}/config.yml"
     state: present
     regexp: '^    site_key:'
     line: '    site_key: {{ acmanagerRecaptchaSiteKey }}'
 
 - name: Set Recaptcha Secret Key
   ansible.builtin.lineinfile:
-    dest: "{{ acmanagerPath }}/{{ acmanagerConfig }}"
+    dest: "{{ acmanager_path }}/config.yml"
     state: present
     regexp: '^    secret_key:'
     line: '    secret_key: {{ acmanagerRecaptchaSecretKey }}'
 
-- name: Set Lua enabled to "{{ acmanagerLuaEnabled }}"
+- name: Set Lua enabled to "{{ lua_enabled }}"
   ansible.builtin.replace:
-    path: "{{ acmanagerPath }}/{{ acmanagerConfig }}"
+    path: "{{ acmanager_path }}/config.yml"
     regexp: '(  # folder to see some examples!\n  enabled: false)'
-    replace: '  # folder to see some examples!\n  enabled: {{ acmanagerLuaEnabled }}'
+    replace: '  # folder to see some examples!\n  enabled: {{ lua_enabled }}'

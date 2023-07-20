@@ -18,9 +18,9 @@ function usage() {
 }
 
 destination="{{ backup_path }}"
-acserver="{{ acserverPath }}"
-acmanager="{{ acmanagerPath }}"
-accontent="{{ acserverPath }}/content"
+acserver="{{ acserver_path }}"
+acmanager="{{ acmanager_path }}"
+accontent="{{ acserver_path }}/content"
 datestamp="$(date +%Y%m%d)"
 PIDFILE=/tmp/acsm_backup.PID
 used_space="$(df -k / | tail -n1 | awk '{print $5}' | sed 's/%//g')"
@@ -51,10 +51,10 @@ zip -y -r {{ backup_path }}/"$version"_"$datestamp".zip \
     -x \*.zip -li -lf {{ backup_path }}/"$version"_"$datestamp".log
 
 zip -y -r {{ backup_path }}/acsm_content.zip \
-    {{ acserverPath }}/content
+    {{ acserver_path }}/content
 
 zip -y -r {{ backup_path }}/acsm_shared_data.zip \
-    {{ acmanagerPath }}/shared_data
+    {{ acmanager_path }}/shared_data
 
 
 # exit

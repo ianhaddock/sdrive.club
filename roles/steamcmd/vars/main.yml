@@ -5,4 +5,4 @@ steam_uid: 1211
 steam_group: steam
 steam_gid: 1211
 
-steamcmd_path: '/usr/local/sbin/steamcmd'
+steamcmd_path: "/usr/local/sbin/steamcmd"

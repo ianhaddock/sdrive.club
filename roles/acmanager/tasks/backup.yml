@@ -4,15 +4,23 @@
   ansible.builtin.command: 'date +%Y%m%d'
   register: timestamp
 
+- name: create backup directory
+  ansible.builtin.file:
+    path: "{{ backup_path }}"
+    state: directory
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
+    mode: '0750'
+
 - name: backup current AC Server Manager install
   ansible.builtin.archive:
     path:
-      - "{{ acserverPath }}/*"
-      - "{{ acmanagerPath }}/*"
+      - "{{ acserver_path }}/*"
+      - "{{ acmanager_path }}/*"
     exclude_path:
-      - "{{ acserverPath }}/content"
-      - "{{ acmanagerPath }}/*.zip"
-      - "{{ acmanagerPath }}/ACSM.License"
+      - "{{ acserver_path }}/content"
+      - "{{ acmanager_path }}/*.zip"
+      - "{{ acmanager_path }}/ACSM.License"
     dest: "{{ backup_path }}/{{ acsm_version.stdout }}_{{ timestamp.stdout }}.zip"
     owner: "{{ assetto_user }}"
     group: "{{ assetto_group }}"
@@ -21,7 +29,7 @@
 
 - name: backup game content; cars, tracks, weather
   ansible.builtin.archive:
-    path: "{{ acserverPath }}/content"
+    path: "{{ acserver_path }}/content"
     dest: "{{ backup_path }}/acsm_content.zip"
     owner: "{{ assetto_user }}"
     group: "{{ assetto_group }}"

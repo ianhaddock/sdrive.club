@@ -1,14 +1,5 @@
 # single server options
-
 ---
-
-- name: Update name for servers
-  ansible.builtin.lineinfile:
-    dest: "{{ acmanagerStorePath }}/server_options.json"
-    regex: '^  "Name": '
-    line: '  "Name": "{{ gameServerShort }}00 | {{ gameServerName }}",'
-    state: present
-
 - name: set UPnP state
   ansible.builtin.lineinfile:
     dest: "{{ acmanagerStorePath }}/server_options.json"
@@ -16,6 +7,12 @@
     line: '  "UPnP": {{ upnp_enabled }},'
     state: present
 
+- name: update name for server
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanagerStorePath }}/server_options.json"
+    regex: '^  "Name": '
+    line: '  "Name": "{{ gameServerShort }}00 | {{ gameServerName }}",'
+    state: present
 
 - name: Do not connect online to AC servers when testing
   ansible.builtin.lineinfile:
@@ -23,7 +20,7 @@
     regex: '^  "RegisterToLobby": 1,$'
     line: '  "RegisterToLobby": 0,'
     state: present
-  when: cert_enabled == False
+  when: not cert_enabled
 
 - name: set lobby http port
   ansible.builtin.lineinfile:
@@ -36,7 +33,7 @@
   ansible.builtin.lineinfile:
     dest: "{{ acmanagerStorePath }}/server_options.json"
     regex: '^  "NumberOfThreads": 2,$'
-    line: '  "NumberOfThreads": {{ ansible_processor_nproc }},'  # set cores available
+    line: '  "NumberOfThreads": {{ ansible_processor_nproc }},'  # set cores
   when: ansible_processor_nproc != 2
 
 

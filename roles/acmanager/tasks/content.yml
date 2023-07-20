@@ -3,9 +3,9 @@
 - name: add content
   ansible.builtin.unarchive:
     src: "{{ files_server }}/acsm_content.zip"
-    dest: "{{ acserverPath }}/"
-    owner: "{{ assettouser }}"
-    group: "{{ assettouser }}"
+    dest: "{{ acserver_path }}/"
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
     mode: '0755'
     remote_src: true
   ignore_errors: true
@@ -14,8 +14,8 @@
   ansible.builtin.unarchive:
     src: "{{ files_server }}/acsm_shared_data.zip"
     dest: "{{ acmanagerStorePath }}/"
-    owner: "{{ assettouser }}"
-    group: "{{ assettouser }}"
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
     mode: '0755'
     remote_src: true
   ignore_errors: true

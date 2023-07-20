@@ -3,7 +3,7 @@
 - name: install server-manager systemd file
   ansible.builtin.template:
     src: "server-manager.service.j2"
-    dest: "/usr/lib/systemd/system/{{ systemd_single }}"
+    dest: "/usr/lib/systemd/system/server-manager.service"
     owner: root
     group: root
     mode: '0644'
@@ -12,7 +12,7 @@
 - name: install multi-server-manager.service systemd file
   ansible.builtin.template:
     src: "multi-server-manager.service.j2"
-    dest: "/usr/lib/systemd/system/{{ systemd_multi }}"
+    dest: "/usr/lib/systemd/system/multi-server-manager.service"
     owner: root
     group: root
     mode: '0644'

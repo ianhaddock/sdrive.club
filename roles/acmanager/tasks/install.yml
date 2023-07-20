@@ -1,62 +1,32 @@
 # install acsm
-
 ---
 
-- name: create ACSM path "{{ acmanagerPath }}"
+- name: create ACSM path "{{ acmanager_path }}"
   ansible.builtin.file:
-    path: "{{ acmanagerPath }}"
+    path: "{{ acmanager_path }}"
     state: directory
     owner: "{{ assetto_user }}"
     group: "{{ assetto_group }}"
     mode: '0755'
-  register: acmanager_path
+  register: acmanager_path_state
 
-- name: create backup directory
-  ansible.builtin.file:
-    path: "{{ backup_path }}"
-    state: directory
-    owner: "{{ assetto_user }}"
-    group: "{{ assetto_group }}"
-    mode: '0750'
-
-###
+- name: debug
+  ansible.builtin.debug:
+    var: acmanager_path
+  when: verbose
 
 - name: add helper script for version tracking
   ansible.builtin.template:
     src: get_version.sh.j2
-    dest: "{{ acmanagerPath }}/get_version.sh"
+    dest: "{{ acmanager_path }}/get_version.sh"
     owner: "{{ assetto_user }}"
     group: "{{ assetto_group }}"
     mode: '0740'
-
-- name: add helper script for backups
-  ansible.builtin.template:
-    src: daily_backup.sh.j2
-    dest: "{{ acmanagerPath }}/daily_backup.sh"
-    owner: "{{ assetto_user }}"
-    group: "{{ assetto_group }}"
-    mode: '0740'
-
-- name: create daily backup acsm log file
-  ansible.builtin.file:
-    state: touch
-    path: /var/log/daily_backup_acsm.log
-    owner: "{{ assetto_user }}"
-    group: "{{ assetto_group }}"
-    mode: '0644'
-
-- name: add cron job for backup script
-  become_user: "{{ assetto_user }}"
-  ansible.builtin.cron:
-    name: daily acsm backup
-    minute: "15"
-    hour: "{{ backup_hours }}"
-    job: "{{ acmanagerPath }}/daily_backup.sh >> /var/log/daily_backup_acsm.log 2>&1"
 
 - name: get latest available version of ACSM for x86_64
   ansible.builtin.copy:
     src: "{{ item }}"
-    dest: "{{ acmanagerPath }}"
+    dest: "{{ acmanager_path }}"
     owner: "{{ assetto_user }}"
     group: "{{ assetto_group }}"
     mode: '0640'
@@ -67,7 +37,7 @@
 - name: get latest available version of ACSM for ARM32
   ansible.builtin.copy:
     src: "{{ item }}"
-    dest: "{{ acmanagerPath }}"
+    dest: "{{ acmanager_path }}"
     owner: "{{ assetto_user }}"
     group: "{{ assetto_group }}"
     mode: '0640'
@@ -78,7 +48,7 @@
 ###
 
 - name: run script to get installed version of acsm
-  ansible.builtin.command: '{{ acmanagerPath }}/get_version.sh'
+  ansible.builtin.command: '{{ acmanager_path }}/get_version.sh'
   register: acsm_version
   when: acsm_zip_x86.changed or acsm_zip_arm32.changed
 
@@ -98,7 +68,7 @@
 - name: install newer AC Server Manager x86
   ansible.builtin.unarchive:
     src: "{{ item }}"
-    dest: "{{ acmanagerPath }}"
+    dest: "{{ acmanager_path }}"
     owner: "{{ assetto_user }}"
     group: "{{ assetto_group }}"
     mode: '0755'
@@ -108,7 +78,7 @@
 - name: install newer AC Server Manager arm32
   ansible.builtin.unarchive:
     src: "{{ item }}"
-    dest: "{{ acmanagerPath }}"
+    dest: "{{ acmanager_path }}"
     owner: "{{ assetto_user }}"
     group: "{{ assetto_group }}"
     mode: '0755'
@@ -118,7 +88,7 @@
 - name: try remote ACSM License install
   ansible.builtin.unarchive:
     src: "{{ files_server }}/{{ acsm_license }}"
-    dest: "{{ acmanagerPath }}/"
+    dest: "{{ acmanager_path }}/"
     owner: "{{ assetto_user }}"
     group: "{{ assetto_group }}"
     mode: '0600'
@@ -134,7 +104,7 @@
 - name: try local ACSM License install
   ansible.builtin.copy:
     src: "{{ acsm_license }}"
-    dest: "{{ acmanagerPath }}/"
+    dest: "{{ acmanager_path }}/"
     owner: "{{ assetto_user }}"
     group: "{{ assetto_group }}"
     mode: '0600'

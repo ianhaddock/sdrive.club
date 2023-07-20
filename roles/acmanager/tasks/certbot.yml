@@ -43,7 +43,7 @@
   ansible.builtin.debug:
     msg: "kmr subdomains {{ item.path }}"
   with_items: "{{ kmr_subdomain_count.files }}"
-  when: (kmr_subdomain_count.matched < acMultiServerManagerCount) and kmrEnabled and verbose
+  when: (kmr_subdomain_count.matched < server_count) and kmrEnabled and verbose
 
 - name: create list of domains to request certificates for
   ansible.builtin.set_fact:
@@ -52,7 +52,7 @@
 - name: add kmr subdomains to domains list
   ansible.builtin.set_fact:
     sub_domains: "{{ sub_domains|default([]) }} + ['kmr{{ item }}.{{ site_fqdn }}']"
-  with_sequence: start=0 end={{ acMultiServerManagerCount -1 }} format=%02x
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
   when: kmrEnabled
 
 - name: cat list to a string for certbot
@@ -71,7 +71,7 @@
   ansible.builtin.service:
     name: nginx
     state: stopped
-      #  when: (cert_enabled and (kmr_subdomain_count.matched < acMultiServerManagerCount)) or
+      #  when: (cert_enabled and (kmr_subdomain_count.matched < server_count)) or
       #        (cert_enabled and certbot_dir.stat.exists)
       ## logic fails when changing existing setup to use SSL
 
@@ -80,7 +80,7 @@
     cmd: 'certbot certonly --standalone --non-interactive --expand --agree-tos -m "{{ certbot_email }}" -d "{{ sub_domain_str }}"'
 #  args:
 #    creates: '/etc/letsencrypt/live/{{ site_fqdn }}'
-  when: (cert_enabled and (kmr_subdomain_count.matched < acMultiServerManagerCount)) or
+  when: (cert_enabled and (kmr_subdomain_count.matched < server_count)) or
         (cert_enabled and not certbot_dir.stat.exists)
   register: certbot_certonly_output
 
@@ -112,6 +112,6 @@
   ansible.builtin.service:
     name: nginx
     state: started
-      #   when: (cert_enabled and (kmr_subdomain_count.matched < acMultiServerManagerCount)) or
+      #   when: (cert_enabled and (kmr_subdomain_count.matched < server_count)) or
       #         (cert_enabled and certbot_dir.stat.exists)
       ## logic fails when turning existing setup to use SSL         

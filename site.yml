@@ -27,8 +27,13 @@
 
   roles:
     - base-nginx
+    - sysctl
+    - systemd
+    - firewalld
     - steamcmd
     - acmanager
+    - kmr
+    - stracker
 
   handlers:
     - name: reload nginx

@@ -19,7 +19,7 @@
     state: absent
   with_items: "{{ kmr_subdomain_count.files }}"
   register: kmr_remove
-  when: ( kmr_subdomain_count.matched != acMultiServerManagerCount )
+  when: ( kmr_subdomain_count.matched != server_count )
 
 - name: kmr conf files removed debug
   ansible.builtin.debug:
@@ -34,7 +34,7 @@
     group: nginx
     mode: '0644'
     force: true
-  with_sequence: start=0 end={{ acMultiServerManagerCount -1 }} format=%02x
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
   when: not cert_enabled
   register: kmr_http_nginx
 
@@ -46,7 +46,7 @@
     group: nginx
     mode: '0644'
     force: true
-  with_sequence: start=0 end={{ acMultiServerManagerCount -1 }} format=%02x
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
   when: cert_enabled
   register: kmr_https_nginx
 

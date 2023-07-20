@@ -1,5 +1,4 @@
 # CSS mods
-
 ---
 
 - name: insert CSS in AC server manager
@@ -11,14 +10,14 @@
 
 - name: check if AC multi manager is installed
   ansible.builtin.stat:
-    path: "{{ acmanagerPath }}/servers/SERVER_00/store.json/server_options.json"
+    path: "{{ acmanager_path }}/servers/SERVER_00/store.json/server_options.json"
   register: acmm_installed
 
 - name: insert CSS in AC multi manager
   ansible.builtin.lineinfile:
-    dest: "{{ acmanagerPath }}/servers/SERVER_0{{ item }}/store.json/server_options.json"
+    dest: "{{ acmanager_path }}/servers/SERVER_0{{ item }}/store.json/server_options.json"
     regex: '^  "CustomCSS": '
     line: '  "CustomCSS": ".navbar-brand {\r\n    background-image: url({{ url_prefix }}://www.{{ site_fqdn }}/{{ gameServerIconSmall }}) !important;\r\n    background-size: contain;\r\n    background-repeat: no-repeat;\r\n    margin-right: -86px;\r\n    color: transparent !important;\r\n}\r\n\r\n.text-success {\r\n    color: {{ navbar_border }} !important;\r\n}\r\n\r\n.alert-success {\r\n    background-color: {{ navbar_border }};\r\n    border-color: {{ border_color }};\r\n}\r\n\r\n.btn-warning {\r\n    background-color: {{ navbar_border }};\r\n    border-color: {{ border_color }};\r\n}\r\n\r\n.btn-danger {\r\n    background-color: {{ badge_danger }};\r\n    border-color: {{ border_danger }}; \r\n}\r\n\r\n.badge-success {\r\n    color: #fff;\r\n    background-color: {{ navbar_border }} !important;\r\n}\r\n.badge-danger {\r\n    color: #fff;\r\n    background-color: {{ badge_danger }} !important;\r\n}\r\n\r\n.btn-success {\r\n    color: #fff;\r\n    background-color: {{ navbar_border }}  !important;\r\n    border-color: {{ border_color }} !important;\r\n}\r\n\r\n.bg-success {\r\n    background-color: {{ navbar_border }} !important;\r\n}\r\n.border-success {\r\n    border-color: {{ navbar_border }} !important;\r\n}\r\n\r\n.bootstrap-switch-handle-on.bootstrap-switch-success, .bootstrap-switch .bootstrap-switch-handle-off.bootstrap-switch-success {\r\n    color: #fff;\r\n    background: {{ text_background_color }} !important;\r\n}\r\n\r\n.bg-primary, .btn-primary, .badge-primary {\r\n  background-color: {{ text_background_color }} !important;\r\n  border-color: {{ text_background_color }} !important;\r\n}\r\n\r\n.dropdown-item:hover, .dropdown-item:focus {\r\nbackground-color: {{ border_color }} !important;\r\n  border-color: {{ text_background_color }} !important;\r\n}\r\n\r\n\r\n.navbar.bg-primary, .border-primary {\r\n  border-color: {{ navbar_border }} !important;\r\n}\r\n\r\n.text-primary, a:not(.btn):not(.nav-link):not(.navbar-brand):not(.dropdown-item):not(.text-white):not(.text-danger):not(.fc-event):not(.page-link) {\r\n  color: {{ text_background_color }}  !important;\r\n}\r\n\r\n.dropdown-item:active {\r\n  background-color: {{ navbar_border }} !important;\r\n}\r\n\r\n#event-title:hover {\r\n  color: {{ navbar_border }} !important;\r\n}",'
     state: present
-  with_sequence: start=0 end={{ acMultiServerManagerCount -1 }}
+  with_sequence: start=0 end={{ server_count -1 }}
   when: acmm_installed.stat.exists

@@ -1,0 +1,21 @@
+# kmr vars
+---
+
+kmrZip: kmr_*.zip
+live_track_view: 1
+  #kmrConfig: kissmyrank_options.json
+
+web_stats_interface: 1
+right_to_be_forgotten: 1
+show_race_control_link: 1
+cut_lines_enabled: 0
+
+# multi-server ACSM
+#plugin_udp_local_port_prefix: 12
+plugin_udp_address: '127.0.0.1'
+plugin_udp_port_prefix: 11
+kmr_web_auth_port: '001'
+  #kmr_ac_app_link_prefix: 13
+  #kmr_web_stats_port_prefix: 77
+kmr_database_port: 8701
+

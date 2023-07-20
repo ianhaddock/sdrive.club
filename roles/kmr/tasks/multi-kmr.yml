@@ -1,17 +1,15 @@
-# kmr settings for multi server-manager
-
+# kmr for multi server-manager
 ---
-
-- name: check if KMR config file is available for game lobby 0-{{ acMultiServerManagerCount -1 }}
+- name: check if KMR config file is available for game lobby 0-{{ server_count -1 }}
   ansible.builtin.stat:
-    path: "{{ acmanagerPath }}/servers/SERVER_{{ item }}/store.json/{{ kmrConfig }}"
+    path: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/kissmyrank_options.json"
   register: kmr_options_file
-  with_sequence: start=0 end={{ acMultiServerManagerCount -1 }} format=%02x
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
 
 - name: install kmr options template if file is missing
   ansible.builtin.template:
     src: templates/kissmyrank_options.json.j2
-    dest: "{{ acmanagerPath }}/servers/SERVER_{{ item.item }}/store.json/{{ kmrConfig }}"
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item.item }}/store.json/kissmyrank_options.json"
     owner: "{{ assetto_user }}"
     group: "{{ assetto_group }}"
     mode: '0644'
@@ -23,106 +21,106 @@
 - name: install custom index.html file
   ansible.builtin.template:
     src: templates/kissmyrank_index.html.j2
-    dest: "{{ acmanagerPath }}/servers/SERVER_{{ item }}/assetto/kissmyrank/index.html"
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/assetto/kissmyrank/index.html"
     owner: '{{ assetto_user }}'
     group: '{{ assetto_group }}'
     mode: '0644'
-  with_sequence: start=0 end={{ acMultiServerManagerCount -1 }} format=%02x
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
 
 - name: set KMR status
   ansible.builtin.lineinfile:
-    dest: "{{ acmanagerPath }}/servers/SERVER_{{ item }}/store.json/{{ kmrConfig }}"
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/kissmyrank_options.json"
     regexp: '^  "EnableKissMyRank": '
     line: '  "EnableKissMyRank": {{ kmrEnabled }},'
-  with_sequence: start=0 end={{ acMultiServerManagerCount -1 }} format=%02x
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
 
 - name: set web_stats_interface
   ansible.builtin.lineinfile:
-    dest: "{{ acmanagerPath }}/servers/SERVER_{{ item }}/store.json/{{ kmrConfig }}"
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/kissmyrank_options.json"
     regexp: '^  "web_stats_interface": '
     line: '  "web_stats_interface": {{ web_stats_interface }},'
-  with_sequence: start=0 end={{ acMultiServerManagerCount -1 }} format=%02x
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
 
 - name: set web_stats_server_port
   ansible.builtin.lineinfile:
-    dest: "{{ acmanagerPath }}/servers/SERVER_{{ item }}/store.json/{{ kmrConfig }}"
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/kissmyrank_options.json"
     regexp: '^  "web_stats_server_port": '
     line: '  "web_stats_server_port": {{ kmr_web_stats_port_prefix }}{{ item }},'
-  with_sequence: start=0 end={{ acMultiServerManagerCount -1 }} format=%02x
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
 
 - name: set web stats public http URL
   ansible.builtin.lineinfile:
-    dest: "{{ acmanagerPath }}/servers/SERVER_{{ item }}/store.json/{{ kmrConfig }}"
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/kissmyrank_options.json"
     regexp: '^  "web_stats_public_url": '
     line: '  "web_stats_public_url": "http://kmr{{ item }}.{{ site_fqdn }}",'
-  with_sequence: start=0 end={{ acMultiServerManagerCount -1 }} format=%02x
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
   when: not cert_enabled
 
 - name: set web stats public https URL
   ansible.builtin.lineinfile:
-    dest: "{{ acmanagerPath }}/servers/SERVER_{{ item }}/store.json/{{ kmrConfig }}"
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/kissmyrank_options.json"
     regexp: '^  "web_stats_public_url": '
     line: '  "web_stats_public_url": "https://kmr{{ item }}.{{ site_fqdn }}",'
-  with_sequence: start=0 end={{ acMultiServerManagerCount -1 }} format=%02x
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
   when: cert_enabled
 
 - name: set web stat console password
   ansible.builtin.lineinfile:
-    dest: "{{ acmanagerPath }}/servers/SERVER_{{ item }}/store.json/{{ kmrConfig }}"
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/kissmyrank_options.json"
     regexp: '^  "web_admin_console_password": '
     line: '  "web_admin_console_password": "{{ kmr_web_console_password }}",'
-  with_sequence: start=0 end={{ acMultiServerManagerCount -1 }} format=%02x
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
 
 - name: set web_auth_server_port
   ansible.builtin.lineinfile:
-    dest: "{{ acmanagerPath }}/servers/SERVER_{{ item }}/store.json/{{ kmrConfig }}"
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/kissmyrank_options.json"
     state: present
     regexp: '^  "web_auth_server_port": '
     line: '  "web_auth_server_port": {{ plugin_udp_port_prefix }}0{{ item }},'
-  with_sequence: start=0 end={{ acMultiServerManagerCount -1 }} format=%02x
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
 
 - name: set cut lines
   ansible.builtin.lineinfile:
-    dest: "{{ acmanagerPath }}/servers/SERVER_{{ item }}/store.json/{{ kmrConfig }}"
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/kissmyrank_options.json"
     regexp: '^  "cut_lines_enabled": '
     line: '  "cut_lines_enabled": {{ cut_lines_enabled }},'
-  with_sequence: start=0 end={{ acMultiServerManagerCount -1 }} format=%02x
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
 
 - name: set right to be forgotten
   ansible.builtin.lineinfile:
-    dest: "{{ acmanagerPath }}/servers/SERVER_{{ item }}/store.json/{{ kmrConfig }}"
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/kissmyrank_options.json"
     regexp: '^  "right_to_be_forgotten_chat_command": '
     line: '  "right_to_be_forgotten_chat_command": {{ right_to_be_forgotten }},'
-  with_sequence: start=0 end={{ acMultiServerManagerCount -1 }} format=%02x
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
 
 - name: set database sharing unique name
   ansible.builtin.lineinfile:
-    dest: "{{ acmanagerPath }}/servers/SERVER_{{ item }}/store.json/{{ kmrConfig }}"
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/kissmyrank_options.json"
     regexp: '^  "database_sharing_unique_name": '
     line: '  "database_sharing_unique_name": "svr{{ item }}",'
-  with_sequence: start=0 end={{ acMultiServerManagerCount -1 }} format=%02x
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
 
 - name: set database sharing group port
   ansible.builtin.lineinfile:
-    dest: "{{ acmanagerPath }}/servers/SERVER_{{ item }}/store.json/{{ kmrConfig }}"
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/kissmyrank_options.json"
     regexp: '^  "database_sharing_local_group_port": '
     line: '  "database_sharing_local_group_port": {{ kmr_database_port }},'
-  with_sequence: start=0 end={{ acMultiServerManagerCount -1 }} format=%02x
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
 
 - name: Set ac_app_link_udp_port
   ansible.builtin.lineinfile:
-    dest: "{{ acmanagerPath }}/servers/SERVER_{{ item }}/store.json/{{ kmrConfig }}"
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/kissmyrank_options.json"
     state: present
     regexp: '^  "ac_app_link_udp_port": '
     line: '  "ac_app_link_udp_port": {{ kmr_ac_app_link_prefix }}0{{ item }},'
-  with_sequence: start=0 end={{ acMultiServerManagerCount -1 }} format=%02x
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
 
 - name: set show race control link
   ansible.builtin.lineinfile:
-    dest: "{{ acmanagerPath }}/servers/SERVER_{{ item }}/store.json/{{ kmrConfig }}"
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/kissmyrank_options.json"
     regexp: '^  "chat_driver_welcome_message_show_race_control_link": '
     line: '  "chat_driver_welcome_message_show_race_control_link": {{ show_race_control_link }},'
-  with_sequence: start=0 end={{ acMultiServerManagerCount -1 }} format=%02x
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
 
 # set race control password
 # The password that Race Directors need to use to judge collisions via the Web
@@ -131,23 +129,23 @@
 
 - name: set race control password - 8 char min
   ansible.builtin.lineinfile:
-    dest: "{{ acmanagerPath }}/servers/SERVER_{{ item }}/store.json/{{ kmrConfig }}"
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/kissmyrank_options.json"
     regexp: '^  "race_control_password": "",'
     line: '  "race_control_password": "{{ kmr_race_control_password }}",'
-  with_sequence: start=0 end={{ acMultiServerManagerCount -1 }} format=%02x
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
 
 - name: set chat admin password
   ansible.builtin.lineinfile:
-    dest: "{{ acmanagerPath }}/servers/SERVER_{{ item }}/store.json/{{ kmrConfig }}"
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/kissmyrank_options.json"
     regexp: '^  "ac_chat_admin_password": '
     line: '  "ac_chat_admin_password": "{{ admin_chat_password }}",'
-  with_sequence: start=0 end={{ acMultiServerManagerCount -1 }} format=%02x
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
 
 - name: set chat admin GUIDs
   ansible.builtin.replace:
-    path: "{{ acmanagerPath }}/servers/SERVER_{{ item }}/store.json/{{ kmrConfig }}"
+    path: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/kissmyrank_options.json"
     after: '(  "ac_chat_admin_guid_list": \[)'
     before: '(  \],)'
     regexp: '^    \"\"'
     replace: "{{ admin_uuids }}"
-  with_sequence: start=0 end={{ acMultiServerManagerCount -1 }} format=%02x
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
