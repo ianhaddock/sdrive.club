@@ -28,15 +28,15 @@
     path: "{{ acmanager_path }}/servers/SERVER_00/" #store.json/server_options.json"
   register: acmm_installed
 
-    # - name: insert motd message for multi servers
-    #   ansible.builtin.template:
-    #     src: motd.j2
-    #     dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/assetto/motd.txt"
-    #     owner: "{{ assetto_user }}"
-    #     group: "{{ assetto_group }}"
-    #     mode: '0644'
-    #   with_sequence: start=0 end={{ server_count -1 }} format=%02x
-    #   when: server_count > 1 and acmm_installed.stat.exists
+- name: insert motd message for multi servers
+  ansible.builtin.template:
+    src: motd.j2
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/assetto/motd.txt"
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
+    mode: '0644'
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+  when: server_count > 1 and acmm_installed.stat.exists
 
 - name: insert join message for multi servers
   ansible.builtin.lineinfile:

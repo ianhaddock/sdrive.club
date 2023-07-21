@@ -25,6 +25,12 @@
   ansible.builtin.import_tasks: install.yml
   # this sets acmanager_path_state
 
+- name: add daily backups
+  ansible.builtin.import_tasks: daily_backup.yml
+
+- name: setup acsm config.yml
+  ansible.builtin.import_tasks: config.yml
+
 - name: set game lobby count to "{{ server_count }}"
   ansible.builtin.lineinfile:
     dest: "{{ acmanager_path }}/servers.yml"
@@ -36,7 +42,7 @@
     name: "{{ systemd_single }}"
     daemon_reload: true
     state: started
-  when: acmanager_path_state.changed and server_count == 1
+  when: acmanager_path_state.changed
 
 - name: wait for server-manager to settle
   ansible.builtin.uri:
@@ -46,15 +52,16 @@
   until: result.status == 200
   retries: 720  # 720 * 5 = 1 hour
   delay: 5
-  when: acmanager_path_state.changed and server_count == 1
+  when: acmanager_path_state.changed
+
+- name: stop ACSM to add custom options
+  ansible.builtin.systemd:
+    name: "{{ systemd_single }}"
+    daemon_reload: true
+    state: stopped
+  when: acmanager_path_state.changed
 
 ###
-
-- name: setup acsm config.yml
-  ansible.builtin.import_tasks: config.yml
-
-- name: add daily backups
-  ansible.builtin.import_tasks: daily_backup.yml
 
 - name: add custom server messages
   ansible.builtin.import_tasks: messages.yml
@@ -74,10 +81,6 @@
   ansible.builtin.import_tasks: certbot.yml
   when: cert_enabled
 
-    #- name: setup kissmyrank plugin
-    #  ansible.builtin.import_tasks: kissmyrank.yml
-    #  when: install_kmr
-
 - name: add nginx conf.d files for kmr
   ansible.builtin.import_tasks: nginx.yml
   when: install_kmr and ansible_architecture == 'x86_64'
@@ -89,7 +92,7 @@
 
 - name: load changes to ACSM with restart
   ansible.builtin.systemd:
-    name: "{{ acmanagerSystemd }}"
+    name: "{{ systemd_single }}"
     state: restarted
   when: server_count == 1 or acmanager_path_state.changed
 
@@ -107,7 +110,7 @@
 
 - name: run single server if system reconfigured from multi-server
   ansible.builtin.systemd:
-    name: "{{ acMultiServerManagerSystemd }}"
+    name: "{{ systemd_single }}"
     state: stopped
   when: server_count == 1
 

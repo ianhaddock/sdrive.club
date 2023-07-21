@@ -30,6 +30,10 @@
 - name: update server_options file
   import_tasks: multi-options.yml
 
+- name: add cars, tracks, weather, and custom races
+  ansible.builtin.import_tasks: content.yml
+  when: acmanager_path_state.changed
+
     #- name: configure KMR servers
     #  import_tasks: multi-kmr.yml
     #  when: ansible_architecture == 'x86_64' and install_kmr
@@ -46,16 +50,16 @@
   changed_when: true
   notify: restart acsm multi
 
-    #- name: restart multi-server-manager service
-    #  ansible.builtin.systemd:
-    #    name: "{{ acMultiServerManagerSystemd }}"
-    #    state: restarted
-    #
-    #- name: wait for multi-server-manager to settle
-    #  ansible.builtin.uri:
-    #    url: "http://127.0.0.1:8772/login"
-    #    status_code: 200
-    #  register: result
-    #  until: result.status == 200
-    #  retries: 720 # 720 * 5 = 1 hour
-    #  delay: 5
+    # - name: restart multi-server-manager service
+    #   ansible.builtin.systemd:
+    #     name: "{{ acMultiServerManagerSystemd }}"
+    #     state: restarted
+    # 
+    # - name: wait for multi-server-manager to settle
+    #   ansible.builtin.uri:
+    #     url: "http://127.0.0.1:8772/login"
+    #     status_code: 200
+    #   register: result
+    #   until: result.status == 200
+    #   retries: 720 # 720 * 5 = 1 hour
+    #   delay: 5
