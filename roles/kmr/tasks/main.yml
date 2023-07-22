@@ -18,6 +18,12 @@
   retries: 720 # 720 * 5 = 1 hour
   delay: 5
 
+- name: start "{{ systemd_multi }}"
+  ansible.builtin.systemd:
+    name: "{{ systemd_multi }}"
+    daemon_reload: true
+    state: stopped
+
 - name: check for "{{ acserver_path }}/kissmyrank"
   ansible.builtin.stat:
     path: "{{ acserver_path }}/kissmyrank"

@@ -18,12 +18,15 @@
     state: present
     key: "{{ files_server }}/{{ backup_pub_key }}"
 
-- name: install or update acserver via steamcmd
+- name: install acserver via steamcmd
   ansible.builtin.import_tasks: acserver.yml
 
-- name: install or update AC Server Manager
+- name: install AC Server Manager
   ansible.builtin.import_tasks: install.yml
   # this sets acmanager_path_state
+
+- name: update AC Server Manager
+  ansible.builtin.import_tasks: update.yml
 
 - name: add daily backups
   ansible.builtin.import_tasks: daily_backup.yml
@@ -31,11 +34,13 @@
 - name: setup acsm config.yml
   ansible.builtin.import_tasks: config.yml
 
-- name: set game lobby count to "{{ server_count }}"
+- name: set servers.yml count to "{{ server_count }}"
   ansible.builtin.lineinfile:
     dest: "{{ acmanager_path }}/servers.yml"
     regexp: '^servers: '
     line: 'servers: {{ server_count }}'
+
+###
 
 - name: start ACSM to generate config files and paths
   ansible.builtin.systemd:

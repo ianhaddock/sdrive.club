@@ -51,7 +51,7 @@
 
 - name: add kmr subdomains to domains list
   ansible.builtin.set_fact:
-    sub_domains: "{{ sub_domains|default([]) }} + ['kmr{{ item }}.{{ site_fqdn }}']"
+    sub_domains: "{{ app_name }}.{{ site_fqdn }} + {{ sub_domains|default([]) }} + ['kmr{{ item }}.{{ site_fqdn }}']"
   with_sequence: start=0 end={{ server_count -1 }} format=%02x
   when: kmrEnabled
 

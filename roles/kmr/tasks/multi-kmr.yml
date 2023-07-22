@@ -16,6 +16,12 @@
   retries: 720 # 720 * 5 = 1 hour
   delay: 5
 
+- name: start "{{ systemd_multi }}"
+  ansible.builtin.systemd:
+    name: "{{ systemd_multi }}"
+    daemon_reload: true
+    state: stopped
+
 - name: check if KMR config file is available for game lobby 0-{{ server_count -1 }}
   ansible.builtin.stat:
     path: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/kissmyrank_options.json"
@@ -131,6 +137,14 @@
     line: '  "ac_app_link_udp_port": {{ kmr_ac_app_link_prefix }}0{{ item }},'
   with_sequence: start=0 end={{ server_count -1 }} format=%02x
 
+    ### this fails as the default welcome messages is multi-line - needs better regex
+    #- name: set welcome message
+    #  ansible.builtin.lineinfile:
+    #    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/kissmyrank_options.json"
+    #    regexp: '^  "custom_chat_driver_welcome_messages": ['
+    #    line: '  "custom_chat_driver_welcome_messages": [ "" ],'
+    #  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
 - name: set show race control link
   ansible.builtin.lineinfile:
     dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/kissmyrank_options.json"
@@ -180,4 +194,3 @@
   until: result.status == 200
   retries: 720 # 720 * 5 = 1 hour
   delay: 5
-

@@ -6,7 +6,7 @@ assetto_uid: 1210
 assetto_group: assetto
 assetto_gid: 1210
 
-app_name: acsm
+app_name: ac
 app_port: 8772
 
 install_kmr: true   # this is a bool

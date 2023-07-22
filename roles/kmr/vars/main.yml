@@ -7,7 +7,7 @@ live_track_view: 1
 
 web_stats_interface: 1
 right_to_be_forgotten: 1
-show_race_control_link: 1
+show_race_control_link: 0
 cut_lines_enabled: 0
 
 # multi-server ACSM
