@@ -18,9 +18,15 @@ server {
         root {{ nginx_path }}/error_pages;
   }
 
+  # allow tos page
+  location /tos {
+    root /usr/share/nginx/html/{{ site_fqdn }}/html;
+    index index.html;
+  }
+
   # allow discord redirect
   location /discord {
-    root /usr/share/nginx/html/sdrive.club/html;
+    root /usr/share/nginx/html/{{ site_fqdn }}/html;
     index index.html;
   }
 

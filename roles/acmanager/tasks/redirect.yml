@@ -23,6 +23,8 @@
     state: directory
   with_items:
     - "{{ nginx_path }}/{{ site_fqdn }}/html"
+    - "{{ nginx_path }}/{{ site_fqdn }}/html/tos"
+    - "{{ nginx_path }}/{{ site_fqdn }}/html/discord"
   when: cert_enabled
 
 - name: install http redirect to https html
@@ -53,6 +55,14 @@
     force: true
   when: not cert_enabled
   register: redirect
+
+- name: install TOS redirect
+  ansible.builtin.template:
+    src: tos.html.j2
+    dest: "{{ nginx_path }}/{{ site_fqdn }}/html/tos/index.html"
+    owner: nginx
+    group: nginx
+    mode: '0640'
 
 - name: install discord redirect
   ansible.builtin.template:
