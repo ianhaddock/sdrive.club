@@ -30,6 +30,11 @@ server {
      expires           7d;
   }
 
+  # allow discord redirect
+  location /discord {
+    index discord.html;
+  }
+
   # otherwise 301 redirect to the game server
   location  / {
      deny all;

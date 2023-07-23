@@ -47,6 +47,11 @@ server {
 
   index index.html;
 
+  # allow discord redirect
+  location /discord {
+    index discord.html;
+  }
+
   #only allow static file serving
 #  location ~* \.(jpg|jpeg|gif|png|bmp|ico|pdf|flv|swf|exe|html|htm|txt|css|js) {
 #     add_header        Cache-Control public;

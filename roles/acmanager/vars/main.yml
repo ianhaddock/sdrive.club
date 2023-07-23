@@ -13,14 +13,14 @@ install_kmr: true   # this is a bool
 kmrEnabled: 'true'  # this is a string
 acmanagerMonitoring: false
 
-backup_hours: "4"
-backup_path: "/home/{{ assetto_user }}/backups"
+backup_hours: '4'
+backup_path: '/home/{{ assetto_user }}/backups'
 
-acmanager_path: "/usr/local/sbin/acmanager"
-acserver_path: "/usr/local/sbin/acserver"
-steamcmd_path: "/usr/local/sbin/steamcmd"
+acmanager_path: '/usr/local/sbin/acmanager'
+acserver_path: '/usr/local/sbin/acserver'
+steamcmd_path: '/usr/local/sbin/steamcmd'
 
-nginx_path: "/usr/share/nginx/html"
+nginx_path: '/usr/share/nginx/html'
 
 systemd_single: server-manager.service
 systemd_multi: multi-server-manager.service
@@ -33,6 +33,8 @@ lua_enabled: false
 url_prefix: "{{ 'https' if cert_enabled else 'http' }}"
 
 upnp_enabled: 'false'
+
+forbidden_driver_names: 'Player\r\nplayer\r\nUser\r\nuser\r\n'
 
 acmanagerZip: acsm_v2.*_linux-amd64.zip
 acmanagerZipArm32: acsm_v2.*_linux-arm32.zip

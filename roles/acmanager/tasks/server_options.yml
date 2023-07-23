@@ -36,6 +36,11 @@
     line: '  "NumberOfThreads": {{ ansible_processor_nproc }},'  # set cores
   when: ansible_processor_nproc != 2
 
+- name: set forbidden driver names
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanagerStorePath }}/server_options.json"
+    regex: '^  "ForbiddenDriverNames": "",'
+    line: '  "ForbiddenDriverNames": "{{ forbidden_driver_names }}",'
 
 - name: set UDP ports
   ansible.builtin.lineinfile:

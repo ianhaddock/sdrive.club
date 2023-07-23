@@ -54,6 +54,14 @@
   when: not cert_enabled
   register: redirect
 
+- name: install discord redirect
+  ansible.builtin.template:
+    src: discord_redirect.html.j2
+    dest: "{{ nginx_path }}/{{ site_fqdn }}/html/discord/index.html"
+    owner: nginx
+    group: nginx
+    mode: '0640'
+
 - name: reload nginx
   ansible.builtin.service:
     name: nginx

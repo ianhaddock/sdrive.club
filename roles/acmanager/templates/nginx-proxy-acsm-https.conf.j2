@@ -18,6 +18,12 @@ server {
         root {{ nginx_path }}/error_pages;
   }
 
+  # allow discord redirect
+  location /discord {
+    root /usr/share/nginx/html/sdrive.club/html;
+    index index.html;
+  }
+
   location / {
     proxy_pass http://localhost:8772;
     proxy_set_header Host $host;
