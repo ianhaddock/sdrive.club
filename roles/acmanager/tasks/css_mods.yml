@@ -12,14 +12,14 @@
   ansible.builtin.lineinfile:
     dest: "{{ acmanagerStorePath }}/server_options.json"
     regex: '^  "OGImage": '
-    line: '  "OGImage": "https://www.{{ site_fqdn }}/{{ server_icon_small }}",'
+    line: '  "OGImage": "{{ site_banner }}",'
     state: present
 
 - name: insert Favicon in AC server manager
   ansible.builtin.lineinfile:
     dest: "{{ acmanagerStorePath }}/server_options.json"
     regex: '^  "Favicon": '
-    line: '  "Favicon": "https://www.{{ site_fqdn }}/{{ server_icon_small }}",'
+    line: '  "Favicon": "{{ favicon_icon }}",'
     state: present
 
 - name: check if AC multi manager is installed
@@ -40,7 +40,7 @@
   ansible.builtin.lineinfile:
     dest: "{{ acmanager_path }}/servers/SERVER_0{{ item }}/store.json/server_options.json"
     regex: '^  "OGImage": '
-    line: '  "OGImage": "https://www.{{ site_fqdn }}/{{ server_icon_small }}",'
+    line: '  "OGImage": "{{ site_banner }}",'
     state: present
   with_sequence: start=0 end={{ server_count -1 }}
   when: acmm_installed.stat.exists
@@ -49,7 +49,7 @@
   ansible.builtin.lineinfile:
     dest: "{{ acmanager_path }}/servers/SERVER_0{{ item }}/store.json/server_options.json"
     regex: '^  "Favicon": '
-    line: '  "Favicon": "https://www.{{ site_fqdn }}/{{ server_icon_small }}",'
+    line: '  "Favicon": "{{ favicon_icon }}",'
     state: present
   with_sequence: start=0 end={{ server_count -1 }}
   when: acmm_installed.stat.exists

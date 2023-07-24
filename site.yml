@@ -26,6 +26,7 @@
   become: true
 
   roles:
+    - outbound_ip
     - base-nginx
     - sysctl
     - systemd

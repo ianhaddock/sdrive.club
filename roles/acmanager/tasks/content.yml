@@ -1,3 +1,5 @@
+# ### I dont this we need this anymore 
+#
 # pull latest archive of game content and shared data
 ---
 - name: add content
@@ -8,14 +10,24 @@
     group: "{{ assetto_group }}"
     mode: '0755'
     remote_src: true
-  ignore_errors: true
+      #  ignore_errors: true
 
-- name: add custom races
-  ansible.builtin.unarchive:
-    src: "{{ files_server }}/acsm_shared_data.zip"
-    dest: "{{ acmanagerStorePath }}/"
-    owner: "{{ assetto_user }}"
-    group: "{{ assetto_group }}"
-    mode: '0755'
-    remote_src: true
-  ignore_errors: true
+      # - name: add custom races
+      #   ansible.builtin.unarchive:
+      #     src: "{{ files_server }}/acsm_shared_store.zip"
+      #     dest: "{{ acmanager_path }}/shared_store.json/"
+      #     owner: "{{ assetto_user }}"
+      #     group: "{{ assetto_group }}"
+      #     mode: '0755'
+      #     remote_src: true
+      #       #  ignore_errors: true
+      # 
+      # - name: update race name discord links
+      #   ansible.builtin.command:
+      #     cmd: sh -c "perl -pi -e 's/https:\/\/discord.gg\/U6DVzJTjV3/sdrive.club\/discord/g' /usr/local/sbin/acmanager/shared_store.json/custom_races/*" 
+      #   register: perl_command
+      # 
+      # - name: debug perl command
+      #   ansible.builtin.debug:
+      #     msg: '{{ perl_command }}'
+      #   when: verbose

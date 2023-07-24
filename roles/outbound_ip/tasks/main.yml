@@ -1,0 +1,12 @@
+# set outbound traffic to use reserved IP
+---
+- name: set outbound traffic ip to reserved IP
+  become: true
+  ansible.builtin.command:
+    cmd: sh -c 'ip route del default ; ip route add default via 10.17.0.1 dev eth0'
+  register: outbound_ip_status
+
+- name: debug outbound ip status
+  ansible.builtin.debug:
+    msg: "{{ outbound_ip_status }}"
+  when: verbose

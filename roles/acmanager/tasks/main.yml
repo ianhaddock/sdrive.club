@@ -72,9 +72,9 @@
   ansible.builtin.import_tasks: messages.yml
   when: acmanager_path_state.changed
 
-- name: add cars, tracks, weather, and custom races
-  ansible.builtin.import_tasks: content.yml
-  when: acmanager_path_state.changed
+    # - name: add cars, tracks, weather, and custom races   # I dont this we need this anymore with the new backup process
+    #   ansible.builtin.import_tasks: content.yml
+    #   when: acmanager_path_state.changed
 
 - name: add settings in server options
   ansible.builtin.import_tasks: server_options.yml
