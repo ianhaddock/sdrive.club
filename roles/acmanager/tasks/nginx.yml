@@ -53,7 +53,7 @@
 - name: add http site in sites-available
   ansible.builtin.template:
     src: domain_http.conf.j2
-    dest: /etc/nginx/sites-available/{{ site_fqdn }}.conf
+    dest: /etc/nginx/sites-available/www.{{ site_fqdn }}.conf
     owner: nginx
     group: nginx
     mode: '0644'
@@ -63,7 +63,7 @@
 - name: add https site in sites-available
   ansible.builtin.template:
     src: domain_https.conf.j2
-    dest: /etc/nginx/sites-available/{{ site_fqdn }}.conf
+    dest: /etc/nginx/sites-available/www.{{ site_fqdn }}.conf
     owner: nginx
     group: nginx
     mode: '0644'
@@ -72,8 +72,8 @@
 
 - name: link site to conf.d
   ansible.builtin.file:
-    src: /etc/nginx/sites-available/{{ site_fqdn }}.conf
-    dest: /etc/nginx/conf.d/{{ site_fqdn }}.conf
+    src: /etc/nginx/sites-available/www.{{ site_fqdn }}.conf
+    dest: /etc/nginx/conf.d/www.{{ site_fqdn }}.conf
     state: link
     owner: nginx
     group: nginx

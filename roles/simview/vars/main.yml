@@ -1,0 +1,12 @@
+# simview vars
+---
+
+app_user: simview
+app_uid: 1212
+app_group: simview
+app_gid: 1212
+
+app_name: simview
+app_port: 9898
+
+app_path: '/usr/local/sbing/{{ app_name }}'  

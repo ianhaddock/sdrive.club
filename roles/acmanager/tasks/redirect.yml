@@ -6,12 +6,23 @@
 - name: setup https reverse proxy for server-manager
   ansible.builtin.template:
     src: nginx-proxy-acsm-https.conf.j2
-    dest: /etc/nginx/conf.d/server-manager-proxy.conf
+    dest: /etc/nginx/conf.d/{{ site_fqdn }}.conf
     owner: nginx
     group: nginx
     mode: '0644'
     force: true
   when: cert_enabled
+  register: redirect
+
+- name: setup http reverse proxy for server-manager
+  ansible.builtin.template:
+    src: nginx-proxy-acsm-http.conf.j2
+    dest: /etc/nginx/conf.d/{{ site_fqdn }}.conf
+    owner: nginx
+    group: nginx
+    mode: '0644'
+    force: true
+  when: not cert_enabled
   register: redirect
 
 - name: create http root directory
@@ -44,17 +55,6 @@
     group: nginx
     mode: '0750'
     remote_src: true
-
-- name: setup http reverse proxy for server-manager
-  ansible.builtin.template:
-    src: nginx-proxy-acsm-http.conf.j2
-    dest: /etc/nginx/conf.d/server-manager-proxy.conf
-    owner: nginx
-    group: nginx
-    mode: '0644'
-    force: true
-  when: not cert_enabled
-  register: redirect
 
 - name: install TOS redirect
   ansible.builtin.template:

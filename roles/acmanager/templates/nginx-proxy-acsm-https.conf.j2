@@ -1,6 +1,5 @@
-#
-# pulled from https://github.com/JustaPenguin/assetto-server-manager/wiki/HTTPS-support-with-an-Nginx-Let's-Encrypt-reverse-proxy-on-Ubuntu
-#
+# added by ansible {{ ansible_date_time.date }}
+# reference: https://github.com/JustaPenguin/assetto-server-manager/wiki/HTTPS-support-with-an-Nginx-Let's-Encrypt-reverse-proxy-on-Ubuntu
 
 server {
   listen [::]:443 ssl;
@@ -20,17 +19,18 @@ server {
 
   # allow tos page
   location /tos {
-    root /usr/share/nginx/html/{{ site_fqdn }}/html;
+    root {{ nginx_path }}/{{ site_fqdn }}/html;
     index index.html;
   }
 
   # allow discord redirect
   location /discord {
-    root /usr/share/nginx/html/{{ site_fqdn }}/html;
+    root {{ nginx_path }}/{{ site_fqdn }}/html;
     index index.html;
   }
 
   location / {
+    proxy_intercept_errors on;
     proxy_pass http://localhost:8772;
     proxy_set_header Host $host;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -39,20 +39,20 @@ server {
     proxy_set_header Connection "upgrade";
   }
 
-
     ssl_certificate /etc/letsencrypt/live/{{ site_fqdn }}/fullchain.pem; # managed by Certbot
     ssl_certificate_key /etc/letsencrypt/live/{{ site_fqdn }}/privkey.pem; # managed by Certbot
 #    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
 #    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
 
-
 }
 
 
-# server {
-#  listen 80;
-#  listen [::]:80;
-#  server_name {{ site_fqdn }};
-# 
-#  return 301 https://$host$request_uri;
-# }
+server {
+ listen 80;
+ listen [::]:80;
+ server_name {{ site_fqdn }};
+
+# root {{ nginx_path }}/{{ site_fqdn }}/html;
+
+ return 301 https://{{ site_fqdn }}$request_uri;
+}
