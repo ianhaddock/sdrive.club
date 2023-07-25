@@ -1,4 +1,12 @@
 # set outbound traffic to use reserved IP
+#
+# https://docs.digitalocean.com/products/networking/reserved-ips/how-to/enable-old/#enable-anchor-ips-immediately
+# https://docs.digitalocean.com/products/networking/reserved-ips/how-to/outbound-traffic/
+# https://www.linuxtechi.com/add-delete-static-route-linux-ip-command/
+# https://www.digitalocean.com/community/questions/send-outbound-traffic-over-floating-ip
+# https://docs.digitalocean.com/products/networking/reserved-ips/how-to/find-anchor-ips/
+# https://docs.digitalocean.com/reference/api/metadata-api/#operation/getReservedIpIpv4Active
+# https://stackoverflow.com/questions/35610586/how-to-get-public-ip-address-in-ubuntu
 ---
 - name: set outbound traffic ip to reserved IP
   become: true
