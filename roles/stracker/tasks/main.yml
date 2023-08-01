@@ -1,0 +1,9 @@
+# stracker install
+# https://www.racedepartment.com/downloads/stracker.3510/download
+---
+
+- name: install zlib for straker
+  ansible.builtin.package: # noqa package-latest
+    name: zlib.i686
+    state: latest
+  when: install_stracker

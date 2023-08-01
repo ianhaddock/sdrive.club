@@ -1,0 +1,10 @@
+#!/bin/bash -e
+# pulls the version value from the zip file of the installed acsm
+
+version="$(ls {{ acmanager_path }} | grep acsm_v | sed 's/_linux-amd64.zip//' | tail -n1)"
+
+state=$?
+
+echo "$version"
+
+exit $state;

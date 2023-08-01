@@ -1,0 +1,15 @@
+# kmr vars
+---
+
+kmrZip: kmr_*.zip
+live_track_view: 1
+
+web_stats_interface: 1
+right_to_be_forgotten: 1
+show_race_control_link: 0
+cut_lines_enabled: 0
+
+plugin_udp_address: '127.0.0.1'
+plugin_udp_port_prefix: 11
+kmr_web_auth_port: '001'
+kmr_database_port: 8701

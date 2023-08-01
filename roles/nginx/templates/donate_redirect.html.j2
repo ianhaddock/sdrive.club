@@ -1,0 +1,71 @@
+<!-- added by ansible on {{ ansible_date_time.date }} -->
+
+<html>
+
+<head>
+
+  <style>
+  
+    body {
+      background-color:#CED4D5;
+    }
+    
+    .center {
+      text-align:center;
+    }
+    
+    .banner {
+      width:960px; 
+      margin:auto;
+    }
+    
+    .text_box {
+      width:600px;
+      margin:auto;
+    }
+  
+  </style>
+
+</head>
+
+<body>
+
+  <br>
+  <br>
+  <div class="banner">
+    <a href="https://{{ site_fqdn }}"><img src="{{ site_banner }}" alt="{{ gameServerName }} Banner"></a>
+  </div>
+
+  <div class="text_box">
+    <br>
+    <h1>Donations</h1>
+
+    <p>{{ gameServerName }} is a for fun project run by enthusiasts. If you have enjoyed your time on the server and would like to help keep the racing going, you can donate via the options below. </p>
+
+    <p>As a thank you we will add your name to the donator list in the welcome message. When donating please include your preferred handle or name to use. If you would like to remain anonymous, please include 'do not add me' in the message.</p>
+
+    <p>Any contribution is greatly appreciated.</p>
+
+  </div>
+ 
+  <div class="center">
+
+    {% if donate_paypal %}
+    <a href="{{ paypal_link }}"><img src="https://www.{{ site_fqdn }}/paypal_256px.png" style="width:256px;" alt="paypal donate icon"></a><br>
+    <br>
+    {% endif %}
+  
+    {% if donate_buycoffee %}  
+    <a href="{{ buycoffee_link }}"><img src="https://www.{{ site_fqdn }}/buycoffee_256px.png" style="width:256px;" alt="buy me a coffee icon"></a><br>
+    <br>
+    {% endif %}
+  
+    <br>
+    <br>
+    <a href="https://{{ site_fqdn }}">[ HOME ]</a> <br>
+    <br>
+  </div>
+
+</body>
+
+</html>

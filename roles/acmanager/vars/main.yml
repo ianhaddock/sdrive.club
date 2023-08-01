@@ -1,0 +1,60 @@
+# acmanager vars
+---
+
+install_kmr: true   # this is a bool
+kmr_enable: 'true'  # this is a string
+acmanagerMonitoring: false
+enableContentManager: 1
+
+backup_hours: '4'
+backup_path: '/home/{{ assetto_user }}/backups'
+
+systemd_single: server-manager.service
+systemd_multi: multi-server-manager.service
+
+disable_plugins: false
+performance_mode: false
+scan_content_folder: true
+lua_enabled: false
+
+url_prefix: "{{ 'https' if cert_enabled else 'http' }}"
+
+upnp_enabled: 'false'
+
+forbidden_driver_names: 'Player\r\nplayer\r\nUser\r\nuser\r\n'
+
+acmanagerZip: acsm_v2.*_linux-amd64.zip
+acmanagerZipArm32: acsm_v2.*_linux-arm32.zip
+
+acmanagerSessionStoreType: filesystem
+acmanagerSessionStorePath: "{{ acmanager_path }}/session-store"
+acmanagerSessionMaxAge: 720h  # 720h is the default
+
+acmanagerTLSEnabled: false
+acmanagerCertPath: "/etc/letsencrypt/live/{{ site_fqdn }}/cert.pem"
+acmanagerKeyPath: "/etc/letsencrypt/live/{{ site_fqdn }}/privkey.pem"
+
+acmanagerStoreType: json
+acmanagerStorePath: "{{ acmanager_path }}/shared_store.json"
+acmanagerStoreSharedDataPath: "{{ acmanager_path }}/shared_store.json"
+acmanagerStoreScheduledEventCheckLoop: 0s  # 0s is the default
+acmanagerMapRefreshInterval_ms: 500  # 500 is the default
+
+acmanagerPersistSessionResults: false  # the default is false
+
+acmanagerIndexLaps: true
+acmanagerIndexCrashes: false
+
+http_hostname: '0.0.0.0:8772'
+
+steamcmdForceUpdate: false
+
+# multi-server ACSM
+plugin_udp_address: '127.0.0.1'
+plugin_udp_port_prefix: 11
+kmr_web_auth_port: '001'
+kmr_database_port: 8701
+
+# stand alone ACSM server
+UDPPluginLocalPort: 12000
+UDPPluginAddress: '127.0.0.1:12001'

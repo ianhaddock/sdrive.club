@@ -1,0 +1,12 @@
+# Terraform Provision Play
+---
+- name: common settings
+  hosts: all
+  become: true
+  gather_facts: true
+
+  vars:
+  - verbose: true
+
+  roles:
+  - common

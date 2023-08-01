@@ -1,0 +1,71 @@
+# install acsm
+---
+
+- name: create ACSM path "{{ acmanager_path }}"
+  ansible.builtin.file:
+    path: "{{ acmanager_path }}"
+    state: directory
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
+    mode: '0755'
+  register: acmanager_path_state
+
+- name: debug
+  ansible.builtin.debug:
+    var: acmanager_path
+  when: verbose
+
+- name: add helper script for version tracking
+  ansible.builtin.template:
+    src: get_version.sh.j2
+    dest: "{{ acmanager_path }}/get_version.sh"
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
+    mode: '0740'
+
+- name: get latest available version of ACSM for x86_64
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "{{ acmanager_path }}"
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
+    mode: '0640'
+  with_fileglob: "{{ acmanagerZip }}"
+  when: ansible_architecture == 'x86_64'
+  register: acsm_zip_x86
+
+- name: get latest available version of ACSM for ARM32
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "{{ acmanager_path }}"
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
+    mode: '0640'
+  with_fileglob: "{{ acmanagerZip }}"
+  when: ansible_architecture == 'arm32'
+  register: acsm_zip_arm32
+
+- name: try remote ACSM License install
+  ansible.builtin.unarchive:
+    src: "{{ files_server }}/{{ acsm_license }}"
+    dest: "{{ acmanager_path }}/"
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
+    mode: '0600'
+    remote_src: true
+  ignore_errors: true
+  register: license_install
+
+- name: debug
+  ansible.builtin.debug:
+    var: license_install
+  when: verbose
+
+- name: try local ACSM License install
+  ansible.builtin.copy:
+    src: "{{ acsm_license }}"
+    dest: "{{ acmanager_path }}/"
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
+    mode: '0600'
+  when: license_install.failed

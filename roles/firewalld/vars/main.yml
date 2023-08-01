@@ -1,0 +1,10 @@
+# firewalld vars
+---
+lobby_port_prefix: 95
+
+udp_port_prefix: 96
+tcp_port_prefix: 97
+kmr_web_stats_port_prefix: 77
+
+plugin_udp_local_port_prefix: 12
+kmr_ac_app_link_prefix: 13

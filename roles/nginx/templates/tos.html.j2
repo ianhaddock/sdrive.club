@@ -1,0 +1,73 @@
+<!-- added by ansible on {{ ansible_date_time.date }} -->
+<!-- referenced from: -->
+<!-- https://www.namadr.com/content/uploads/2023/05/2023.04.26_Updated_XBOX_Series_XS_or_Xbox_One_or_Windows_TOU1.pdf -->
+<!-- https://matchstick.legal/blog/the-as-is-clause-what-it-does-and-how-to-use-it -->
+<!-- https://drewdevault.com/2021/06/14/Provided-as-is-without-warranty.html -->
+<!-- https://www.lawinsider.com/clause/no-warranty -->
+
+
+<head>
+
+</head>
+
+<body style="background-color:#CED4D5;">
+  <div style="width:800px; margin:0 auto;">
+  <a href="https://{{ site_fqdn }}"><img src="{{ site_banner }}" alt="{{ gameServerName }} Banner" style="width:100%"></a> <br>
+  
+<h1>Terms of Service</h1>
+
+<p> Last Updated: 2023-07-23</p>
+
+<p> By using this service you acknowledge that you have read and understand the policies described here. This includes consent that your information may be collected, used and disclosed in the operation of these services. You understand that {{ gameServerName }} may, with or without notice to you, disclose your Internet Protocol (IP) address(es), personal information (including in-game username), chat logs, and other information about you and your activities in response to a request by law enforcement, a court order or other legal process, or if {{ gameServerName }} believes that doing so may protect your safety or the safety of others. If you are a user outside the United States, you also understand that your data will be transferred to the United States where data protection may not be as comprehensive as in other countries, such as those in the European Union.
+
+<p> Operators of {{ gameServerName }} MAY SUSPEND, TERMINATE, MODIFY, OR DELETE YOUR ACCESS TO THE SERVICES PROVIDED AT ANY TIME FOR ANY REASON OR NO REASON, WITH OR WITHOUT NOTICE TO YOU. </p>
+
+<p> You agree to hold the owners, administrators, associated providers, and any other individuals connected to or using these services free form any and all responsibility for any errors, failures, service outages, data loss, data exposure, poor experience or any other negatively impacting result of using such services.  All services and work product is provided "AS IS". {{ gameServerName }} makes no other warranties, express or implied, and hereby disclaims all implied warranties, including any warranty of merchantability and warranty of fitness for a particular purpose. </p> 
+
+<p>You hereby agree to defend, indemnify and hold harmless {{ gameServerName }}, its owners, users, affiliates, and contractors, from and against any claim, liability, injury, damage, loss or expense (including reasonable attorneys' fees) incurred as a result of, arising from, or relating to your use of the {{ gameServerName }} server and/or its services. </p>
+
+<p> You agree that you will not use the service to upload, post, or otherwise distribute any content that: 
+<ul>
+<li> constitutes or promotes illegal activity.
+<li> defames, abuses, harasses, stalks, threatens or otherwise violates the legal rights (such as rights of privacy and publicity) of others.
+<li> is harmful, abusive, vulgar, sexually explicit, defamatory, libelous, obscene, infringing, embarrassing, unwanted, invasive of another's right of privacy or publicity, hateful or racially, ethnically or, in a reasonable person's view, otherwise offensive or objectionable.
+<li> attempts to get a password, other account information, or other private information from a user of {{ gameServerName }}.
+</ul>
+</p>
+
+<p> In using {{ gameServerName }} you also agree not to:
+<ul>
+<li> attempt to interfere with the operation of {{ gameServerName }} in any way.
+<li> use any data mining tools, robots, virus, worms, bugs, or similar data-gathering and extraction tools on the Service, or frame any portion of the Service, or attempt to tamper, hack, corrupt, or impair the administration or security of the Service.
+<li> use or distribute unauthorized software programs or tools, such as "auto" software programs, "macro" software programs, "cheat utility" software program or applications, exploits, cheats, or any other game hacking, altering or cheating software or tool.
+<li> use exploits or cheats to gain and unfair advantage.
+<li> restrict or inhibit any other user from using and enjoying {{ gameServerName }}. For example, being disruptive with vulgar language, abusiveness, use of excessive SHOUTING (all caps) in an attempt to disturb other users, "spamming," or flooding (continuous posting repetitive text), all of which are prohibited conduct or send surveys, contests, pyramid schemes, chain letters, junk email, spam or any duplicative or unsolicited messages (commercial or otherwise).
+</ul>
+</p>
+{% if discord_enabled %}
+<p> We are a group of enthusiasts providing a free service primarily for the use by our friends. No information stored by these services in our control are used for financial gain or other business services. All reasonable attempt has been made to keep user data secure, reliable, and limited to the least amount as needed to provide these services to our users. </p>
+{% endif %}
+<h3>Contact:</h3>
+<p>
+<ul>
+{% if discord_enabled %}
+<li> {{ gameServerName }} Discord: <a href="https://{{ site_fqdn }}/discord">https://{{ site_fqdn }}/discord</a>. 
+{% endif %}
+<li> Administrator email: <a href="mailto:{{ admin_email }}">{{ admin_email }}</a> 
+</ul>
+</p>
+  
+<br>
+<br>
+<br>
+
+</div>
+
+</div>
+<div align=center>
+<a href="https://{{ site_fqdn }}">[ HOME ]</a> <br>
+<br>
+</div>
+
+<br>
+</body>

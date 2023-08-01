@@ -1,0 +1,78 @@
+# CSS mods
+---
+- name: check if AC multi manager is installed
+  ansible.builtin.stat:
+    path: "{{ acmanager_path }}/servers/SERVER_00/store.json/server_options.json"
+  register: acmm_installed
+
+- name: pull custom css
+  ansible.builtin.get_url:
+    url: "{{ files_server }}/css_{{ site_fqdn }}.txt"
+    dest: /tmp/custom_css.txt
+    owner: root
+    group: root
+    mode: '0440'
+  register: custom_css_status
+
+- name: if no custom css, use default
+  ansible.builtin.copy:
+    src: cm_welcome.txt
+    dest: /tmp/custom_css.txt
+    owner: root
+    group: root
+    mode: '0440'
+  when: custom_css_status.failed
+
+- name: slurp custom css
+  ansible.builtin.slurp:
+    src: /tmp/custom_css.txt
+  register: custom_css_slurp
+
+- name: insert CSS in AC server manager
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanagerStorePath }}/server_options.json"
+    regex: '^  "CustomCSS": '
+    line: "{{ custom_css_slurp['content'] | b64decode }}"
+    state: present
+
+- name: insert CSS in AC multi manager
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanager_path }}/servers/SERVER_0{{ item }}/store.json/server_options.json"
+    regex: '^  "CustomCSS": '
+    line: "{{ custom_css_slurp['content'] | b64decode }}"
+    state: present
+  with_sequence: start=0 end={{ server_count -1 }}
+  when: acmm_installed.stat.exists
+
+- name: insert OGImage in AC server manager
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanagerStorePath }}/server_options.json"
+    regex: '^  "OGImage": '
+    line: '  "OGImage": "{{ site_banner }}",'
+    state: present
+
+- name: insert OGImage in AC multi manager
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanager_path }}/servers/SERVER_0{{ item }}/store.json/server_options.json"
+    regex: '^  "OGImage": '
+    line: '  "OGImage": "{{ site_banner }}",'
+    state: present
+  with_sequence: start=0 end={{ server_count -1 }}
+  when: acmm_installed.stat.exists
+
+- name: insert Favicon in AC server manager
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanagerStorePath }}/server_options.json"
+    regex: '^  "Favicon": '
+    line: '  "Favicon": "{{ favicon_icon }}",'
+    state: present
+
+- name: insert Favicon in AC multi manager
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanager_path }}/servers/SERVER_0{{ item }}/store.json/server_options.json"
+    regex: '^  "Favicon": '
+    line: '  "Favicon": "{{ favicon_icon }}",'
+    state: present
+  with_sequence: start=0 end={{ server_count -1 }}
+  when: acmm_installed.stat.exists
+

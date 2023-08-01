@@ -1,0 +1,83 @@
+# multi server manager server options
+---
+
+- name: Update name for servers
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/server_options.json"
+    regex: '^  "Name": '
+    line: '  "Name": "{{ gameServerShort }}{{ item }} | {{ gameServerName }}",'
+    state: present
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
+- name: Do not connect online to AC servers when testing
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/server_options.json"
+    regex: '^  "RegisterToLobby": 1,$'
+    line: '  "RegisterToLobby": 0,'
+    state: present
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+  when: cert_enabled == False
+
+- name: set UPnP to "{{ upnp_enabled }}"
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanager_path }}/servers/{{ item }}/store.json/server_options.json"
+    regexp: '^  "UPnP": '
+    line: '  "UPnP": {{ upnp_enabled }},'
+  with_sequence: start=0 end={{ server_count -1 }} format=SERVER_%02x
+
+- name: enable content manager wrapper
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanager_path }}/servers/{{ item }}/store.json/server_options.json"
+    regexp: '^  "EnableContentManagerWrapper": '
+    line: '  "EnableContentManagerWrapper": {{ enableContentManager }},'
+  with_sequence: start=0 end={{ server_count -1 }} format=SERVER_%02x
+
+- name: set lobby http port
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/server_options.json"
+    regex: '^  "HTTPPort": '
+    line: '  "HTTPPort": {{ lobby_port_prefix }}{{ item }},'
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
+- name: set number of threads to system thread count
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/server_options.json"
+    regex: '^  "NumberOfThreads": 2,$'
+    line: '  "NumberOfThreads": {{ ansible_processor_nproc }},'  # set cores available
+  when: ansible_processor_nproc != 2
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
+- name: set UDP ports
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/server_options.json"
+    regex: '^  "UDPPort": '
+    line: '  "UDPPort": {{ udp_port_prefix }}{{ item }},'
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
+- name: set TCP ports
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/server_options.json"
+    regex: '^  "TCPPort": '
+    line: '  "TCPPort": {{ tcp_port_prefix }}{{ item }},'
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
+- name: Set admin chat password if not set
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/server_options.json"
+    regexp: '^  "AdminPassword": "",'
+    line: '  "AdminPassword": "{{ admin_chat_password }}",'
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
+- name: Set UDP Plugin Local Port
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/server_options.json"
+    regexp: '^  "UDPPluginLocalPort": '
+    line: '  "UDPPluginLocalPort": {{ plugin_udp_local_port_prefix }}0{{ item }},'
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
+- name: Set UDP Plugin Address
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/server_options.json"
+    regexp: '^  "UDPPluginAddress": '
+    line: '  "UDPPluginAddress": "{{ plugin_udp_address }}:{{ plugin_udp_port_prefix }}0{{ item }}",'
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x

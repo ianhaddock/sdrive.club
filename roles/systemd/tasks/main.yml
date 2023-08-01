@@ -1,0 +1,24 @@
+# systemd file installs
+---
+- name: install server-manager systemd file
+  ansible.builtin.template:
+    src: "server-manager.service.j2"
+    dest: "/usr/lib/systemd/system/server-manager.service"
+    owner: root
+    group: root
+    mode: '0644'
+  register: acmanager_systemd
+
+- name: install multi-server-manager.service systemd file
+  ansible.builtin.template:
+    src: "multi-server-manager.service.j2"
+    dest: "/usr/lib/systemd/system/multi-server-manager.service"
+    owner: root
+    group: root
+    mode: '0644'
+  register: acmulti_systemd
+
+- name: reload systemd daemon
+  ansible.builtin.systemd:
+    daemon_reload: true
+  when: acmanager_systemd.changed or acmulti_systemd.changed

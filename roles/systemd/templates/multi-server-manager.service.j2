@@ -1,0 +1,18 @@
+# installed on {{ ansible_date_time.date }}
+
+[Unit]
+Description=AC Multi Server Manager service
+After=network.target
+
+[Service]
+Type=simple
+Nice=-10
+Restart=always
+RestartSec=1
+StartLimitInterval=1
+User=assetto
+WorkingDirectory=/usr/local/sbin/acmanager
+ExecStart=/usr/local/sbin/acmanager/assetto-multiserver-manager
+
+[Install]
+WantedBy=multi=user.target

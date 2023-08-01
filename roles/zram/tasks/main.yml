@@ -1,0 +1,99 @@
+# zRAM kernel module
+# https://scatterpated.net/?p=69
+---
+- name: check if systemd zram.service file exists
+  ansible.builtin.stat:
+    path: /etc/systemd/system/zram.service
+  register: zram_systemd_check
+
+    # - name: comment out swap mounts
+    #   ansible.builtin.lineinfile:
+    #     path: /etc/fstab
+    #     regexp: '(^\/.*swap.*)' # starts with '/' and has swap in line
+    #     line: '# \1'
+    #     backrefs: true
+    #     state: present
+
+- name: comment out swap UUIDs
+  ansible.builtin.lineinfile:
+    path: /etc/fstab
+    regexp: '(^UUID.*swap.*)' # starts with UUID and has swap in line
+    line: '# \1'
+    backrefs: true
+    state: present
+
+- name: add swapfile to fstab
+  ansible.builtin.lineinfile:
+    path: /etc/fstab
+    regexp: ^(?=.*UUID)(?=.*swap).*$
+    line: "/var/swap   none  swap  sw,pri=1   0 0"
+
+- name: check for swap file
+  ansible.builtin.stat:
+    path: /var/swap
+  register: swapfile_check
+
+    # what about making this a function of the available ram?
+- name: create file for swap
+  ansible.builtin.command:
+    cmd: fallocate -l 1024M /var/swap
+  when: not swapfile_check.stat.exists and not ansible_facts.distribution_major_version == "7"
+
+- name: create file for swap on Centos7
+  ansible.builtin.command:
+    cmd: dd if=/dev/zero of=/var/swap bs=512 count=1000
+  when: ansible_facts.distribution == "CentOS" and ansible_facts.distribution_major_version == "7"
+
+- name: config file as swapfile
+  ansible.builtin.command:
+    cmd: mkswap /var/swap
+  when: not swapfile_check.stat.exists
+
+- name: set permissions on swapfile
+  ansible.builtin.file:
+    path: /var/swap
+    mode: '0600'
+
+- name: install modules-load.d file
+  ansible.builtin.copy:
+    src: modules-load.d/zram.conf
+    dest: /etc/modules-load.d/zram.conf
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: install modprobeb.d file
+  ansible.builtin.copy:
+    src: modprobe.d/zram.conf
+    dest: /etc/modprobe.d/zram.conf
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: install rules.d template
+  ansible.builtin.template:
+    src: templates/rules.d/99-zram.rules.j2
+    dest: /etc/udev/rules.d/99-zram.rules
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: install systemd file
+  ansible.builtin.copy:
+    src: systemd/zram.service
+    dest: /etc/systemd/system/zram.service
+    owner: root
+    group: root
+    mode: '0644'
+
+      # - name: enable swapfile
+      #   become: true
+      #   ansible.builtin.command:
+      #     cmd: swapon -p 1 /var/swap
+      #   when: not swapfile_check.stat.exists
+
+- name: enable zram on next restart
+  ansible.builtin.service:
+    name: zram
+    enabled: true
+  notify: restart system

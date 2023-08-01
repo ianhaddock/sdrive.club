@@ -1,0 +1,14 @@
+# Vagrant Dev Environment
+---
+  all:
+    hosts:
+      192.168.40.46:
+      192.168.40.47:
+
+    children:
+      acserver:
+        hosts:
+          192.168.40.46:
+      acbackup:
+        hosts:
+          192.168.40.47:

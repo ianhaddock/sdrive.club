@@ -1,0 +1,31 @@
+# install acserver with steamcmd cli
+---
+- name: create "{{ acserver_path }}"
+  ansible.builtin.file:
+    path: "{{ acserver_path }}"
+    state: directory
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
+    mode: '0755'
+  register: acserver_path_check
+
+- name: add acserver steamcmd script
+  ansible.builtin.template:
+    src: acserver_install_script.txt.j2
+    dest: "/home/{{ assetto_user }}/acserver_install_script.txt"
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
+    mode: '0640'
+  when: acserver_path_check.changed
+
+- name: install acServer with steamcmd script
+  become_user: "{{ assetto_user }}"
+  ansible.builtin.command:
+    cmd: '/usr/local/sbin/steamcmd.sh +@sSteamCmdForcePlatformType windows +runscript /home/{{ assetto_user }}/acserver_install_script.txt'
+  register: steam_install
+  when: acserver_path_check.changed
+
+- name: debug
+  ansible.builtin.debug:
+    msg: 'debug {{ steam_install }}'
+  when: verbose

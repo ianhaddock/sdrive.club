@@ -1,0 +1,4 @@
+# from galaxy
+src: community.general
+src: ansible.posix
+src: community.crypto

@@ -1,0 +1,12 @@
+# Vagrant Provision Play
+---
+- name: common settings
+  hosts: all
+  become: true
+  gather_facts: true
+
+  vars:
+  - public_key: assetto.pub
+
+  roles:
+  - common
