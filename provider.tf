@@ -10,6 +10,7 @@ terraform {
 # variable "do_token" {}
 variable "pvt_key" {}
 variable "pub_key_name" {}
+variable "region" {}
 
 provider "digitalocean" {
   # token = var.do_token  ## use export DIGITALOCEAN_TOKEN instead

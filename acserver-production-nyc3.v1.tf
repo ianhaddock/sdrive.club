@@ -1,7 +1,7 @@
-resource "digitalocean_droplet" "acserver-nyc3" {
+resource "digitalocean_droplet" "acserver" {
   image             = "centos-stream-9-x64"
-  name              = "acserver-nyc3"
-  region            = "nyc3"
+  name              = "acserver"
+  region            = var.region
   size              = "s-1vcpu-1gb-amd"
   backups           = "false"
   monitoring        = "false"
@@ -30,12 +30,12 @@ resource "digitalocean_droplet" "acserver-nyc3" {
   }
 }
 
-resource "digitalocean_reserved_ip" "acserver-nyc3" {
-  region = "nyc3"
+resource "digitalocean_reserved_ip" "acserver" {
+  region = var.region
 }
 
-resource "digitalocean_reserved_ip_assignment" "acserver-nyc3" {
-  ip_address = digitalocean_reserved_ip.acserver-nyc3.ip_address
-  droplet_id = digitalocean_droplet.acserver-nyc3.id
+resource "digitalocean_reserved_ip_assignment" "acserver" {
+  ip_address = digitalocean_reserved_ip.acserver.ip_address
+  droplet_id = digitalocean_droplet.acserver.id
 }
 

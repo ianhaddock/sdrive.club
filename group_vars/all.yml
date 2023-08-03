@@ -22,3 +22,6 @@ paypal_link: ''
 
 donate_buycoffee: false
 buycoffee_link: ''
+
+donate_patreon: false
+patreon_link: ''

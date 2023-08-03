@@ -42,7 +42,9 @@
 
     <p>{{ gameServerName }} is a for fun project run by enthusiasts. If you have enjoyed your time on the server and would like to help keep the racing going, you can donate via the options below. </p>
 
-    <p>As a thank you we will add your name to the donator list in the welcome message. When donating please include your preferred handle or name to use. If you would like to remain anonymous, please include 'do not add me' in the message.</p>
+    <p>As a thank you we will add your name to the donator list in the welcome message and give you access to our donators channel on Discord. </p>
+
+<p>When donating using PayPal or Buy Me A Coffee, please include your Discord ID and any preferred username you would like to use. Patreon subscribers will automatically be added to the donators channel if they have the Discord app linked.  If you would like to remain anonymous, please include 'do not add me' in the message.</p>
 
     <p>Any contribution is greatly appreciated.</p>
 
@@ -50,8 +52,10 @@
  
   <div class="center">
 
+    <br>
     {% if donate_paypal %}
     <a href="{{ paypal_link }}"><img src="https://www.{{ site_fqdn }}/paypal_256px.png" style="width:256px;" alt="paypal donate icon"></a><br>
+    <br>
     <br>
     {% endif %}
   
@@ -60,6 +64,10 @@
     <br>
     {% endif %}
   
+    {% if donate_patreon %}
+    <a href="{{ patreon_link }}"><img src="https://www.{{ site_fqdn }}/patreon_256px.png" style="width:256px;" alt="patreon donation link"></a><br>
+    <br>
+    {% endif %}
     <br>
     <br>
     <a href="https://{{ site_fqdn }}">[ HOME ]</a> <br>
