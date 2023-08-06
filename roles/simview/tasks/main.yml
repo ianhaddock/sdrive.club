@@ -16,7 +16,7 @@
     gid: "{{ app_gid }}"
     comment: "{{ app_name }} app account"
 
-- name: create app path "{{ simview_path }}"
+- name: create app path "{{ app_path }}"
   ansible.builtin.file:
     path: "{{ app_path }}"
     state: directory
@@ -24,4 +24,3 @@
     group: "{{ app_group }}"
     mode: '0755'
   register: simview_path_state
-

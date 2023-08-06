@@ -1,51 +1,55 @@
 # install acsm
+# the copy then unarchive allows for updating when new zip file is available
 ---
-
-- name: create ACSM path "{{ acmanager_path }}"
-  ansible.builtin.file:
-    path: "{{ acmanager_path }}"
-    state: directory
-    owner: "{{ assetto_user }}"
-    group: "{{ assetto_group }}"
-    mode: '0755'
-  register: acmanager_path_state
-
-- name: debug
-  ansible.builtin.debug:
-    var: acmanager_path
-  when: verbose
-
-- name: add helper script for version tracking
-  ansible.builtin.template:
-    src: get_version.sh.j2
-    dest: "{{ acmanager_path }}/get_version.sh"
-    owner: "{{ assetto_user }}"
-    group: "{{ assetto_group }}"
-    mode: '0740'
-
-- name: get latest available version of ACSM for x86_64
+- name: copy latestAC Server Manager x86
   ansible.builtin.copy:
     src: "{{ item }}"
     dest: "{{ acmanager_path }}"
     owner: "{{ assetto_user }}"
     group: "{{ assetto_group }}"
     mode: '0640'
-  with_fileglob: "{{ acmanagerZip }}"
+  with_fileglob: "{{ acmanager_zip }}"
   when: ansible_architecture == 'x86_64'
   register: acsm_zip_x86
 
-- name: get latest available version of ACSM for ARM32
+- name: copy latest AC Server Manager arm32
   ansible.builtin.copy:
     src: "{{ item }}"
     dest: "{{ acmanager_path }}"
     owner: "{{ assetto_user }}"
     group: "{{ assetto_group }}"
     mode: '0640'
-  with_fileglob: "{{ acmanagerZip }}"
+  with_fileglob: "{{ acmanager_zip32 }}"
   when: ansible_architecture == 'arm32'
   register: acsm_zip_arm32
 
-- name: try remote ACSM License install
+- name: install AC Server Manager x86 if different
+  ansible.builtin.unarchive:
+    src: "{{ item }}"
+    dest: "{{ acmanager_path }}"
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
+  with_fileglob: "{{ acmanager_zip }}"
+  when: acsm_zip_x86.changed and ansible_architecture == 'x86_64'
+
+- name: install AC Server Manager arm32 if different
+  ansible.builtin.unarchive:
+    src: "{{ item }}"
+    dest: "{{ acmanager_path }}"
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
+  with_fileglob: "{{ acmanager_zip32 }}"
+  when: acsm_zip_arm32.changed and ansible_architecture == 'arm32'
+
+- name: make server-managers executable
+  ansible.builtin.file:
+    path: "{{ acmanager_path }}/{{ item }}"
+    mode: '0700'
+  with_items:
+    - server-manager
+    - assetto-multiserver-manager
+
+- name: ACSM License from files server
   ansible.builtin.unarchive:
     src: "{{ files_server }}/{{ acsm_license }}"
     dest: "{{ acmanager_path }}/"
@@ -56,14 +60,9 @@
   ignore_errors: true
   register: license_install
 
-- name: debug
-  ansible.builtin.debug:
-    var: license_install
-  when: verbose
-
-- name: try local ACSM License install
+- name: ACSM License from ansible install
   ansible.builtin.copy:
-    src: "{{ acsm_license }}"
+    src: ACSM.License
     dest: "{{ acmanager_path }}/"
     owner: "{{ assetto_user }}"
     group: "{{ assetto_group }}"

@@ -1,0 +1,26 @@
+# firewalld for kmr
+---
+
+- name: open KMR web interface TCP ports
+  ansible.builtin.firewalld:
+    port: "{{ kmr_web_stats_port_prefix }}{{ item }}/tcp"
+    state: enabled
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
+- name: open KMR admin console TCP ports
+  ansible.builtin.firewalld:
+    port: "{{ plugin_udp_local_port_prefix }}0{{ item }}/tcp"
+    state: enabled
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
+- name: open KMR admin console UDP ports
+  ansible.builtin.firewalld:
+    port: "{{ plugin_udp_local_port_prefix }}0{{ item }}/udp"
+    state: enabled
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
+- name: open KMR ac app link UDP ports
+  ansible.builtin.firewalld:
+    port: "{{ kmr_ac_app_link_prefix }}0{{ item }}/udp"
+    state: enabled
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x

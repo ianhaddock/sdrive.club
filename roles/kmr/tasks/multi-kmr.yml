@@ -40,15 +40,6 @@
   loop_control:
     label: "{{ item.item }}" # cleanup verbose output by default
 
-- name: install custom index.html file
-  ansible.builtin.template:
-    src: templates/kissmyrank_index.html.j2
-    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/assetto/kissmyrank/index.html"
-    owner: '{{ assetto_user }}'
-    group: '{{ assetto_group }}'
-    mode: '0644'
-  with_sequence: start=0 end={{ server_count -1 }} format=%02x
-
 - name: set KMR status
   ansible.builtin.lineinfile:
     dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/kissmyrank_options.json"

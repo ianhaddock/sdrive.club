@@ -1,0 +1,39 @@
+# firewall for Server Manager
+---
+
+- name: open dev http port 8772/tcp if certs are disabled
+  ansible.builtin.firewalld:
+    port: 8772/tcp
+    state: enabled
+  when: not cert_enabled
+
+- name: open lobby http ports
+  ansible.builtin.firewalld:
+    port: "{{ lobby_port_prefix }}{{ item }}/tcp"
+    state: enabled
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
+- name: open lobby udp ports
+  ansible.builtin.firewalld:
+    port: "{{ udp_port_prefix }}{{ item }}/udp"
+    state: enabled
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
+- name: open tcp ports
+  ansible.builtin.firewalld:
+    port: "{{ tcp_port_prefix }}{{ item }}/tcp"
+    state: enabled
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
+    ### commnted out 7-14-2022 as these are local plugin addresses ###
+    # - name: open ACSM plugin TCP ports
+    #   ansible.builtin.firewalld:
+    #     port: "{{ plugin_udp_port_prefix }}0{{ item }}/tcp"
+    #     state: enabled
+    #   with_sequence: start=0 end={{ server_count -1 }} format=%02x
+    #
+    # - name: open ACSM plugin UDP ports
+    #   ansible.builtin.firewalld:
+    #     port: "{{ plugin_udp_port_prefix }}0{{ item }}/udp"
+    #     state: enabled
+    #   with_sequence: start=0 end={{ server_count -1 }} format=%02x

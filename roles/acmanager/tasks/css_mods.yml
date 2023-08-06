@@ -30,7 +30,7 @@
 
 - name: insert CSS in AC server manager
   ansible.builtin.lineinfile:
-    dest: "{{ acmanagerStorePath }}/server_options.json"
+    dest: "{{ store_path }}/server_options.json"
     regex: '^  "CustomCSS": '
     line: "{{ custom_css_slurp['content'] | b64decode }}"
     state: present
@@ -46,7 +46,7 @@
 
 - name: insert OGImage in AC server manager
   ansible.builtin.lineinfile:
-    dest: "{{ acmanagerStorePath }}/server_options.json"
+    dest: "{{ store_path }}/server_options.json"
     regex: '^  "OGImage": '
     line: '  "OGImage": "{{ site_banner }}",'
     state: present
@@ -62,7 +62,7 @@
 
 - name: insert Favicon in AC server manager
   ansible.builtin.lineinfile:
-    dest: "{{ acmanagerStorePath }}/server_options.json"
+    dest: "{{ store_path }}/server_options.json"
     regex: '^  "Favicon": '
     line: '  "Favicon": "{{ favicon_icon }}",'
     state: present

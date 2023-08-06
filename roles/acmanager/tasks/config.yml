@@ -1,6 +1,6 @@
-# modify AC Server manager config.yml
+# modify config.yml
 #
-# Files are edited inline instead of templated as config.yml file can change
+# edited inline as config.yml file can change
 # between versions.
 ---
 
@@ -25,12 +25,12 @@
     regexp: '^  install_path: assetto'
     line: '  install_path: {{ acserver_path }}'
 
-- name: Set steamcmd force update to "{{ steamcmdForceUpdate }}"
+- name: Set steamcmd force update to "{{ steamcmd_force_update }}"
   ansible.builtin.lineinfile:
     dest: "{{ acmanager_path }}/config.yml"
     state: present
     regexp: '^  force_update: false'
-    line: '  force_update: {{ steamcmdForceUpdate }}'
+    line: '  force_update: {{ steamcmd_force_update }}'
 
 - name: Set hostname
   ansible.builtin.lineinfile:
@@ -67,86 +67,93 @@
     dest: "{{ acmanager_path }}/config.yml"
     state: present
     regexp: '^  session_store_type: '
-    line: '  session_store_type: {{ acmanagerSessionStoreType }}'
+    line: '  session_store_type: {{ session_store_type }}'
 
 - name: set session store path
   ansible.builtin.lineinfile:
     dest: "{{ acmanager_path }}/config.yml"
     state: present
     regexp: '^  session_store_path: '
-    line: '  session_store_path: {{ acmanagerSessionStorePath }}'
+    line: '  session_store_path: {{ session_store_path }}'
+
+- name: set csrf protection to "{{ csrf_protection }}"
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanager_path }}/config.yml"
+    state: present
+    regexp: '^  csrf_protection: '
+    line: '  csrf_protection: {{ csrf_protection }}'
 
 - name: set session session max age
   ansible.builtin.lineinfile:
     dest: "{{ acmanager_path }}/config.yml"
     state: present
     regexp: '^  # session_max_age: '
-    line: '  session_max_age: {{ acmanagerSessionMaxAge }}'
+    line: '  session_max_age: {{ session_max_age }}'
 
-- name: set TLS to "{{ acmanagerTLSEnabled }}"
+- name: set TLS to "{{ acsm_tls_enabled }}"
   ansible.builtin.replace:
     path: "{{ acmanager_path }}/config.yml"
     regexp: 'listen on port 443.\n    enabled: false'
-    replace: 'listen on port 443.\n    enabled: {{ acmanagerTLSEnabled }}'
+    replace: 'listen on port 443.\n    enabled: {{ acsm_tls_enabled }}'
 
 - name: set TLS cert_path
   ansible.builtin.lineinfile:
     dest: "{{ acmanager_path }}/config.yml"
     state: present
     regexp: '^    cert_path:'
-    line: '    cert_path: {{ acmanagerCertPath }}'
+    line: '    cert_path: {{ acsm_cert_path }}'
 
 - name: set TLS key_path
   ansible.builtin.lineinfile:
     dest: "{{ acmanager_path }}/config.yml"
     state: present
     regexp: '^    key_path:'
-    line: '    key_path: {{ acmanagerKeyPath }}'
+    line: '    key_path: {{ acsm_key_path }}'
 
-- name: set monitoring to "{{ acmanagerMonitoring }}"
+- name: set monitoring to "{{ acmanager_monitoring }}"
   ansible.builtin.replace:
     path: "{{ acmanager_path }}/config.yml"
     regexp: '(^monitoring:\n  enabled: true)'
-    replace: 'monitoring:\n  enabled: {{ acmanagerMonitoring }}'
+    replace: 'monitoring:\n  enabled: {{ acmanager_monitoring }}'
 
-- name: set Store Type to "{{ acmanagerStoreType }}"
+- name: set Store Type to "{{ store_type }}"
   ansible.builtin.lineinfile:
     dest: "{{ acmanager_path }}/config.yml"
     state: present
     regexp: '^  type: '
-    line: '  type: {{ acmanagerStoreType }}'
+    line: '  type: {{ store_type }}'
 
-- name: set Store Path to "{{ acmanagerStorePath }}"
+- name: set Store Path to "{{ store_path }}"
   ansible.builtin.lineinfile:
     dest: "{{ acmanager_path }}/config.yml"
     state: present
     regexp: '^  path: '
-    line: '  path: {{ acmanagerStorePath }}'
+    line: '  path: {{ store_path }}'
 
-- name: set Store Shared Data Path to " {{ acmanagerStoreSharedDataPath }}"
+- name: set Store Shared Data Path to " {{ shared_data_path }}"
   ansible.builtin.lineinfile:
     dest: "{{ acmanager_path }}/config.yml"
     state: present
     regexp: '^  shared_data_path:'
-    line: '  shared_data_path: {{ acmanagerStoreSharedDataPath }}'
+    line: '  shared_data_path: {{ shared_data_path }}'
 
-- name: set Store Scheduled Event Check Loop to " {{ acmanagerStoreScheduledEventCheckLoop }}"
+- name: set Store Scheduled Event Check Loop to " {{ scheduled_event_check_loop }}"
   ansible.builtin.lineinfile:
     dest: "{{ acmanager_path }}/config.yml"
     state: present
     regexp: '^  scheduled_event_check_loop:'
-    line: '  scheduled_event_check_loop: {{ acmanagerStoreScheduledEventCheckLoop }}'
+    line: '  scheduled_event_check_loop: {{ scheduled_event_check_loop }}'
 
 - name: check for old store.json directory
   ansible.builtin.stat:
     path: "{{ acmanager_path }}/store.json"
   register: store_json_path
 
-- name: move store.json files to new "{{ acmanagerStorePath }}"
+- name: move store.json files to new "{{ store_path }}"
   ansible.builtin.copy:
-    remote_src: True
+    remote_src: true
     src: "{{ acmanager_path }}/store.json/"
-    dest: "{{ acmanagerStorePath }}/"
+    dest: "{{ store_path }}/"
     owner: "{{ assettouser }}"
     group: "{{ assettogroup }}"
   when: store_json_path.stat.exists
@@ -159,7 +166,7 @@
 
 - name: check if admin account has been setup or if this is a new install
   ansible.builtin.stat:
-    path: "{{ acmanagerStoreSharedDataPath }}/accounts/admin.json"
+    path: "{{ store_path }}/accounts/admin.json"
   register: admin_account
 
 - name: debug admin account check
@@ -175,12 +182,12 @@
     line: '  admin_password_override: {{ admin_password_override }}'
   when: admin_account.stat.exists and admin_pw_reset
 
-- name: Set live map refresh interval to "{{ acmanagerMapRefreshInterval_ms }}"ms
+- name: Set live map refresh interval to "{{ map_refresh_ms }}"ms
   ansible.builtin.lineinfile:
     dest: "{{ acmanager_path }}/config.yml"
     state: present
     regexp: '^  refresh_interval_ms:'
-    line: '  refresh_interval_ms: {{ acmanagerMapRefreshInterval_ms }}'
+    line: '  refresh_interval_ms: {{ map_refresh_ms }}'
 
 - name: Set Disable Plugins to "{{ disable_plugins }}"
   ansible.builtin.lineinfile:
@@ -203,26 +210,26 @@
     regexp: '^  scan_content_folder_for_changes:'
     line: '  scan_content_folder_for_changes: {{ scan_content_folder }}'
 
-- name: Set Persist Session Results to "{{ acmanagerPersistSessionResults }}"
+- name: Set Persist Session Results to "{{ persist_session_results }}"
   ansible.builtin.lineinfile:
     dest: "{{ acmanager_path }}/config.yml"
     state: present
     regexp: '^  persist_mid_session_results:'
-    line: '  persist_mid_session_results: {{ acmanagerPersistSessionResults }}'
+    line: '  persist_mid_session_results: {{ persist_session_results }}'
 
-- name: Set index laps to "{{ acmanagerIndexLaps }}"
+- name: Set index laps to "{{ index_laps }}"
   ansible.builtin.lineinfile:
     dest: "{{ acmanager_path }}/config.yml"
     state: present
     regexp: '^    index_laps:'
-    line: '    index_laps: {{ acmanagerIndexLaps }}'
+    line: '    index_laps: {{ index_laps }}'
 
-- name: Set index crashes to "{{ acmanagerIndexCrashes }}"
+- name: Set index crashes to "{{ index_crashes }}"
   ansible.builtin.lineinfile:
     dest: "{{ acmanager_path }}/config.yml"
     state: present
     regexp: '^    index_crashes:'
-    line: '    index_crashes: {{ acmanagerIndexCrashes }}'
+    line: '    index_crashes: {{ index_crashes }}'
 
 - name: Set Recaptcha Site Key
   ansible.builtin.lineinfile:

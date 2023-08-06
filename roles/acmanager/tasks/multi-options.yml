@@ -29,7 +29,7 @@
   ansible.builtin.lineinfile:
     dest: "{{ acmanager_path }}/servers/{{ item }}/store.json/server_options.json"
     regexp: '^  "EnableContentManagerWrapper": '
-    line: '  "EnableContentManagerWrapper": {{ enableContentManager }},'
+    line: '  "EnableContentManagerWrapper": {{ cmwelcome_enable }},'
   with_sequence: start=0 end={{ server_count -1 }} format=SERVER_%02x
 
 - name: set lobby http port

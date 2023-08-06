@@ -4,6 +4,18 @@
   ansible.builtin.command: 'date +%Y%m%d'
   register: timestamp
 
+- name: add helper script for version tracking
+  ansible.builtin.template:
+    src: get_version.sh.j2
+    dest: "{{ acmanager_path }}/get_version.sh"
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
+    mode: '0740'
+
+- name: run script to get installed version of acsm
+  ansible.builtin.command: '{{ acmanager_path }}/get_version.sh'
+  register: acsm_version
+
 - name: create backup directory
   ansible.builtin.file:
     path: "{{ backup_path }}"
@@ -21,7 +33,7 @@
       - "{{ acserver_path }}/content"
       - "{{ acmanager_path }}/*.zip"
       - "{{ acmanager_path }}/ACSM.License"
-    dest: "{{ backup_path }}/{{ acsm_version.stdout }}_{{ timestamp.stdout }}.zip"
+    dest: "{{ backup_path }}/acsm_{{ acsm_version.stdout }}_{{ timestamp.stdout }}.zip"
     owner: "{{ assetto_user }}"
     group: "{{ assetto_group }}"
     mode: '0644'

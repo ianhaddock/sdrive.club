@@ -1,6 +1,5 @@
 # install acmanager
 ---
-
 - name: create isolation user and group. Enable linger
   ansible.builtin.include_role:
     name: common
@@ -18,17 +17,26 @@
     state: present
     key: "{{ files_server }}/{{ backup_pub_key }}"
 
-- name: install AC Server Manager
+- name: add firewall ports
+  ansible.builtin.import_tasks: firewalld.yml
+
+- name: create ACSM path "{{ acmanager_path }}"
+  ansible.builtin.file:
+    path: "{{ acmanager_path }}"
+    state: directory
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
+    mode: '0755'
+  register: acmanager_path_state
+
+- name: backup existing ACSM
+  ansible.builtin.import_tasks: backup.yml
+  when: not acmanager_path_state.changed
+
+- name: install or update ACSM
   ansible.builtin.import_tasks: install.yml
-  # this sets acmanager_path_state
 
-- name: update AC Server Manager
-  ansible.builtin.import_tasks: update.yml
-
-- name: add daily backups
-  ansible.builtin.import_tasks: daily_backup.yml
-
-- name: setup acsm config.yml
+- name: set acsm config.yml
   ansible.builtin.import_tasks: config.yml
 
 - name: set servers.yml count to "{{ server_count }}"
@@ -37,14 +45,11 @@
     regexp: '^servers: '
     line: 'servers: {{ server_count }}'
 
-###
-
-- name: start ACSM to generate config files and paths
+- name: start ACSM to generate files and paths
   ansible.builtin.systemd:
     name: "{{ systemd_single }}"
     daemon_reload: true
     state: started
-  when: acmanager_path_state.changed
 
 - name: wait for server-manager to settle
   ansible.builtin.uri:
@@ -54,16 +59,36 @@
   until: result.status == 200
   retries: 720  # 720 * 5 = 1 hour
   delay: 5
-  when: acmanager_path_state.changed
 
 - name: stop ACSM to add custom options
   ansible.builtin.systemd:
     name: "{{ systemd_single }}"
     daemon_reload: true
     state: stopped
-  when: acmanager_path_state.changed
 
-###
+- name: start multi ACSM to generate files and paths
+  ansible.builtin.systemd:
+    name: "{{ systemd_multi }}"
+    daemon_reload: true
+    state: started
+  when: server_count > 1
+
+- name: wait for server-manager to settle
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:8772/login"
+    status_code: 200
+  register: result
+  until: result.status == 200
+  retries: 720  # 720 * 5 = 1 hour
+  delay: 5
+  when: server_count > 1
+
+- name: stop ACSM to add custom options
+  ansible.builtin.systemd:
+    name: "{{ systemd_multi }}"
+    daemon_reload: true
+    state: stopped
+  when: server_count > 1
 
 - name: add custom server messages
   ansible.builtin.import_tasks: messages.yml
@@ -75,32 +100,20 @@
 - name: insert custom CSS
   ansible.builtin.import_tasks: css_mods.yml
 
-- name: load changes to ACSM with restart
-  ansible.builtin.systemd:
-    name: "{{ systemd_single }}"
-    state: restarted
-  when: server_count == 1 or acmanager_path_state.changed
-
-- name: wait for AC Server Manager to settle
-  ansible.builtin.uri:
-    url: "http://127.0.0.1:8772/login"
-    status_code: 200
-  register: result
-  until: result.status == 200
-  retries: 720 # 720 * 5 = 1 hour
-  delay: 5
-  when: server_count == 1 or acmanager_path_state.changed
-
-###
-
-- name: stop single server if system reconfigured from multi-server
-  ansible.builtin.systemd:
-    name: "{{ systemd_single }}"
-    state: stopped
-  when: server_count == 1
-
-###
-
-- name: continue to multi-server setup when server count is >1
-  ansible.builtin.import_tasks: multi-server.yml
+- name: update multi-server options
+  ansible.builtin.import_tasks: multi-options.yml
   when: server_count > 1
+
+- name: restart acsm multi
+  ansible.builtin.debug:
+    msg: 'restart acsm multi'
+  changed_when: true
+  notify: restart acsm multi
+  when: server_count > 1
+
+- name: restart acsm single
+  ansible.builtin.debug:
+    msg: 'restart acsm'
+  changed_when: true
+  notify: restart acsm
+  when: server_count == 1

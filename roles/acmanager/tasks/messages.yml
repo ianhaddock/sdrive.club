@@ -26,7 +26,7 @@
 
 - name: insert join message for single server
   ansible.builtin.lineinfile:
-    dest: "{{ acmanagerStorePath }}/server_options.json"
+    dest: "{{ store_path }}/server_options.json"
     regex: '^  "ServerJoinMessage": '
     line: '  "ServerJoinMessage": " ",'
     state: present
@@ -65,7 +65,7 @@
 
 - name: insert content manger welcome message
   ansible.builtin.lineinfile:
-    dest: "{{ acmanagerStorePath }}/server_options.json"
+    dest: "{{ store_path }}/server_options.json"
     regexp: '^  "ContentManagerWelcomeMessage": '
     line: "{{ cm_welcome_slurp['content'] | b64decode }}"
     state: present

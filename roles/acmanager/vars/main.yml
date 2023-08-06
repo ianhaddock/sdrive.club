@@ -1,60 +1,70 @@
 # acmanager vars
 ---
+# url_prefix: "{{ 'https' if cert_enabled else 'http' }}"
+# UDPPluginLocalPort: 12000
+# UDPPluginAddress: '127.0.0.1:12001'
 
-install_kmr: true   # this is a bool
-kmr_enable: 'true'  # this is a string
-acmanagerMonitoring: false
-enableContentManager: 1
+# server_options
+upnp_enabled: 'false'
+cmwelcome_enable: 1
+kmr_enable: 'true'  # a string
+install_kmr: true   # a bool
+forbidden_driver_names: 'Player\r\nplayer\r\nUser\r\nuser\r\n'
+lobby_port_prefix: 95
+udp_port_prefix: 96
+tcp_port_prefix: 97
+plugin_udp_address: '127.0.0.1'
+plugin_udp_local_port_prefix: 12
+plugin_udp_port_prefix: 11
 
-backup_hours: '4'
-backup_path: '/home/{{ assetto_user }}/backups'
+# install
+acmanager_zip: acsm_v2.*_linux-amd64.zip
+acmanager_zip32: acsm_v2.*_linux-arm32.zip
 
+# systemd
 systemd_single: server-manager.service
 systemd_multi: multi-server-manager.service
 
+# config: steamcmd
+steamcmd_force_update: false
+
+# config: http
+http_hostname: '0.0.0.0:8772'
+session_store_type: filesystem
+session_store_path: "{{ acmanager_path }}/session-store"
+session_max_age: 720h
+csrf_protection: false
+acsm_tls_enabled: false
+acsm_cert_path: "/etc/letsencrypt/live/{{ site_fqdn }}/cert.pem"
+acsm_key_path: "/etc/letsencrypt/live/{{ site_fqdn }}/privkey.pem"
+
+# config: monitoring
+acmanager_monitoring: false
+
+# config: data storage
+store_type: json  # required for multi-server
+store_path: "{{ acmanager_path }}/shared_store.json"
+shared_data_path: ''  # leave blank to use store_path
+scheduled_event_check_loop: 0s
+
+# config: user management
+
+# config: live map
+map_refresh_ms: 500
+
+# config: server
 disable_plugins: false
 performance_mode: false
 scan_content_folder: true
+
+# config: server, results
+index_laps: true
+index_crashes: false
+
+# config: server, plugins
+
+# config: championships
+
+# config: lua
 lua_enabled: false
-
-url_prefix: "{{ 'https' if cert_enabled else 'http' }}"
-
-upnp_enabled: 'false'
-
-forbidden_driver_names: 'Player\r\nplayer\r\nUser\r\nuser\r\n'
-
-acmanagerZip: acsm_v2.*_linux-amd64.zip
-acmanagerZipArm32: acsm_v2.*_linux-arm32.zip
-
-acmanagerSessionStoreType: filesystem
-acmanagerSessionStorePath: "{{ acmanager_path }}/session-store"
-acmanagerSessionMaxAge: 720h  # 720h is the default
-
-acmanagerTLSEnabled: false
-acmanagerCertPath: "/etc/letsencrypt/live/{{ site_fqdn }}/cert.pem"
-acmanagerKeyPath: "/etc/letsencrypt/live/{{ site_fqdn }}/privkey.pem"
-
-acmanagerStoreType: json
-acmanagerStorePath: "{{ acmanager_path }}/shared_store.json"
-acmanagerStoreSharedDataPath: "{{ acmanager_path }}/shared_store.json"
-acmanagerStoreScheduledEventCheckLoop: 0s  # 0s is the default
-acmanagerMapRefreshInterval_ms: 500  # 500 is the default
-
-acmanagerPersistSessionResults: false  # the default is false
-
-acmanagerIndexLaps: true
-acmanagerIndexCrashes: false
-
-http_hostname: '0.0.0.0:8772'
-
-steamcmdForceUpdate: false
-
-# multi-server ACSM
-plugin_udp_address: '127.0.0.1'
-plugin_udp_port_prefix: 11
-kmr_web_auth_port: '001'
-kmr_database_port: 8701
-
-# stand alone ACSM server
-UDPPluginLocalPort: 12000
-UDPPluginAddress: '127.0.0.1:12001'
+persist_session_results: false
