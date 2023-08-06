@@ -13,15 +13,3 @@ acmanager_path: '/usr/local/sbin/acmanager'
 acserver_path: '/usr/local/sbin/acserver'
 steamcmd_path: '/usr/local/sbin/steamcmd'
 nginx_path: '/usr/share/nginx/html'
-
-kmr_welcome_message: '    ""'
-
-# donations
-donate_paypal: false
-paypal_link: ''
-
-donate_buycoffee: false
-buycoffee_link: ''
-
-donate_patreon: false
-patreon_link: ''

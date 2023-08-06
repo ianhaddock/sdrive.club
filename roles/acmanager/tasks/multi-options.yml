@@ -5,7 +5,7 @@
   ansible.builtin.lineinfile:
     dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/server_options.json"
     regex: '^  "Name": '
-    line: '  "Name": "{{ gameServerShort }}{{ item }} | {{ gameServerName }}",'
+    line: '  "Name": "{{ game_server_short_name }}{{ item }} | {{ game_server_name }}",'
     state: present
   with_sequence: start=0 end={{ server_count -1 }} format=%02x
 

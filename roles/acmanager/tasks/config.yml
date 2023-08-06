@@ -44,7 +44,7 @@
     dest: "{{ acmanager_path }}/config.yml"
     state: present
     regexp: '^  session_key: '
-    line: '  session_key: {{ httpSessionKey }}'
+    line: '  session_key: {{ http_session_key }}'
 
 - name: Set server manager base URL https
   ansible.builtin.lineinfile:
@@ -236,14 +236,14 @@
     dest: "{{ acmanager_path }}/config.yml"
     state: present
     regexp: '^    site_key:'
-    line: '    site_key: {{ acmanagerRecaptchaSiteKey }}'
+    line: '    site_key: {{ recaptcha_site_key }}'
 
 - name: Set Recaptcha Secret Key
   ansible.builtin.lineinfile:
     dest: "{{ acmanager_path }}/config.yml"
     state: present
     regexp: '^    secret_key:'
-    line: '    secret_key: {{ acmanagerRecaptchaSecretKey }}'
+    line: '    secret_key: {{ recaptcha_secret_key }}'
 
 - name: Set Lua enabled to "{{ lua_enabled }}"
   ansible.builtin.replace:

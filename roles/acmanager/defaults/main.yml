@@ -1,22 +1,5 @@
 # acmanager vars
 ---
-# url_prefix: "{{ 'https' if cert_enabled else 'http' }}"
-# UDPPluginLocalPort: 12000
-# UDPPluginAddress: '127.0.0.1:12001'
-
-# server_options
-upnp_enabled: 'false'
-cmwelcome_enable: 1
-kmr_enable: 'true'  # a string
-install_kmr: true   # a bool
-forbidden_driver_names: 'Player\r\nplayer\r\nUser\r\nuser\r\n'
-lobby_port_prefix: 95
-udp_port_prefix: 96
-tcp_port_prefix: 97
-plugin_udp_address: '127.0.0.1'
-plugin_udp_local_port_prefix: 12
-plugin_udp_port_prefix: 11
-
 # install
 acmanager_zip: acsm_v2.*_linux-amd64.zip
 acmanager_zip32: acsm_v2.*_linux-arm32.zip
@@ -26,10 +9,14 @@ systemd_single: server-manager.service
 systemd_multi: multi-server-manager.service
 
 # config: steamcmd
+steamcmd_user: 'foo'
+steamcmd_password: 'bar'
+steamcmd_path: '/usr/local/sbin/steamcmd'
 steamcmd_force_update: false
 
 # config: http
 http_hostname: '0.0.0.0:8772'
+http_session_key: 'dev'
 session_store_type: filesystem
 session_store_path: "{{ acmanager_path }}/session-store"
 session_max_age: 720h
@@ -48,6 +35,7 @@ shared_data_path: ''  # leave blank to use store_path
 scheduled_event_check_loop: 0s
 
 # config: user management
+admin_password_override: ''
 
 # config: live map
 map_refresh_ms: 500
@@ -64,7 +52,22 @@ index_crashes: false
 # config: server, plugins
 
 # config: championships
+recaptcha_site_key: ''
+recaptcha_secret_key: ''
 
 # config: lua
 lua_enabled: false
 persist_session_results: false
+
+# server_options
+upnp_enabled: 'false'
+cmwelcome_enable: 1
+kmr_enable: 'true'  # a string
+install_kmr: true   # a bool
+forbidden_driver_names: 'Player\r\nplayer\r\nUser\r\nuser\r\n'
+lobby_port_prefix: 95
+udp_port_prefix: 96
+tcp_port_prefix: 97
+plugin_udp_address: '127.0.0.1'
+plugin_udp_local_port_prefix: 12
+plugin_udp_port_prefix: 11

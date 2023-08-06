@@ -1,4 +1,6 @@
-# from galaxy
-src: community.general
-src: ansible.posix
-src: community.crypto
+# ansible-galaxy install -r requirements.yml
+---
+- src: community.general
+- src: ansible.posix
+- src: community.crypto
+- src: community.mysql

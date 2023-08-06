@@ -4,6 +4,8 @@
 kmrZip: kmr_*.zip
 live_track_view: 1
 
+kmr_welcome_message: '    ""'
+
 web_stats_interface: 1
 right_to_be_forgotten: 1
 show_race_control_link: 0
