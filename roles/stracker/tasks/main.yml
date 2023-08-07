@@ -3,7 +3,37 @@
 ---
 
 - name: install zlib for straker
-  ansible.builtin.package: # noqa package-latest
+  ansible.builtin.package:  # noqa package-latest
     name: zlib.i686
     state: latest
-  when: install_stracker
+
+- name: create paths
+  ansible.builtin.file:
+    dest: "{{ item }}"
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
+    state: directory
+  with_items:
+    - "{{ acserver_path }}/stracker"
+
+- name: install stracker plugin
+  ansible.builtin.unarchive:
+    src: "{{ files_server }}/stracker-V3.5.1.zip"
+    dest: "{{ acserver_path }}/stracker"
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
+    remote_src: true
+
+- name: install stracker plugin
+  ansible.builtin.unarchive:
+    src: "{{ acserver_path }}/stracker/stracker_linux_x86.tgz"
+    dest: "{{ acserver_path }}/stracker/"
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
+    remote_src: true
+
+- name: flush handlers
+  ansible.builtin.meta: flush_handlers
+
+    #- name: setup firewall for stracker
+    #  ansible.builtin.import_tasks: firewalld.yml

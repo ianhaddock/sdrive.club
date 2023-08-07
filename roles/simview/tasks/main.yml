@@ -2,7 +2,8 @@
 ---
 - name: install dependencies
   ansible.builtin.package:
-    pkg: mysql-server
+    pkg:
+      - mysql-server
     state: latest
 
 - name: create isolation user and group. Enable linger
@@ -24,3 +25,9 @@
     group: "{{ app_group }}"
     mode: '0755'
   register: simview_path_state
+
+    # - name: create db
+    #   become_user: "{{ app_user }}"
+    #   community.mysql.mysql_db:
+    #     name: simview
+    #     state: present

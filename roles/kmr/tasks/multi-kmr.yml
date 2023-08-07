@@ -89,7 +89,7 @@
     dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/kissmyrank_options.json"
     state: present
     regexp: '^  "web_auth_server_port": '
-    line: '  "web_auth_server_port": {{ plugin_udp_port_prefix }}0{{ item }},'
+    line: '  "web_auth_server_port": {{ kmr_plugin_port_prefix }}0{{ item }},'
   with_sequence: start=0 end={{ server_count -1 }} format=%02x
 
 - name: set cut lines
@@ -117,7 +117,7 @@
   ansible.builtin.lineinfile:
     dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/kissmyrank_options.json"
     regexp: '^  "database_sharing_local_group_port": '
-    line: '  "database_sharing_local_group_port": {{ kmr_database_port }},'
+    line: '  "database_sharing_local_group_port": {{ kmr_db_group_port }},'
   with_sequence: start=0 end={{ server_count -1 }} format=%02x
 
 - name: Set ac_app_link_udp_port

@@ -8,8 +8,8 @@
 
   roles:
     - common
-    - sshd
-    - zram
+      #    - sshd
+      #    - zram
 
   handlers:
     - name: restart system

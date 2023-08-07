@@ -130,7 +130,7 @@
     dest: "{{ store_path }}/kissmyrank_options.json"
     state: present
     regexp: '^  "web_auth_server_port": '
-    line: '  "web_auth_server_port": {{ plugin_udp_port_prefix }}000,'
+    line: '  "web_auth_server_port": {{ kmr_plugin_port_prefix }}000,'
 
 - name: set cut lines
   ansible.builtin.lineinfile:
@@ -154,7 +154,7 @@
   ansible.builtin.lineinfile:
     dest: "{{ store_path }}/kissmyrank_options.json"
     regexp: '^  "database_sharing_local_group_port": '
-    line: '  "database_sharing_local_group_port": {{ kmr_database_port }},'
+    line: '  "database_sharing_local_group_port": {{ kmr_db_group_port }},'
 
 - name: Set ac_app_link_udp_port
   ansible.builtin.lineinfile:
@@ -204,4 +204,4 @@
 
 - name: configure KMR servers
   ansible.builtin.import_tasks: multi-kmr.yml
-  when: server_count > 1 and ansible_architecture == 'x86_64' and install_kmr
+  when: server_count > 1

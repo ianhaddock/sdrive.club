@@ -1,0 +1,6 @@
+# firewalld for stracker
+---
+- name: open stracker listening port 50042 udp
+  ansible.builtin.firewalld:
+    port: "50042/udp"
+    state: enabled
