@@ -16,12 +16,19 @@
   ansible.builtin.package:
     name: firewalld
     state: present
+  register: firewalld_install_state
 
 - name: enable Firewalld
   ansible.builtin.systemd:
     name: firewalld
     enabled: true
     state: started
+
+- name: reload firewall if present already
+  ansible.builtin.systemd:
+    name: firewalld
+    state: reloaded
+  when: not firewalld_install_state.changed
 
 - name: open 22/tcp
   ansible.builtin.firewalld:
