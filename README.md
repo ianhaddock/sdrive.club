@@ -1,9 +1,7 @@
 # Assetto Corsa Game Server
-Builds a multi-lobby Assetto Corsa game server using Assetto Corsa Server Manager, and Kiss My Rank (KMR) on a DigitalOcean VPS.
+Builds a single or multi-lobby Assetto Corsa game server on a DigitalOcean VPS. 
 
-There are how-tos online for different sections of building such a service, but this is a one-click starting point to host a game lobby. Used on [my server, sdrive.club][4].
-
-This is an early development release. 
+As used on my server, [sdrive.club][4]. 
 
 ## Uses:
 * CentOS Stream 9
@@ -19,6 +17,7 @@ This is an early development release.
 * Paid license for Assetto Corsa Server Manager v2
 * DigitalOcean account with one VPS 
 * One reserved IP assigned to the VPS
+
 
 [1]: https://github.com/JustaPenguin/assetto-server-manager
 [2]: https://www.racedepartment.com/downloads/kissmyrank-local-assetto-corsa-server-plugin.17667/

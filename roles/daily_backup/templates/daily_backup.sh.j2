@@ -51,13 +51,13 @@ echo "$(date +%Y%m%d:%H%M%S): Starting backup."
 # archive app except license file and content folder
 zip -y \
   -r \
-  {{ backup_path }}/"$version"_"$datestamp".zip \
+  {{ backup_path }}/acsm_"$version"_"$datestamp".zip \
   "$acmanager" "$acserver" \
   -x "{{ acserver_path }}/content" \
   -x \*.License \
   -x \*.zip \
   -li \
-  -lf {{ backup_path }}/"$version"_"$datestamp".log
+  -lf {{ backup_path }}/acsm_"$version"_"$datestamp".log
 
 # archive content folder by updating yesterday's zip
 zip -y \
