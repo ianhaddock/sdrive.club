@@ -10,3 +10,6 @@ app_name: simview
 app_port: 9898
 
 app_path: '/usr/local/sbin/{{ app_name }}'
+
+root_mysql_pw: 'root'
+simviewdb_pass: 'simview'
