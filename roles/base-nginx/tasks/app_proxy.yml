@@ -1,0 +1,21 @@
+# app_proxy.yml
+---
+- name: set subdomain http forward proxy
+  ansible.builtin.template:
+    src: subdomain_proxy_http.conf.j2
+    dest: "/etc/nginx/conf.d/{{ app_name }}.{{ site_fqdn }}.conf"
+    owner: root
+    group: root
+    mode: '0640'
+  when: not cert_enabled
+  notify: reload nginx
+
+- name: set subdomain https forward proxy
+  ansible.builtin.template:
+    src: subdomain_proxy_https.conf.j2
+    dest: "/etc/nginx/conf.d/{{ app_name }}.{{ site_fqdn }}.conf"
+    owner: root
+    group: root
+    mode: '0640'
+  when: cert_enabled
+  notify: reload nginx

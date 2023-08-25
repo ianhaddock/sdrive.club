@@ -1,11 +1,10 @@
 # added by ansible {{ ansible_date_time.date }}
-# ref: 
-# https://github.com/JustaPenguin/assetto-server-manager/wiki/HTTPS-support-with-an-Nginx-Let's-Encrypt-reverse-proxy-on-Ubuntu
+# reference: https://github.com/JustaPenguin/assetto-server-manager/wiki/HTTPS-support-with-an-Nginx-Let's-Encrypt-reverse-proxy-on-Ubuntu
 
 server {
   listen [::]:443 ssl;
   listen 443 ssl;
-  server_name {{ app_name }}.{{site_fqdn }} {{ site_fqdn }};
+  server_name {{ app_name }}.{{site_fqdn }};
   client_max_body_size 256m;
 
   error_page 404 /404/404-error.html;
@@ -16,24 +15,6 @@ server {
   error_page 500 502 503 504 /50x/50x-error.html;
   location /50x {
         root {{ nginx_path }}/error_pages;
-  }
-
-  # allow tos page
-  location /tos {
-    root {{ nginx_path }}/{{ site_fqdn }}/html;
-    index index.html;
-  }
-
-  # allow discord redirect
-  location /discord {
-    root {{ nginx_path }}/{{ site_fqdn }}/html;
-    index index.html;
-  }
-
-  # allow donate redirect
-  location /donate {
-    root {{ nginx_path }}/{{ site_fqdn }}/html;
-    index index.html;
   }
 
   location / {
@@ -57,7 +38,7 @@ server {
 server {
  listen 80;
  listen [::]:80;
- server_name {{ app_name }}.{{site_fqdn }} {{ site_fqdn }};
+ server_name {{ app_name }}.{{site_fqdn }};
 
 # root {{ nginx_path }}/{{ site_fqdn }}/html;
 

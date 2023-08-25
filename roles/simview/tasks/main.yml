@@ -1,14 +1,5 @@
-# install simview
+# simview main.yml
 ---
-- name: install dependencies
-  ansible.builtin.package:
-    pkg:
-      - mariadb-server
-      - mariadb-backup
-      - python3-PyMySQL
-    state: latest
-  register: mysql_install_state
-
 - name: create isolation user and group. Enable linger
   ansible.builtin.include_role:
     name: common
@@ -24,137 +15,64 @@
   ansible.builtin.file:
     path: "{{ app_path }}"
     state: directory
-    owner: "{{ app_user }}"
-    group: "{{ app_group }}"
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
     mode: '0755'
   register: simview_path_state
 
-- name: unarchive simview
-  become_user: "{{ app_user }}"
-  ansible.builtin.unarchive:
-    src: "{{ files_server }}/SimView-v1.4.zip"
-    dest: "{{ app_path }}"
-    remote_src: true
+- name: install simview
+  ansible.builtin.import_tasks: install.yml
+  when: simview_path_state.changed
 
-- name: unarchive linux install
-  become_user: "{{ app_user }}"
-  ansible.builtin.unarchive:
-    src: "{{ app_path }}/SimView-v1.4-Linux-x64.zip"
-    dest: "{{ app_path }}"
-    remote_src: true
+- name: config mariadb
+  ansible.builtin.import_tasks: mariadb.yml
+  when: simview_path_state.changed
 
-- name: remove extras
+# - name: insert config.toml for single server setup
+
+- name: add simview directory
   ansible.builtin.file:
-    path: "{{ item }}"
-    state: absent
-  with_items:
-    - "{{ app_path }}/SimView-v1.4-Linux-x64.zip"
-    - "{{ app_path }}/SimView-v1.4-Windows-x64.zip"
-    - "{{ app_path }}/SimView-Manual.pdf"
+    path: "{{ acmanager_path }}/servers/SERVER_{{ item }}/assetto/simview"
+    state: directory
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
 
-- name: start mariadb
-  ansible.builtin.systemd:
-    name: mariadb
-    state: started
-
-- name: set root user for  mariadb
-  community.mysql.mysql_user:
-    name: root
-    password: "{{ root_mysql_pw }}"
-    priv: '*.*:ALL,GRANT'
-    host: 'localhost'
-    login_unix_socket: /var/lib/mysql/mysql.sock
-    state: present
-  when: mysql_install_state.changed
-
-- name: add my.cnf file for root
-  ansible.builtin.template:
-    src: root.my.cnf.j2
-    dest: /root/.my.cnf
-    owner: root
-    group: root
-    mode: '0600'
-
-- name: remote anonymous users from mariadb
-  community.mysql.mysql_user:
-    check_implicit_admin: true
-    name: ''
-    host_all: true
-    state: absent
-
-- name: drop test table
-  community.mysql.mysql_db:
-    name: test
-    state: absent
-
-- name: adjust datestamps
-  ansible.builtin.lineinfile:
-    path: /usr/local/sbin/simview/data/simview-1.2.sql
-    regexp: '^  `last_activity` TIMESTAMP\(6\) NOT NULL,'
-    line: "  `last_activity` TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),"
-    state: present
-
-      # - name: adjust sql_mode for simview
-      #   ansible.builtin.lineinfile:
-      #     path: /etc/my.cnf.d/mariadb-server.cnf
-      #     regexp: '^\[mariadb\]\n'
-      #     line: "[mariadb]\nsql_mode = 'STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION,ALLOW_INVALID_DATES'\n\n"
-      #     state: present
-      #   register: my_cnf_state
-      # 
-      # - name: reload mariadb if my.cnf state changed
-      #   ansible.builtin.systemd:
-      #     name: mariadb
-      #     state: restarted
-      #   when: my_cnf_state.changed
-
-- name: add simview table
-  community.mysql.mysql_db:
-    name: simview
-    encoding: utf8
-    state: present
-
-- name: add simview user
-  community.mysql.mysql_user:
-    name: simview
-    password: "{{ simviewdb_pass }}"
-    priv: 'SIMVIEW.*:ALL'
-    host: localhost
-    state: present
-
-- name: import simview schema
-  community.mysql.mysql_db:
-    state: import
-    name: simview
-    encoding: utf8
-    target: /usr/local/sbin/simview/data/simview-1.2.sql
-
-- name: copy config template
+- name: insert config.toml for multi servers
   ansible.builtin.template:
     src: config.toml.j2
-    dest: "{{ app_path }}/config/config.toml"
-    owner: "{{ app_user }}"
-    group: "{{ app_group }}"
-    mode: '0640'
-
-- name: insert config for multi servers
-  ansible.builtin.template:
-    src: config.toml.j2
-    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/simview.toml"
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/assetto/simview/config.toml"
     owner: "{{ assetto_user }}"
     group: "{{ assetto_group }}"
     mode: '0644'
   with_sequence: start=0 end={{ server_count -1 }} format=%02x
 
-- name: link simview_writer to game lobbies
+- name: simlink SimViewWriter app to game lobbies
   ansible.builtin.file:
-    src: "{{ app_path }}/simview_writer"
-    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/simview_writer"
+    src: "{{ app_path }}/bin/SimViewWriter"
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/assetto/simview/SimViewWriter"
     state: link
   with_sequence: start=0 end={{ server_count -1 }} format=%02x
 
-- name: enable simview plugin to acsm config
-  ansible.builtin.replace:
-    path: "{{ acmanager_path }}/config.yml"
-    regexp: '(^  plugins:\n    #)'
-    replace: '  plugins:\n      - executable: simview_writer\n        arguments: ["simview.toml"]\n    #'
+    # - name: add simview plugin to acsm config.yml
+    #   ansible.builtin.replace:
+    #     path: "{{ acmanager_path }}/config.yml"
+    #     regexp: '(^  plugins:\n    #)'
+    #     replace: '  plugins:\n      - executable: assetto/simview/SimViewWriter\n        arguments: ["config.toml"]\n    #'
+
+- name: open ports for websocket connection
+  ansible.builtin.firewalld:
+    port: "{{ simview_websocket_port_prefix}}{{ item }}/tcp"
+    state: enabled
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
+- name: setup https reverse proxy
+  ansible.builtin.include_role:
+    name: base-nginx
+    tasks_from: app_proxy.yml
+
+- name: start "{{ systemd_multi }}"
+  ansible.builtin.systemd:
+    name: "{{ systemd_multi }}"
+    daemon_reload: true
+    state: restarted

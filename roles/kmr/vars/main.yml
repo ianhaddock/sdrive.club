@@ -14,6 +14,6 @@ cut_lines_enabled: 0
 
 kmr_plugin_port_prefix: 11
 kmr_db_group_port: 8701
-
+kmr_web_auth_server_port_prefix: 14
 kmr_web_stats_port_prefix: 85
 kmr_ac_app_link_prefix: 86

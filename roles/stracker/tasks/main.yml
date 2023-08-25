@@ -16,7 +16,7 @@
   with_items:
     - "{{ acserver_path }}/stracker"
 
-- name: install stracker plugin
+- name: install stracker
   ansible.builtin.unarchive:
     src: "{{ files_server }}/stracker-V3.5.1.zip"
     dest: "{{ acserver_path }}/stracker"
@@ -24,16 +24,101 @@
     group: "{{ assetto_group }}"
     remote_src: true
 
-- name: install stracker plugin
+- name: install stracker linux plugin
   ansible.builtin.unarchive:
     src: "{{ acserver_path }}/stracker/stracker_linux_x86.tgz"
-    dest: "{{ acserver_path }}/stracker/"
+    dest: "{{ acserver_path }}/stracker"
     owner: "{{ assetto_user }}"
     group: "{{ assetto_group }}"
     remote_src: true
 
+      # - name: update stracker file permissions
+      #   ansible.builtin.file:
+      #     dest: "{{ acserver_path }}/stracker/stracker_linux_x86"
+      #     mode: '0655'
+
+- name: start "{{ systemd_multi }}"
+  ansible.builtin.systemd:
+    name: "{{ systemd_multi }}"
+    daemon_reload: true
+    state: restarted
+
+- name: wait for multi-server-manager to settle
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:8772/login"
+    status_code: 200
+  register: result
+  until: result.status == 200
+  retries: 720 # 720 * 5 = 1 hour
+  delay: 20
+
+- name: stop "{{ systemd_multi }}"
+  ansible.builtin.systemd:
+    name: "{{ systemd_multi }}"
+    daemon_reload: true
+    state: stopped
+
+- name: enable sTracker
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/stracker_options.json"
+    regexp: '^  "EnableStracker": '
+    line: '  "EnableStracker": {{ stracker_enable }},'
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
+- name: set listening port
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/stracker_options.json"
+    regexp: '^    "ListeningPort": '
+    line: '    "ListeningPort": {{ udp_port_prefix }}{{ intvalue | string }},'
+  vars:
+    intvalue: "{{ 42 + item | int }}"
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
+- name: set server names
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/stracker_options.json"
+    regexp: '^    "ServerName": '
+    line: '    "ServerName": "{{ game_server_short_name }}{{ item }}",'
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
+- name: add bad_words.txt
+  ansible.builtin.unarchive:
+    src: bad_words.zip
+    dest: "{{ acserver_path }}/"
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
+    mode: '0640'
+
+- name: set bad words
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/stracker_options.json"
+    regexp: '^    "SwearFile": '
+    line: '    "SwearFile": "{{ acserver_path }}/bad_words.txt",'
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
+- name: set bad words action
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/stracker_options.json"
+    regexp: '^     "Action": '
+    line: '     "Action": "kick",'
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
+- name: set proxy plugin local port
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/stracker_options.json"
+    regexp: '^    "ProxyPluginLocalPort": '
+    line: '    "ProxyPluginLocalPort": {{ stracker_proxy_plugin_local_port }}{{ item }},'
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
+- name: set proxy plugin port
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/stracker_options.json"
+    regexp: '^    "ProxyPluginPort": '
+    line: '    "ProxyPluginPort": {{ stracker_proxy_plugin_port }}{{ item }}'
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
 - name: flush handlers
   ansible.builtin.meta: flush_handlers
 
-    #- name: setup firewall for stracker
-    #  ansible.builtin.import_tasks: firewalld.yml
+- name: setup firewall for stracker
+  ansible.builtin.import_tasks: firewalld.yml

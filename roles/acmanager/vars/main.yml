@@ -1,0 +1,4 @@
+# acmanager vars
+---
+app_name: acsm
+app_port: 8772

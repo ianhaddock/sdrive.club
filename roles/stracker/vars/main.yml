@@ -1,5 +1,6 @@
 # stracker vars
 ---
+stracker_enable: 'true'
 
 strConfig: stracker_options.json
 install_stracker: false

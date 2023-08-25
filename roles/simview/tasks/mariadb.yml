@@ -1,0 +1,78 @@
+# simview mariadb.yml
+---
+- name: start mariadb
+  ansible.builtin.systemd:
+    name: mariadb
+    enabled: true
+    state: started
+
+- name: set root user for mariadb
+  community.mysql.mysql_user:
+    name: root
+    password: "{{ root_mysql_pw }}"
+    priv: '*.*:ALL,GRANT'
+    host: 'localhost'
+    login_unix_socket: /var/lib/mysql/mysql.sock
+    state: present
+
+- name: add my.cnf file for root
+  ansible.builtin.template:
+    src: root.my.cnf.j2
+    dest: /root/.my.cnf
+    owner: root
+    group: root
+    mode: '0600'
+
+- name: remove anonymous users from mariadb
+  community.mysql.mysql_user:
+    check_implicit_admin: true
+    name: ''
+    host_all: true
+    state: absent
+
+- name: drop test table
+  community.mysql.mysql_db:
+    name: test
+    state: absent
+
+- name: adjust last activity datestamps for mariadb
+  ansible.builtin.lineinfile:
+    path: /usr/local/sbin/simview/data/simview-1.2.sql
+    regexp: '^  `last_activity` TIMESTAMP\(6\) NOT NULL,'
+    line: "  `last_activity` TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,"
+    state: present
+
+      # - name: adjust sql_mode for simview
+      #   ansible.builtin.lineinfile:
+      #     path: /etc/my.cnf.d/mariadb-server.cnf
+      #     regexp: '^\[mariadb\]\n'
+      #     line: "[mariadb]\nsql_mode = 'STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION,ALLOW_INVALID_DATES'\n\n"
+      #     state: present
+      #   register: my_cnf_state
+
+      # - name: reload mariadb if my.cnf state changed
+      #   ansible.builtin.systemd:
+      #     name: mariadb
+      #     state: restarted
+      #   when: my_cnf_state.changed
+
+- name: add simview database
+  community.mysql.mysql_db:
+    name: simview
+    encoding: utf8
+    state: present
+
+- name: add simview user
+  community.mysql.mysql_user:
+    name: simview
+    password: "{{ simviewdb_pass }}"
+    priv: '*.*:ALL'
+    host: localhost
+    state: present
+
+- name: import simview schema
+  community.mysql.mysql_db:
+    state: import
+    name: simview
+    encoding: utf8
+    target: /usr/local/sbin/simview/data/simview-1.2.sql

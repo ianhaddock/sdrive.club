@@ -9,6 +9,20 @@ assetto_gid: 1210
 app_name: ac
 app_port: 8772
 
+simview_receive_port: 131
+stracker_proxy_plugin_local_port: 142
+stracker_proxy_plugin_port: 141
+
+# from acmanager defaults
+upnp_enabled: 'false'
+cmwelcome_enable: 1
+lobby_port_prefix: 95
+udp_port_prefix: 96
+tcp_port_prefix: 96  # 97
+plugin_udp_address: '127.0.0.1'
+plugin_udp_local_port_prefix: 12
+plugin_udp_port_prefix: 11
+
 acmanager_path: '/usr/local/sbin/acmanager'
 acserver_path: '/usr/local/sbin/acserver'
 steamcmd_path: '/usr/local/sbin/steamcmd'

@@ -30,7 +30,7 @@
 server {
   listen 80;
   listen [::]:80;
-  server_name "" www.{{ site_fqdn }};
+  server_name www.{{ site_fqdn }};
   client_max_body_size 256m;
 
   root {{ nginx_path }}/{{ site_fqdn }}/html;

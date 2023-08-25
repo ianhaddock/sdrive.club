@@ -8,6 +8,7 @@ app_gid: 1212
 
 app_name: simview
 app_port: 9898
+simview_websocket_port_prefix: 122
 
 app_path: '/usr/local/sbin/{{ app_name }}'
 

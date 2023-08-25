@@ -26,18 +26,18 @@
   become: true
 
   roles:
-    #    - outbound_ip
-    #    - base-nginx
-    #    - sysctl
-    #    - systemd
-    #    - steamcmd
-    #    - acserver
-    #    - certbot
-    #    - nginx
-    #    - acmanager
-    #    - daily_backup
-    #    - kmr
-    #    - stracker
+    - outbound_ip
+    - base-nginx
+    - sysctl
+    - systemd
+    - steamcmd
+    - acserver
+    - certbot
+    - nginx
+    - acmanager
+    - daily_backup
+    - kmr
+    - stracker
     - simview
 
   handlers:

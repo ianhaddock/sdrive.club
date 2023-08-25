@@ -25,7 +25,7 @@
 # Ex: 'C:/Steam/steamapps/common/assettocorsa/server' or
 # Ex: 'C:\Steam\steamapps\common\assettocorsa\server' on Windows (Both forward and backward slash will work on Windows)
 # Ex: '/home/ubuntu/server' on Linux (Use forward slash for Linux)
-path = {{ acserver_path }}
+path = '/usr/local/sbin/acmanager/servers/SERVER_{{ item }}/assetto' 
 
 
 ######################################################
@@ -40,7 +40,7 @@ path = {{ acserver_path }}
 
     # Port of HTTP server
     # Default: 10100
-    port = 10100
+    port = {{ app_port }}
 
     # IP address or hostname or domain name where the HTTP server is running
     # This will be used to show live event link in Welcome message in AC chat
@@ -55,14 +55,14 @@ path = {{ acserver_path }}
     # Absolute path to folder where to cache AC specific assets files ex. track preview and car badge.
     # This is required as once you remove/change content of AC server the cached files will be used when viewing old event pages
     # It is recommended to have this directory outside simview folder so you can update simview without overwriting it.
-    cache.path = <string>
+    cache.path = '{{ app_path }}/simview_cache'
 
     # Number of thread to process HTTP requests
     # 0 indicates that number of threads will be automatically set by HTTP process based on available CPUs
     # Any non-zero value will set threads to that specific value
     # Default: 0
-    threads = 0
-
+    threads = 2
+         # # # threads must be greater than 1 or segfault
     [app.live]
     # When enabled user chat will be saved in DB and shown in Session Feed
     # When disabled chats are not stored in DB.
@@ -98,7 +98,7 @@ path = {{ acserver_path }}
     # can connect to leaderboard
     # Default: 0, when it is 0 the local port of Writer process (ac.server.udp.local.port)
     # will be used for leaderboard HTTP server as well
-    port = 0
+    port = {{ simview_websocket_port_prefix }}{{ item }}
 
     # Periodic broadcast interval for Live Leaderboard API in milliseconds
     # This is the interval in which viewer will receive update to live leaderboard
@@ -118,7 +118,7 @@ target = 'file'
 
 # Level 'trace', 'debug', 'info', 'warning', 'error', 'critical', 'off'
 # Default: 'info'
-level = 'info'
+level = 'debug'
 
 
 ######################################################
@@ -142,7 +142,7 @@ update.driver.name = false
     # proxy app (like sTracker or ACRelay) else you can leave it to default (0) so that it
     # will automatically get picked from the server_cfg.ini file
     # Default: 0 (port will be picked from AC server config file)
-    port = 0
+    port = {{ stracker_proxy_plugin_port }}{{ item }}
 
     # Port used by SimView to received packets from AC server
     # In AC server's server_cfg.ini file, the port set in UDP_PLUGIN_ADDRESS.
@@ -150,7 +150,7 @@ update.driver.name = false
     # You only need to set it when you are using some
     # proxy app (like sTracker or ACRelay) else you can leave it to default (0) so that it
     # will automatically get picked from the server_cfg.ini file
-    local.port = 0
+    local.port = {{ simview_receive_port }}{{ item }}
 
     # With Assetto Corsa Server Manager (ACSM) v2+, the AC server log format has been changed.
     # To get correct leaderboard with Sector times and Tyre info make this config true when using AC servers
@@ -168,14 +168,15 @@ update.driver.name = false
     [ac.server.event]
     # Event name, all sessions with this name will be grouped together
     # Default: Use the server name as event name, those will also be grouped
-    name = ''
+    name = '{{ game_server_short_name }}{{ item }}'
 
     # When enabled SimView will store telemetry in DB for each eligible lap done on the server.
     # ac.server.udp.realtime.update.interval.ms directly
     # influence the accuracy of sampled telemetry and also the telemtry data size for a lap.
     # If disabling this feature you can also consider to increase ac.server.udp.realtime.update.interval.ms
     # Default: true
-    lap.telemetry.enable = true
+    lap.telemetry.enable = false
+          # # # This causes seg fault when turned on 
 
         [ac.server.event.team]
         # If this event is team based event modify this to true. When teams is enable it will parse and
@@ -215,14 +216,14 @@ port = 0
 
 # MySQL user name to connect to database
 # Default: 'simview'
-user = 'simview'
+user = '{{ app_user }}'
 
 # MySQL database name which will be used by SimView
 # Default: 'simview'
 schema = 'simview'
 
 # Password to access MySQL Database
-password = 'simview'
+password = '{{ simviewdb_pass }}'
 
 
 ######################################################
