@@ -9,7 +9,7 @@ assetto_gid: 1210
 app_name: ac
 app_port: 8772
 
-simview_receive_port: 131
+simview_receive_port: 130
 stracker_proxy_plugin_local_port: 142
 stracker_proxy_plugin_port: 141
 

@@ -7,6 +7,9 @@
     name: zlib.i686
     state: latest
 
+- name: install postgresql db
+  ansible.builtin.import_tasks: postgres.yml
+
 - name: create paths
   ansible.builtin.file:
     dest: "{{ item }}"
@@ -65,7 +68,7 @@
     line: '  "EnableStracker": {{ stracker_enable }},'
   with_sequence: start=0 end={{ server_count -1 }} format=%02x
 
-- name: set listening port
+- name: set Instance Configuration Listening port
   ansible.builtin.lineinfile:
     dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/stracker_options.json"
     regexp: '^    "ListeningPort": '
@@ -81,7 +84,7 @@
     line: '    "ServerName": "{{ game_server_short_name }}{{ item }}",'
   with_sequence: start=0 end={{ server_count -1 }} format=%02x
 
-- name: add bad_words.txt
+- name: add bad_words.txt file
   ansible.builtin.unarchive:
     src: bad_words.zip
     dest: "{{ acserver_path }}/"
@@ -99,9 +102,96 @@
 - name: set bad words action
   ansible.builtin.lineinfile:
     dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/stracker_options.json"
-    regexp: '^     "Action": '
-    line: '     "Action": "kick",'
+    regexp: '^    "Action": '
+    line: '    "Action": "kick",'
   with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
+- name: set bad word warning
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/stracker_options.json"
+    regexp: '^    "Warning": '
+    line: '    "Warning": "{{ bad_word_warning }}"'
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
+- name: set admin username
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/stracker_options.json"
+    regexp: '^    "AdminUsername": '
+    line: '    "AdminUsername": "{{ stracker_username }}",'
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
+- name: set admin password
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/stracker_options.json"
+    regexp: '^    "AdminPassword": '
+    line: '    "AdminPassword": "{{ stracker_password }}",'
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
+- name: ban anonymised players 
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/stracker_options.json"
+    regexp: '^    "AuthBanAnonymisedPlayers": '
+    line: '    "AuthBanAnonymisedPlayers": {{ ban_anonymised_players }},'
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
+- name: set banner image
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/stracker_options.json"
+    regexp: '^    "Banner": '
+    line: '    "Banner": "{{ banner_image }}",'
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
+- name: set http config ListenPort
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/stracker_options.json"
+    regexp: '^    "ListenPort": '
+    line: '    "ListenPort": {{ stracker_http_listen_port_prefix }}{{ intvalue }},'
+  vars:
+    intvalue: "{{ 42 + item | int }}"
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
+- name: set welcome line1
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/stracker_options.json"
+    regexp: '^    "Line1": '
+    line: '    "Line1": "This is a stracker %(version)s enabled server.",'
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
+- name: set welcome line2
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/stracker_options.json"
+    regexp: '^    "Line2": '
+    line: '    "Line2": "To remove your data use \"/st anonymize on\".",'
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
+- name: set welcome line3
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/stracker_options.json"
+    regexp: '^    "Line3": '
+    line: '    "Line3": ""'
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
+- name: set welcome line4
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/stracker_options.json"
+    regexp: '^    "Line4": '
+    line: ''
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
+- name: set welcome line5
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/stracker_options.json"
+    regexp: '^    "Line5": '
+    line: ''
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
+- name: set welcome line6
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/stracker_options.json"
+    regexp: '^    "Line6": '
+    line: ''
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
 
 - name: set proxy plugin local port
   ansible.builtin.lineinfile:

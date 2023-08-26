@@ -1,7 +1,7 @@
 # stracker vars
 ---
 stracker_enable: 'true'
-
-strConfig: stracker_options.json
-install_stracker: false
-
+ban_anonymised_players: 'true'
+banner_image: 'https://www.{{ site_fqdn }}/sdc_v4_banner_v1.png'
+stracker_http_listen_port_prefix: 500
+bad_word_warning: 'WARNING: You will be %(swear_action)s for swearing %(num_warnings_left)d more times!'

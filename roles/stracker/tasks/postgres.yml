@@ -1,0 +1,8 @@
+# stracker postgres.yml
+---
+- name: install postgres
+  ansible.builtin.package:
+    name:
+      - postgresql-server
+    state: latest
+
