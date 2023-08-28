@@ -35,3 +35,6 @@ systemd_multi: multi-server-manager.service
 # kmr
 store_path: "{{ acmanager_path }}/shared_store.json"
 kmr_web_stats_port_prefix: 85
+
+# stracker
+

@@ -69,7 +69,7 @@
 - name: setup https reverse proxy
   ansible.builtin.include_role:
     name: base-nginx
-    tasks_from: app_proxy.yml
+    tasks_from: app_proxy_https_source.yml
 
 - name: start "{{ systemd_multi }}"
   ansible.builtin.systemd:

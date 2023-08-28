@@ -46,7 +46,7 @@
 
 - name: create list of domains to request certificates for
   ansible.builtin.set_fact:
-    sub_domains: "['{{ site_fqdn }}', 'www.{{ site_fqdn }}', 'simview.{{ site_fqdn }}', '{{ app_name }}.{{ site_fqdn }}']"
+    sub_domains: "['{{ site_fqdn }}', 'www.{{ site_fqdn }}', 'stracker.{{ site_fqdn }}', 'simview.{{ site_fqdn }}', '{{ app_name }}.{{ site_fqdn }}']"
 
 - name: add kmr subdomains to domains list
   ansible.builtin.set_fact:

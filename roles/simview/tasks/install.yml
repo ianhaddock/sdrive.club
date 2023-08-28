@@ -16,13 +16,16 @@
     group: "{{ assetto_group }}"
     mode: '0755'
 
-- name: create simview_cache directory
+- name: create simview sub directories
   ansible.builtin.file:
-    path: "{{ app_path }}/simview_cache"
+    path: "{{ item }}"
     state: directory
     owner: "{{ assetto_user }}"
     group: "{{ assetto_group }}"
     mode: '0755'
+  with_items:
+    - "{{ app_path }}/simview_cache"
+    - "{{ app_path }}/certs"
 
 - name: unarchive simview
   become_user: "{{ assetto_user }}"

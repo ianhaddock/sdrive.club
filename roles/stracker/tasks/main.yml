@@ -7,8 +7,14 @@
     name: zlib.i686
     state: latest
 
+- name: check for postgresql database data path
+  ansible.builtin.stat:
+    path: '/var/lib/pgsql/'
+  register: postgresql_db_path_stat
+
 - name: install postgresql db
   ansible.builtin.import_tasks: postgres.yml
+    #  when: not (postgres_db_path_state.isdir and postgres_db_path_state is defined)
 
 - name: create paths
   ansible.builtin.file:
@@ -113,6 +119,83 @@
     line: '    "Warning": "{{ bad_word_warning }}"'
   with_sequence: start=0 end={{ server_count -1 }} format=%02x
 
+- name: set car to car collision messages
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/stracker_options.json"
+    regexp: '^    "CarToCarCollisionMessage": '
+    line: '    "CarToCarCollisionMessage": {{ stracker_car_to_car_collision_messages }},'
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
+- name: set messages to send over chat
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/stracker_options.json"
+    regexp: '^    "MessageTypesToSendOverChat": '
+    line: '    "MessageTypesToSendOverChat": "{{ stracker_messages_types_to_send }}"'
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
+- name: set database type to postgres
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/stracker_options.json"
+    regexp: '^    "DatabaseType": '
+    line: '    "DatabaseType": "{{ stracker_database_type }}",'
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
+- name: set database name
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/stracker_options.json"
+    regexp: '^    "PostgresDatabaseName": '
+    line: '    "PostgresDatabaseName": "{{ stracker_database_name }}",'
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
+- name: set database hostname
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/stracker_options.json"
+    regexp: '^    "PostgresHostname": '
+    line: '    "PostgresHostname": "{{ stracker_postgres_host }}",'
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
+- name: set database username
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/stracker_options.json"
+    regexp: '^    "PostgresUsername": '
+    line: '    "PostgresUsername": "{{ stracker_postgres_username }}",'
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
+- name: set database password
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/stracker_options.json"
+    regexp: '^    "PostgresPassword": '
+    line: '    "PostgresPassword": "{{ stracker_postgres_password }}"'
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
+- name: set database compression 
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/stracker_options.json"
+    regexp: '^    "Mode": '
+    line: '    "Mode": "{{ stracker_database_compression }}",'
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
+- name: enable http on SERVER00
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanager_path }}/servers/SERVER_00/store.json/stracker_options.json"
+    regexp: '^    "Enabled": '
+    line: '    "Enabled": true,'
+      #  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
+- name: disable http on other servers
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/stracker_options.json"
+    regexp: '^    "Enabled": '
+    line: '    "Enabled": false,'
+  with_sequence: start=1 end={{ server_count -1 }} format=%02x
+
+- name: set public url
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/stracker_options.json"
+    regexp: '^    "PublicURL": '
+    line: '    "PublicURL": "https://{{ app_name }}.{{ site_fqdn }}",'
+  with_sequence: start=1 end={{ server_count -1 }} format=%02x
+
 - name: set admin username
   ansible.builtin.lineinfile:
     dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/stracker_options.json"
@@ -127,18 +210,25 @@
     line: '    "AdminPassword": "{{ stracker_password }}",'
   with_sequence: start=0 end={{ server_count -1 }} format=%02x
 
-- name: ban anonymised players 
+- name: ban anonymised players
   ansible.builtin.lineinfile:
     dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/stracker_options.json"
     regexp: '^    "AuthBanAnonymisedPlayers": '
     line: '    "AuthBanAnonymisedPlayers": {{ ban_anonymised_players }},'
   with_sequence: start=0 end={{ server_count -1 }} format=%02x
 
+- name: log login attempts
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/stracker_options.json"
+    regexp: '^    "AuthLogFile": '
+    line: '    "AuthLogFile": "{{ stracker_auth_log }}",'
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
 - name: set banner image
   ansible.builtin.lineinfile:
     dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/stracker_options.json"
     regexp: '^    "Banner": '
-    line: '    "Banner": "{{ banner_image }}",'
+    line: '    "Banner": "{{ server_icon }}",'
   with_sequence: start=0 end={{ server_count -1 }} format=%02x
 
 - name: set http config ListenPort
@@ -206,6 +296,11 @@
     regexp: '^    "ProxyPluginPort": '
     line: '    "ProxyPluginPort": {{ stracker_proxy_plugin_port }}{{ item }}'
   with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
+- name: setup https reverse proxy
+  ansible.builtin.include_role:
+    name: base-nginx
+    tasks_from: app_proxy.yml
 
 - name: flush handlers
   ansible.builtin.meta: flush_handlers
