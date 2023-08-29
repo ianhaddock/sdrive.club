@@ -129,6 +129,20 @@
     line: '  "database_sharing_local_group_port": {{ kmr_db_group_port }},'
   with_sequence: start=0 end={{ server_count -1 }} format=%02x
 
+- name: set session history length
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/kissmyrank_options.json"
+    regexp: '^  "session_history_length": '
+    line: '  "session_history_length": {{ kmr_session_history_length }},'
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
+- name: set memory monitor
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/kissmyrank_options.json"
+    regexp: '^  "memory_monitor_enabled": '
+    line: '  "memory_monitor_enabled": {{ kmr_memory_monitor }},'
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
 - name: Set ac_app_link_udp_port
   ansible.builtin.lineinfile:
     dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/kissmyrank_options.json"
