@@ -50,8 +50,8 @@
 
 - name: add http site in sites-available
   ansible.builtin.template:
-    src: domain_http.conf.j2
-    dest: /etc/nginx/sites-available/www.{{ site_fqdn }}.conf
+    src: www_domain_http.conf.j2
+    dest: /etc/nginx/conf.d/www.{{ site_fqdn }}.conf
     owner: nginx
     group: nginx
     mode: '0644'
@@ -60,13 +60,35 @@
 
 - name: add https site in sites-available
   ansible.builtin.template:
-    src: domain_https.conf.j2
-    dest: /etc/nginx/sites-available/www.{{ site_fqdn }}.conf
+    src: www_domain_https.conf.j2
+    dest: /etc/nginx/conf.d/www.{{ site_fqdn }}.conf
     owner: nginx
     group: nginx
     mode: '0644'
   when: cert_enabled
   register: https_site
+
+- name: setup https reverse proxy for server-manager
+  ansible.builtin.template:
+    src: nginx-proxy-domain-https.conf.j2
+    dest: /etc/nginx/conf.d/{{ site_fqdn }}.conf
+    owner: nginx
+    group: nginx
+    mode: '0644'
+    force: true
+  when: cert_enabled
+  register: redirect
+
+- name: setup http reverse proxy for server-manager
+  ansible.builtin.template:
+    src: nginx-proxy-domain-http.conf.j2
+    dest: /etc/nginx/conf.d/{{ site_fqdn }}.conf
+    owner: nginx
+    group: nginx
+    mode: '0644'
+    force: true
+  when: not cert_enabled
+  register: redirect
 
 - name: setup https reverse proxy for server-manager
   ansible.builtin.template:
@@ -148,14 +170,14 @@
   when: cert_enabled
   register: kmr_https_nginx
 
-- name: link site to conf.d
-  ansible.builtin.file:
-    src: /etc/nginx/sites-available/www.{{ site_fqdn }}.conf
-    dest: /etc/nginx/conf.d/www.{{ site_fqdn }}.conf
-    state: link
-    owner: nginx
-    group: nginx
-    mode: '0644'
+    # - name: link site to conf.d
+    #   ansible.builtin.file:
+    #     src: /etc/nginx/sites-available/www.{{ site_fqdn }}.conf
+    #     dest: /etc/nginx/conf.d/www.{{ site_fqdn }}.conf
+    #     state: link
+    #     owner: nginx
+    #     group: nginx
+    #     mode: '0644'
 
 - name: reload nginx
   ansible.builtin.service:

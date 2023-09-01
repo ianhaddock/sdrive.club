@@ -1,0 +1,19 @@
+# simview app must start before ac server starts
+# installed on {{ ansible_date_time.date }}
+
+[Unit]
+Description=Simview http Server service
+After=network.target
+
+[Service]
+Type=simple
+Nice=-10
+Restart=always
+RestartSec=1
+StartLimitInterval=1
+User=assetto
+WorkingDirectory=/usr/local/sbin/simview
+ExecStart=/usr/local/sbin/simview/SimViewHttp /usr/local/sbin/acmanager/servers/SERVER_00/assetto/simview/config.toml
+
+[Install]
+WantedBy=multi-user.target

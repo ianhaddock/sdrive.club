@@ -1,0 +1,61 @@
+# server {
+#   listen 443 ssl;
+#   listen [::]:443 ssl;
+#   server_name www.{{ site_fqdn }};
+#   client_max_body_size 256m;
+#
+#   root {{ nginx_path }}/{{ site_fqdn }}/html;
+#
+#   index index.html;
+#
+#   ssl_certificate /etc/letsencrypt/live/{{ site_fqdn }}/fullchain.pem;
+#   ssl_certificate_key /etc/letsencrypt/live/{{ site_fqdn }}/privkey.pem;
+#   include /etc/letsencrypt/options-ssl-nginx.conf;
+#   ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+#
+#   # only allow static file serving
+#   location ~* \.(jpg|jpeg|gif|png|bmp|ico|pdf|flv|swf|exe|html|htm|txt|css|js) {
+#      add_header        Cache-Control public;
+#      add_header        Cache-Control must-revalidate;
+#      expires           7d;
+#   }
+#
+#   # otherwise 301 redirect to the game server
+#   location  / {
+#      deny all;
+#      return 301 https://{{ site_fqdn }}$request_uri;
+#   }
+# }
+
+server {
+  listen 80;
+  listen [::]:80;
+  server_name www.{{ site_fqdn }};
+  client_max_body_size 256m;
+
+  root {{ nginx_path }}/{{ site_fqdn }}/html;
+
+  error_page 404 /404/404-error.html;
+  location /404 {
+        root {{ nginx_path }}/error_pages;
+  }
+
+  error_page 500 502 503 504 /50x/50x-error.html;
+  location /50x {
+        root {{ nginx_path }}/error_pages;
+  }
+
+  index index.html;
+
+  # allow discord redirect
+  location /discord {
+    index discord.html;
+  }
+
+  #only allow static file serving
+#  location ~* \.(jpg|jpeg|gif|png|bmp|ico|pdf|flv|swf|exe|html|htm|txt|css|js) {
+#     add_header        Cache-Control public;
+#     add_header        Cache-Control must-revalidate;
+#     expires           7d;
+#  }
+}

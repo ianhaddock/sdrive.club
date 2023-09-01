@@ -61,8 +61,8 @@ path = '/usr/local/sbin/acmanager/servers/SERVER_{{ item }}/assetto'
     # 0 indicates that number of threads will be automatically set by HTTP process based on available CPUs
     # Any non-zero value will set threads to that specific value
     # Default: 0
-    threads = 2
-         # # # threads must be greater than 1 or segfault
+    threads = 0
+
     [app.live]
     # When enabled user chat will be saved in DB and shown in Session Feed
     # When disabled chats are not stored in DB.
@@ -74,11 +74,11 @@ path = '/usr/local/sbin/acmanager/servers/SERVER_{{ item }}/assetto'
     # use SSL / TLS connection to SimView
     # When this is set the private key file path should also be set
     # Default: ''
-    cert.file = ''
+    cert.file = '{{ simview_cert_path }}/cert.pem'
 
     # The absolute path private key file
     # Default: ''
-    private.key.file = ''
+    private.key.file = '{{ simview_cert_path }}/privkey.pem'
 
     # The passphrase to read private key file. Leave it empty if no passphrase set.
     # Default: ''
@@ -114,11 +114,11 @@ path = '/usr/local/sbin/acmanager/servers/SERVER_{{ item }}/assetto'
 [log]
 # Target 'console' or 'file'
 # Default: 'file'
-target = 'file'
+target = 'console'
 
 # Level 'trace', 'debug', 'info', 'warning', 'error', 'critical', 'off'
 # Default: 'info'
-level = 'debug'
+level = 'info'
 
 
 ######################################################
@@ -175,7 +175,7 @@ update.driver.name = false
     # influence the accuracy of sampled telemetry and also the telemtry data size for a lap.
     # If disabling this feature you can also consider to increase ac.server.udp.realtime.update.interval.ms
     # Default: true
-    lap.telemetry.enable = false
+    lap.telemetry.enable = true 
           # # # This causes seg fault when turned on 
 
         [ac.server.event.team]

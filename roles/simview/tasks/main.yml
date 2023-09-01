@@ -20,6 +20,32 @@
     mode: '0755'
   register: simview_path_state
 
+- name: create cert path
+  ansible.builtin.file:
+    path: "{{ simview_cert_path }}"
+    state: directory
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
+    mode: '0755'
+
+- name: copy cert.pem
+  ansible.builtin.copy:
+    src: "/etc/letsencrypt/live/{{ site_fqdn }}/cert.pem"
+    dest: "{{ simview_cert_path }}/cert.pem"
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
+    mode: '0600'
+    remote_src: true
+
+- name: copy privkey.pem
+  ansible.builtin.copy:
+    src: "/etc/letsencrypt/live/{{ site_fqdn }}/privkey.pem"
+    dest: "{{ simview_cert_path }}/privkey.pem"
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
+    mode: '0600'
+    remote_src: true
+
 - name: install simview
   ansible.builtin.import_tasks: install.yml
   when: simview_path_state.changed
@@ -54,11 +80,55 @@
     state: link
   with_sequence: start=0 end={{ server_count -1 }} format=%02x
 
+- name: simlink SimViewHttp app to simview folder
+  ansible.builtin.file:
+    src: "{{ app_path }}/bin/SimViewHttp"
+    dest: "{{ app_path }}/SimViewHttp"
+    state: link
+
+    ### This seems to load simview_writer after starting ac server - which causes simview to segfault
     # - name: add simview plugin to acsm config.yml
     #   ansible.builtin.replace:
     #     path: "{{ acmanager_path }}/config.yml"
     #     regexp: '(^  plugins:\n    #)'
     #     replace: '  plugins:\n      - executable: assetto/simview/SimViewWriter\n        arguments: ["config.toml"]\n    #'
+
+- name: install simview_http.service systemd file
+  ansible.builtin.template:
+    src: "simview_http.service.j2"
+    dest: "/usr/lib/systemd/system/simview_http.service"
+    owner: root
+    group: root
+    mode: '0644'
+  register: simview_httpd_systemd
+
+- name: install simview_writer_NN.service systemd file
+  ansible.builtin.template:
+    src: "simview_writer.service.j2"
+    dest: "/usr/lib/systemd/system/simview_writer_{{ item }}.service"
+    owner: root
+    group: root
+    mode: '0644'
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+  register: simview_writer_systemd
+
+- name: reload systemd daemon
+  ansible.builtin.systemd:
+    daemon_reload: true
+  when: simview_httpd_systemd.changed or simview_writer_systemd.changed
+
+- name: enable simview_http
+  ansible.builtin.systemd:
+    name: "simview_http.service"
+    enabled: true
+    state: started
+
+- name: enable simview_writers
+  ansible.builtin.systemd:
+    name: "simview_writer_{{ item }}.service"
+    enabled: true
+    state: started
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
 
 - name: open ports for websocket connection
   ansible.builtin.firewalld:

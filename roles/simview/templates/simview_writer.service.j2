@@ -1,0 +1,19 @@
+# simview writer must be running before ac server is started
+# installed on {{ ansible_date_time.date }}
+
+[Unit]
+Description=Simview Writer Server{{ item }} service
+After=network.target
+
+[Service]
+Type=simple
+Nice=-10
+Restart=always
+RestartSec=1
+StartLimitInterval=1
+User=assetto
+WorkingDirectory=/usr/local/sbin/acmanager/servers/SERVER_{{ item }}/assetto/simview
+ExecStart=/usr/local/sbin/acmanager/servers/SERVER_{{ item }}/assetto/simview/SimViewWriter
+
+[Install]
+WantedBy=multi-user.target

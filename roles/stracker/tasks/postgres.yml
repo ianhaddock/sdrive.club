@@ -67,6 +67,23 @@
   become_user: postgres
   community.postgresql.postgresql_privs:
     database: "{{ stracker_database_name }}"
-    privs: ALL 
+    privs: ALL
     type: database
     role: "{{ stracker_postgres_username }}"
+
+      # - name: create daily backup postgres user
+      #   become_user: postgres
+      #   community.postgresql.postgresql_user:
+      #     name: "{{ assetto_user }}"
+      #     password: "{{ stracker_backup_user_password }}"
+      #     login_db: "{{ stracker_database_name }}"
+      #     comment: daily backup user
+
+      # - name: grant daily backup user access
+      #   become_user: postgres
+      #   community.postgresql.postgresql_privs:
+      #     database: "{{ stracker_database_name }}"
+      #     privs: ALL
+      #     type: database
+      #     role: "{{ assetto_user }}"
+

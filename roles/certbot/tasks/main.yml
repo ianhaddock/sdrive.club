@@ -1,4 +1,4 @@
-# configure certbot and setup web certs
+# configure certbot and setup certs
 
 ---
 - name: install nginx
@@ -27,41 +27,56 @@
     path: '/etc/letsencrypt/live/{{ site_fqdn }}'
   register: certbot_dir
 
-- name: check if kmr subdomains match lobby count
+- name: get current subdomain count
   ansible.builtin.find:
     path: '/etc/nginx/conf.d/'
-    patterns: "kmr*.conf"
-  register: kmr_subdomain_count
+    patterns: "*.conf"
+  register: nginx_subdomain_count
 
-- name: debug kmr subdomains
+- name: set existing sub_domain count
+  ansible.builtin.set_fact:
+    nginx_domain_count: "{{ nginx_subdomain_count.matched | int }}"
+
+- name: debug nginx subdomain count
   ansible.builtin.debug:
-    msg: "kmr subdomains {{ kmr_subdomain_count.matched }}"
+    msg: "current nginx conf file count {{ nginx_subdomain_count.matched }}"
   when: verbose
 
-- name: debug kmr subdomains
+- name: debug nginx subdomain count
   ansible.builtin.debug:
-    msg: "kmr subdomains {{ item.path }}"
-  with_items: "{{ kmr_subdomain_count.files }}"
-  when: (kmr_subdomain_count.matched < server_count) and verbose
+    msg: "{{ item.path }}"
+  with_items: "{{ nginx_subdomain_count.files }}"
+  when: verbose
 
-- name: create list of domains to request certificates for
+- name: create updated subdomain list
   ansible.builtin.set_fact:
-    sub_domains: "['{{ site_fqdn }}', 'www.{{ site_fqdn }}', 'stracker.{{ site_fqdn }}', 'simview.{{ site_fqdn }}', '{{ app_name }}.{{ site_fqdn }}']"
+    sub_domains: "['{{ site_fqdn }}']"
 
-- name: add kmr subdomains to domains list
+- name: add subdomains var list to list
+  ansible.builtin.set_fact:
+    sub_domains: "{{ sub_domains|default([]) }} + ['{{ item }}.{{ site_fqdn }}']"
+  with_items: "{{ certbot_subdomain_prefixes }}"
+
+- name: add kmr subdomains to list
   ansible.builtin.set_fact:
     sub_domains: "{{ sub_domains|default([]) }} + ['kmr{{ item }}.{{ site_fqdn }}']"
   with_sequence: start=0 end={{ server_count -1 }} format=%02x
 
-- name: cat list to a string for certbot
+- name: cat list to string for certbot
   ansible.builtin.set_fact:
     sub_domain_str: "{{ sub_domains | join(', ') }}"
+
+- name: get new sub_domain_count
+  ansible.builtin.set_fact:
+    sub_domain_count: "{{ sub_domains | length }}"
 
 - name: debug list of subdomains
   ansible.builtin.debug:
     msg: [
-      'subdomains {{ sub_domains }}',
-      'as string {{ sub_domain_str }}'
+      'current nginx_subdomain_count: {{ nginx_domain_count }}',
+      'new subdomain_count: {{ sub_domain_count }}',
+      'new subdomains list: {{ sub_domains }}',
+      'certbot subdomain string: {{ sub_domain_str }}'
     ]
   when: verbose
 
@@ -70,11 +85,11 @@
     name: nginx
     state: stopped
 
-- name: request letsencrypt certificates when they do not exist
+- name: request new or update certificates if count does not match
   ansible.builtin.command:
     cmd: 'certbot certonly --standalone --non-interactive --expand --agree-tos -m "{{ certbot_email }}" -d "{{ sub_domain_str }}"'
-  when: (cert_enabled and (kmr_subdomain_count.matched < server_count)) or
-        (cert_enabled and not certbot_dir.stat.exists)
+  when:
+    certbot_dir.stat.exists and nginx_domain_count < sub_domain_count
   register: certbot_certonly_output
 
 - name: output of certbot
@@ -85,7 +100,7 @@
 - name: update existing letsencrypt certificates when path exists
   ansible.builtin.command:
     cmd: 'certbot renew'
-  when: cert_enabled and certbot_dir.stat.exists
+  when: certbot_dir.stat.exists and not certbot_certonly_output.changed
   register: certbot_renew_output
 
 - name: output of certbot renew
