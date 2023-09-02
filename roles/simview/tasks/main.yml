@@ -1,11 +1,5 @@
 # install simview
 ---
-- name: install dependencies
-  ansible.builtin.package:
-    pkg:
-      - mysql-server
-    state: latest
-
 - name: create isolation user and group. Enable linger
   ansible.builtin.include_role:
     name: common
