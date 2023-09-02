@@ -11,6 +11,14 @@
     gid: "{{ app_gid }}"
     comment: "{{ app_name }} app account"
 
+- name: add my.cnf file
+  ansible.builtin.template:
+    src: simview.my.cnf.j2
+    dest: /home/{{ assetto_user }}/.my.cnf
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
+    mode: '0600'
+
 - name: create app path "{{ app_path }}"
   ansible.builtin.file:
     path: "{{ app_path }}"
@@ -19,6 +27,22 @@
     group: "{{ assetto_group }}"
     mode: '0755'
   register: simview_path_state
+
+- name: copy backup script
+  ansible.builtin.template:
+    src: "simview_backup.sh.j2"
+    dest: "{{ app_path }}/simview_backup.sh"
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
+    mode: '0700'
+
+- name: add cron job for backup script
+  become_user: "{{ assetto_user }}"
+  ansible.builtin.cron:
+    name: daily simview backup
+    minute: "10"
+    hour: "{{ backup_hours }}"
+    job: "{{ app_path }}/simview_backup.sh >> /var/log/daily_backup_acsm.log 2>&1"
 
     ### simview_writer apps do not support secure websocket wss connections yet ###
     # - name: create cert path

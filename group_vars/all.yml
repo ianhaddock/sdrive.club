@@ -32,6 +32,10 @@ nginx_path: '/usr/share/nginx/html'
 systemd_single: server-manager.service
 systemd_multi: multi-server-manager.service
 
+# daily backups
+backup_hours: '4'
+backup_path: '/home/{{ assetto_user }}/backups'
+
 # kmr
 store_path: "{{ acmanager_path }}/shared_store.json"
 kmr_web_stats_port_prefix: 85
