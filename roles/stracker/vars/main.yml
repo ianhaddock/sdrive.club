@@ -2,6 +2,7 @@
 ---
 app_name: 'stracker'
 app_port: 50042
+app_path: '/usr/local/sbin/stracker'
 
 stracker_enable: 'true'
 ban_anonymised_players: 'true'

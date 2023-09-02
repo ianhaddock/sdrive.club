@@ -24,6 +24,23 @@
     state: directory
   with_items:
     - "{{ acserver_path }}/stracker"
+    - "{{ app_path }}"
+
+- name: copy backup script
+  ansible.builtin.template:
+    src: "backup_stracker.sh.j2"
+    dest: "{{ app_path }}/stracker_backup.sh"
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
+    mode: '0700'
+
+- name: add cron job for backup script
+  become_user: "{{ assetto_user }}"
+  ansible.builtin.cron:
+    name: daily stracker backup
+    minute: "5"
+    hour: "{{ backup_hours }}"
+    job: "{{ app_path }}/stracker_backup.sh >> /var/log/daily_backup_acsm.log 2>&1"
 
 - name: install stracker
   ansible.builtin.unarchive:
