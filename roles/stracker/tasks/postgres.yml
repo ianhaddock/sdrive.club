@@ -53,7 +53,6 @@
   community.postgresql.postgresql_user:
     name: "{{ stracker_postgres_username }}"
     password: "{{ stracker_postgres_password }}"
-    login_db: "{{ stracker_database_name }}"
     comment: stracker user
 
 - name: create stracker backup postgres user
@@ -61,7 +60,6 @@
   community.postgresql.postgresql_user:
     name: "{{ assetto_user }}"
     password: "{{ stracker_postgres_password }}"
-    login_db: "{{ stracker_database_name }}"
     comment: stracker backup user
 
 - name: create stracker postgres database
