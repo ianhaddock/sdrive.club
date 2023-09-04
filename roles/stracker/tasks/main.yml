@@ -206,12 +206,11 @@
     line: '    "Enabled": false,'
   with_sequence: start=1 end={{ server_count -1 }} format=%02x
 
-- name: set public url
+- name: set public url on server 00
   ansible.builtin.lineinfile:
-    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/stracker_options.json"
+    dest: "{{ acmanager_path }}/servers/SERVER_00/store.json/stracker_options.json"
     regexp: '^    "PublicURL": '
     line: '    "PublicURL": "https://{{ app_name }}.{{ site_fqdn }}",'
-  with_sequence: start=1 end={{ server_count -1 }} format=%02x
 
 - name: set admin username
   ansible.builtin.lineinfile:
