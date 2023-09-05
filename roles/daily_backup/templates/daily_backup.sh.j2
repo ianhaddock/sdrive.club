@@ -54,7 +54,7 @@ zip -y \
   {{ backup_path }}/acsm_"$version"_"$datestamp".zip \
   "$acmanager" \
   "$acserver" \
-  -x "{{ acserver_path }}/content" \
+  -x "{{ acserver_path }}/content/" \
   -x \*.License \
   -x \*.zip \
   -li \

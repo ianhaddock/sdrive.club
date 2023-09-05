@@ -27,13 +27,14 @@
 - name: backup current AC Server Manager install
   ansible.builtin.archive:
     path:
-      - "{{ acserver_path }}/*"
-      - "{{ acmanager_path }}/*"
+      - "{{ acserver_path }}"
+      - "{{ acmanager_path }}"
     exclude_path:
       - "{{ acserver_path }}/content"
       - "{{ acmanager_path }}/*.zip"
       - "{{ acmanager_path }}/ACSM.License"
     dest: "{{ backup_path }}/acsm_{{ acsm_version.stdout }}_{{ timestamp.stdout }}.zip"
+    format: zip
     owner: "{{ assetto_user }}"
     group: "{{ assetto_group }}"
     mode: '0644'

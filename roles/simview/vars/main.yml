@@ -12,6 +12,3 @@ simview_websocket_port_prefix: 122
 
 app_path: '/usr/local/sbin/{{ app_name }}'
 simview_cert_path: '/usr/local/sbin/{{ app_name }}/certs'
-
-root_mysql_pw: 'root'
-simviewdb_pass: 'simview'

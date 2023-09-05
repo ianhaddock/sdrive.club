@@ -1,5 +1,12 @@
 # simview mariadb.yml
 ---
+- name: set access to localhost only in my.cnf file
+  ansible.builtin.lineinfile:
+    path: '/etc/my.cnf.d/mariadb-server.cnf'
+    line: 'bind-address=127.0.0.1'
+    insertafter: '\[mariadb\]'
+    state: present
+
 - name: start mariadb
   ansible.builtin.systemd:
     name: mariadb
@@ -25,9 +32,8 @@
 
 - name: remove anonymous users from mariadb
   community.mysql.mysql_user:
-    check_implicit_admin: true
     name: ''
-    host_all: true
+    host: 'localhost'
     state: absent
 
 - name: drop test table
@@ -72,6 +78,8 @@
 
 - name: import simview schema
   community.mysql.mysql_db:
+    login_user: root
+    login_password: "{{ root_mysql_pw }}"
     state: import
     name: simview
     encoding: utf8

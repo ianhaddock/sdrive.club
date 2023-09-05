@@ -89,7 +89,7 @@
   ansible.builtin.command:
     cmd: 'certbot certonly --standalone --non-interactive --expand --agree-tos -m "{{ certbot_email }}" -d "{{ sub_domain_str }}"'
   when:
-    certbot_dir.stat.exists and nginx_domain_count < sub_domain_count
+    not certbot_dir.stat.exists or nginx_domain_count < sub_domain_count
   register: certbot_certonly_output
 
 - name: output of certbot
