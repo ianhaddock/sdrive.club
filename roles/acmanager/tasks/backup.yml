@@ -30,11 +30,10 @@
       - "{{ acserver_path }}"
       - "{{ acmanager_path }}"
     exclude_path:
-      - "{{ acserver_path }}/content"
+      - "{{ acserver_path }}/content/*"
       - "{{ acmanager_path }}/*.zip"
-      - "{{ acmanager_path }}/ACSM.License"
+      - "{{ acmanager_path }}/*.License"
     dest: "{{ backup_path }}/acsm_{{ acsm_version.stdout }}_{{ timestamp.stdout }}.zip"
-    format: zip
     owner: "{{ assetto_user }}"
     group: "{{ assetto_group }}"
     mode: '0644'
