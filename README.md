@@ -1,30 +1,30 @@
 # Assetto Corsa Game Server
 Builds a single or multi-lobby Assetto Corsa game server on a DigitalOcean VPS. 
 
-As used on my server, [sdrive.club][4]. 
+As used on my server, [Spirited Drive Club][4]. Racing since 2020. 
 
-## Enabled Plugins:
+### Enabled Plugins:
 * [KissMyRank (KMR)][2] 
 * [sTracker (with pTracker support)][5]
 * [Simview][6]
 
-## Features:
-* Daily automated backups
+### Features:
+* Automated backups
 * postgresql enabled sTracker
 * mariaDB enabled Simview
 * kernel tuned for low latency
 * systemd service file app management
 
-## Uses:
+### Uses:
 * Vagrant dev environment
 * Terraform provisioning
 * Ansible installation
 * NGINX proxy
-* [Letsencrypt Cerbot][3] SSL certificates
+* [Letsencrypt][3] certificates
 * CentOS Stream 9 base OS
 * zRam memory compression
 
-## Requires:
+### Requires:
 * [Assetto Corsa Server Manager][1] with Paid license
 * DigitalOcean account with one VPS and reserved IP
 
