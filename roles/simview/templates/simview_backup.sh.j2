@@ -28,7 +28,7 @@ if [ $used_space -gt $drive_full ]; then
     echo "$(date +%Y%m%d:%H%M%S): Exiting. Not enough space available, over $used_space% full";
     exit 1;
 elif [ -f $PIDFILE ]; then
-    echo "WARNING: acsm_backup script already running. Exiting.";
+    echo "WARNING: simview backup script already running. Exiting.";
     exit 0;
 fi
 
@@ -38,6 +38,14 @@ echo $$ > $PIDFILE
 
 # start
 echo "$(date +%Y%m%d:%H%M%S): Starting backup."
+
+# archive simview_cache
+zip -y \
+  -r \
+  {{ backup_path }}/simview_cache.zip \
+  {{ app_path }}/simview_cache \
+  -li \
+  -lf {{ backup_path }}/simview_cache_"$datestamp".log
 
 echo "Running mysqldump of simview database."
 
