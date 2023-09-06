@@ -1,5 +1,125 @@
-# nginx server setting for multiple kmr instances
+# nginx setting
 ---
+# remove nginx conf file entry for fqdn if file exists
+
+- name: create http root directory
+  ansible.builtin.file:
+    dest: "{{ item }}"
+    owner: nginx
+    group: nginx
+    mode: '0750'
+    state: directory
+  with_items:
+    - "{{ nginx_path }}/{{ site_fqdn }}/html"
+    - "{{ nginx_path }}/{{ site_fqdn }}/html/tos"
+    - "{{ nginx_path }}/{{ site_fqdn }}/html/discord"
+    - "{{ nginx_path }}/{{ site_fqdn }}/html/donate"
+
+- name: add site images in html folder
+  ansible.builtin.unarchive:
+    src: "{{ files_server }}/acsm_html.zip"
+    dest: "{{ nginx_path }}/{{ site_fqdn }}/html"
+    owner: nginx
+    group: nginx
+    mode: '0750'
+    remote_src: true
+
+- name: install TOS redirect
+  ansible.builtin.template:
+    src: tos.html.j2
+    dest: "{{ nginx_path }}/{{ site_fqdn }}/html/tos/index.html"
+    owner: nginx
+    group: nginx
+    mode: '0640'
+
+- name: install discord redirect
+  ansible.builtin.template:
+    src: discord_redirect.html.j2
+    dest: "{{ nginx_path }}/{{ site_fqdn }}/html/discord/index.html"
+    owner: nginx
+    group: nginx
+    mode: '0640'
+
+- name: install donate redirect
+  ansible.builtin.template:
+    src: donate_redirect.html.j2
+    dest: "{{ nginx_path }}/{{ site_fqdn }}/html/donate/index.html"
+    owner: nginx
+    group: nginx
+    mode: '0640'
+
+- name: add http site in sites-available
+  ansible.builtin.template:
+    src: www_domain_http.conf.j2
+    dest: /etc/nginx/conf.d/www.{{ site_fqdn }}.conf
+    owner: nginx
+    group: nginx
+    mode: '0644'
+  when: not cert_enabled
+  register: http_site
+
+- name: add https site in sites-available
+  ansible.builtin.template:
+    src: www_domain_https.conf.j2
+    dest: /etc/nginx/conf.d/www.{{ site_fqdn }}.conf
+    owner: nginx
+    group: nginx
+    mode: '0644'
+  when: cert_enabled
+  register: https_site
+
+- name: setup https reverse proxy for server-manager
+  ansible.builtin.template:
+    src: nginx-proxy-domain-https.conf.j2
+    dest: /etc/nginx/conf.d/{{ site_fqdn }}.conf
+    owner: nginx
+    group: nginx
+    mode: '0644'
+    force: true
+  when: cert_enabled
+  register: redirect
+
+- name: setup http reverse proxy for server-manager
+  ansible.builtin.template:
+    src: nginx-proxy-domain-http.conf.j2
+    dest: /etc/nginx/conf.d/{{ site_fqdn }}.conf
+    owner: nginx
+    group: nginx
+    mode: '0644'
+    force: true
+  when: not cert_enabled
+  register: redirect
+
+- name: setup https reverse proxy for server-manager
+  ansible.builtin.template:
+    src: nginx-proxy-acsm-https.conf.j2
+    dest: /etc/nginx/conf.d/{{ app_name }}.{{ site_fqdn }}.conf
+    owner: nginx
+    group: nginx
+    mode: '0644'
+    force: true
+  when: cert_enabled
+  register: redirect
+
+- name: setup http reverse proxy for server-manager
+  ansible.builtin.template:
+    src: nginx-proxy-acsm-http.conf.j2
+    dest: /etc/nginx/conf.d/{{ app_name }}.{{ site_fqdn }}.conf
+    owner: nginx
+    group: nginx
+    mode: '0644'
+    force: true
+  when: not cert_enabled
+  register: redirect
+
+- name: install http redirect to https html
+  ansible.builtin.template:
+    src: redirect.html.j2
+    dest: "{{ nginx_path }}/{{ site_fqdn }}/html/index.html"
+    owner: nginx
+    group: nginx
+    mode: '0640'
+  when: cert_enabled
 
 - name: check if kmr subdomains match lobby count
   ansible.builtin.find:
@@ -50,41 +170,17 @@
   when: cert_enabled
   register: kmr_https_nginx
 
-- name: add http site in sites-available
-  ansible.builtin.template:
-    src: domain_http.conf.j2
-    dest: /etc/nginx/sites-available/www.{{ site_fqdn }}.conf
-    owner: nginx
-    group: nginx
-    mode: '0644'
-  when: not cert_enabled
-  register: http_site
-
-- name: add https site in sites-available
-  ansible.builtin.template:
-    src: domain_https.conf.j2
-    dest: /etc/nginx/sites-available/www.{{ site_fqdn }}.conf
-    owner: nginx
-    group: nginx
-    mode: '0644'
-  when: cert_enabled
-  register: https_site
-
-- name: link site to conf.d
-  ansible.builtin.file:
-    src: /etc/nginx/sites-available/www.{{ site_fqdn }}.conf
-    dest: /etc/nginx/conf.d/www.{{ site_fqdn }}.conf
-    state: link
-    owner: nginx
-    group: nginx
-    mode: '0644'
+    # - name: link site to conf.d
+    #   ansible.builtin.file:
+    #     src: /etc/nginx/sites-available/www.{{ site_fqdn }}.conf
+    #     dest: /etc/nginx/conf.d/www.{{ site_fqdn }}.conf
+    #     state: link
+    #     owner: nginx
+    #     group: nginx
+    #     mode: '0644'
 
 - name: reload nginx
   ansible.builtin.service:
     name: nginx
     state: restarted #reloaded
   when: kmr_http_nginx.changed or kmr_https_nginx.changed
-
-- name: add nginx redirect for ac server manager
-  ansible.builtin.import_tasks: redirect.yml
-

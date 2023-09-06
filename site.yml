@@ -29,6 +29,7 @@
     - outbound_ip
     - base-nginx
     - sysctl
+    - users
     - systemd
     - steamcmd
     - acserver

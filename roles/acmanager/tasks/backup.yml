@@ -1,7 +1,7 @@
 # backup acserver and acmanager
 ---
 - name: set timestamp for backup
-  ansible.builtin.command: 'date +%Y%m%d'
+  ansible.builtin.command: 'date +%Y%m%d.%H%M%S'
   register: timestamp
 
 - name: add helper script for version tracking
@@ -27,19 +27,19 @@
 - name: backup current AC Server Manager install
   ansible.builtin.archive:
     path:
-      - "{{ acserver_path }}/*"
-      - "{{ acmanager_path }}/*"
+      - "{{ acserver_path }}"
+      - "{{ acmanager_path }}"
     exclude_path:
-      - "{{ acserver_path }}/content"
+      - "{{ acserver_path }}/content/*"
       - "{{ acmanager_path }}/*.zip"
-      - "{{ acmanager_path }}/ACSM.License"
+      - "{{ acmanager_path }}/*.License"
     dest: "{{ backup_path }}/acsm_{{ acsm_version.stdout }}_{{ timestamp.stdout }}.zip"
     owner: "{{ assetto_user }}"
     group: "{{ assetto_group }}"
     mode: '0644'
     format: zip
 
-- name: backup game content; cars, tracks, weather
+- name: backup game content directory; cars, tracks, weather
   ansible.builtin.archive:
     path: "{{ acserver_path }}/content"
     dest: "{{ backup_path }}/acsm_content.zip"

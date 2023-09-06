@@ -60,14 +60,4 @@ lua_enabled: false
 persist_session_results: false
 
 # server_options
-upnp_enabled: 'false'
-cmwelcome_enable: 1
-  #kmr_enable: 'true'  # a string
-  #install_kmr: true   # a bool
 forbidden_driver_names: 'Player\r\nplayer\r\nUser\r\nuser\r\n'
-lobby_port_prefix: 95
-udp_port_prefix: 96
-tcp_port_prefix: 96  # 97
-plugin_udp_address: '127.0.0.1'
-plugin_udp_local_port_prefix: 12
-plugin_udp_port_prefix: 11

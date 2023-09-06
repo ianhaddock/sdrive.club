@@ -23,7 +23,7 @@
     #     port: "{{ kmr_plugin_port_prefix }}0{{ item }}/udp"
     #     state: enabled
     #   with_sequence: start=0 end={{ server_count -1 }} format=%02x
-
+    
 - name: open KMR app link UDP
   ansible.builtin.firewalld:
     port: "{{ kmr_ac_app_link_prefix }}{{ item }}/udp"

@@ -43,16 +43,16 @@ server {
   server_name www.{{ site_fqdn }};
   client_max_body_size 256m;
 
-#  root {{ nginx_path }}/{{ site_fqdn }}/html;
-#
-#  index index.html;
-#
-#  #only allow static file serving
-#  location ~* \.(jpg|jpeg|gif|png|bmp|ico|pdf|flv|swf|exe|html|htm|txt|css|js) {
-#     add_header        Cache-Control public;
-#     add_header        Cache-Control must-revalidate;
-#     expires           7d;
-#  }
+  root {{ nginx_path }}/{{ site_fqdn }}/html;
+
+  index index.html;
+
+  # only allow static file serving
+  location ~* \.(jpg|jpeg|gif|png|bmp|ico|pdf|flv|swf|exe|html|htm|txt|css|js) {
+     add_header        Cache-Control public;
+     add_header        Cache-Control must-revalidate;
+     expires           7d;
+  }
 
   # otherwise 301 redirect to the game server
   location  / {

@@ -1,6 +1,21 @@
 # stracker vars
 ---
+app_name: 'stracker'
+app_port: 50042
+app_path: '/usr/local/sbin/stracker'
 
-strConfig: stracker_options.json
-install_stracker: false
+stracker_enable: 'true'
+ban_anonymised_players: 'true'
+banner_image: 'https://www.{{ site_fqdn }}/sdc_v4_banner_v1.png'
+stracker_http_listen_port_prefix: 500
+bad_word_warning: 'Admin: You will be %(swear_action)s for swearing. Warnings left: %(num_warnings_left)d'
+stracker_messages_types_to_send: 'welcome'  # default is 'best_lap+welcome+race_finished' 
+stracker_car_to_car_collision_messages: 'false'  # this is a string
+stracker_database_compression: 'remove_slow_laps'
+stracker_auth_log: './stracker_access.log'
 
+# postgres
+stracker_database_name: 'stracker'
+stracker_postgres_username: 'pgstracker'
+stracker_database_type: 'postgres'
+stracker_postgres_host: '127.0.0.1'

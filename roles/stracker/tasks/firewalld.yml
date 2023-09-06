@@ -1,6 +1,17 @@
 # firewalld for stracker
 ---
-- name: open stracker listening port 50042 udp
+- name: open https listen ports
   ansible.builtin.firewalld:
-    port: "50042/udp"
+    port: "{{ stracker_http_listen_port_prefix }}{{ intvalue | string }}/tcp"
     state: enabled
+  vars:
+    intvalue: "{{ 42 + item | int }}"
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
+- name: open ports for plugin
+  ansible.builtin.firewalld:
+    port: "{{ udp_port_prefix }}{{ intvalue | string }}/tcp"
+    state: enabled
+  vars:
+    intvalue: "{{ 42 + item | int }}"
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x

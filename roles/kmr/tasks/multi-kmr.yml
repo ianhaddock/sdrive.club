@@ -40,7 +40,7 @@
   loop_control:
     label: "{{ item.item }}" # cleanup verbose output by default
 
-- name: set KMR status
+- name: enable KMR
   ansible.builtin.lineinfile:
     dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/kissmyrank_options.json"
     regexp: '^  "EnableKissMyRank": '
@@ -89,7 +89,16 @@
     dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/kissmyrank_options.json"
     state: present
     regexp: '^  "web_auth_server_port": '
-    line: '  "web_auth_server_port": {{ kmr_plugin_port_prefix }}0{{ item }},'
+    line: '  "web_auth_server_port": {{ kmr_web_auth_server_port_prefix }}0{{ item }},'
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
+- name: plugin udp relay port
+  ansible.builtin.replace:
+    path: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/kissmyrank_options.json"
+    after: '(  "udp_relay_to": \[)'
+    before: '(  \],)'
+    regexp: '^    \"\"'
+    replace: '    "127.0.0.1:{{ simview_receive_port }}{{ item }}"'
   with_sequence: start=0 end={{ server_count -1 }} format=%02x
 
 - name: set cut lines
@@ -120,12 +129,26 @@
     line: '  "database_sharing_local_group_port": {{ kmr_db_group_port }},'
   with_sequence: start=0 end={{ server_count -1 }} format=%02x
 
+- name: set session history length
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/kissmyrank_options.json"
+    regexp: '^  "session_history_length": '
+    line: '  "session_history_length": {{ kmr_session_history_length }},'
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
+- name: set memory monitor
+  ansible.builtin.lineinfile:
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/kissmyrank_options.json"
+    regexp: '^  "memory_monitor_enabled": '
+    line: '  "memory_monitor_enabled": {{ kmr_memory_monitor }},'
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
 - name: Set ac_app_link_udp_port
   ansible.builtin.lineinfile:
     dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/kissmyrank_options.json"
     state: present
     regexp: '^  "ac_app_link_udp_port": '
-    line: '  "ac_app_link_udp_port": {{ kmr_ac_app_link_prefix }}0{{ item }},'
+    line: '  "ac_app_link_udp_port": {{ kmr_ac_app_link_prefix }}{{ item }},'
   with_sequence: start=0 end={{ server_count -1 }} format=%02x
 
 - name: set welcome message

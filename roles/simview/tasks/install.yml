@@ -1,0 +1,60 @@
+# simview install.yml
+---
+- name: install dependencies
+  ansible.builtin.package:
+    pkg:
+      - mariadb-server
+      - mariadb-backup
+      - python3-PyMySQL
+    state: latest
+
+- name: create app path "{{ app_path }}"
+  ansible.builtin.file:
+    path: "{{ app_path }}"
+    state: directory
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
+    mode: '0755'
+
+- name: create simview sub directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
+    mode: '0755'
+  with_items:
+    - "{{ app_path }}/simview_cache"
+    - "{{ app_path }}/certs"
+
+- name: add pit boundries from files server
+  ansible.builtin.unarchive:
+    src: "{{ files_server }}/pit_boundries.zip"
+    dest: "{{ app_path }}/simview_cache/"
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
+    mode: '0600'
+    remote_src: true
+
+- name: unarchive simview
+  become_user: "{{ assetto_user }}"
+  ansible.builtin.unarchive:
+    src: "{{ files_server }}/SimView-v1.4.zip"
+    dest: "{{ app_path }}"
+    remote_src: true
+
+- name: unarchive linux install
+  become_user: "{{ assetto_user }}"
+  ansible.builtin.unarchive:
+    src: "{{ app_path }}/SimView-v1.4-Linux-x64.zip"
+    dest: "{{ app_path }}"
+    remote_src: true
+
+- name: remove extras
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+    - "{{ app_path }}/SimView-v1.4-Linux-x64.zip"
+    - "{{ app_path }}/SimView-v1.4-Windows-x64.zip"
+    - "{{ app_path }}/SimView-Manual.pdf"

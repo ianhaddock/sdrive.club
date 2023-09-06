@@ -1,0 +1,62 @@
+#!/bin/bash -e
+
+# # #
+#
+# v20230902: v1
+#
+# Added by Ansible {{ ansible_date_time.date }}
+#
+# # #
+
+datestamp="$(date +%Y%m%d)" 
+PIDFILE=/tmp/simview_backup.PID
+used_space="$(df -k / | tail -n1 | awk '{print $5}' | sed 's/%//g')"
+drive_full=95
+
+# help messages
+function usage() {
+  echo "";
+  echo "Backup simview database, excludes config files."
+  echo "";
+  echo " -h: This help menu.";
+  echo "";
+}
+
+# sanity checks
+if [ $used_space -gt $drive_full ]; then
+    usage;
+    echo "$(date +%Y%m%d:%H%M%S): Exiting. Not enough space available, over $used_space% full";
+    exit 1;
+elif [ -f $PIDFILE ]; then
+    echo "WARNING: simview backup script already running. Exiting.";
+    exit 0;
+fi
+
+# remove PID file on exit
+trap 'rm -f $PIDFILE' EXIT
+echo $$ > $PIDFILE
+
+# start
+echo "$(date +%Y%m%d:%H%M%S): Starting backup."
+
+# archive simview_cache
+zip -y \
+  -r \
+  {{ backup_path }}/simview_cache.zip \
+  {{ app_path }}/simview_cache \
+  -li \
+  -lf {{ backup_path }}/simview_cache_"$datestamp".log
+
+echo "Running mysqldump of simview database."
+
+mysqldump simview | gzip  > {{ backup_path }}/simview-$datestamp.sql.gz
+
+# exit
+echo "$(date +%Y%m%d:%H%M%S): Backup complete. Exiting"
+echo "Time taken: $SECONDS seconds.";
+times;
+echo "";
+
+rm -f "$PIDFILE";
+
+exit 0;

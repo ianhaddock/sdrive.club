@@ -3,42 +3,6 @@
 ---
 # remove nginx conf file entry for fqdn if file exists
 
-- name: setup https reverse proxy for server-manager
-  ansible.builtin.template:
-    src: nginx-proxy-acsm-https.conf.j2
-    dest: /etc/nginx/conf.d/{{ site_fqdn }}.conf
-    owner: nginx
-    group: nginx
-    mode: '0644'
-    force: true
-  when: cert_enabled
-  register: redirect
-
-- name: setup http reverse proxy for server-manager
-  ansible.builtin.template:
-    src: nginx-proxy-acsm-http.conf.j2
-    dest: /etc/nginx/conf.d/{{ site_fqdn }}.conf
-    owner: nginx
-    group: nginx
-    mode: '0644'
-    force: true
-  when: not cert_enabled
-  register: redirect
-
-- name: create http root directory
-  ansible.builtin.file:
-    dest: "{{ item }}"
-    owner: nginx
-    group: nginx
-    mode: '0750'
-    state: directory
-  with_items:
-    - "{{ nginx_path }}/{{ site_fqdn }}/html"
-    - "{{ nginx_path }}/{{ site_fqdn }}/html/tos"
-    - "{{ nginx_path }}/{{ site_fqdn }}/html/discord"
-    - "{{ nginx_path }}/{{ site_fqdn }}/html/donate"
-  when: cert_enabled
-
 - name: install http redirect to https html
   ansible.builtin.template:
     src: redirect.html.j2
@@ -47,39 +11,6 @@
     group: nginx
     mode: '0640'
   when: cert_enabled
-
-- name: add site images in html folder
-  ansible.builtin.unarchive:
-    src: "{{ files_server }}/acsm_html.zip"
-    dest: "{{ nginx_path }}/{{ site_fqdn }}/html"
-    owner: nginx
-    group: nginx
-    mode: '0750'
-    remote_src: true
-
-- name: install TOS redirect
-  ansible.builtin.template:
-    src: tos.html.j2
-    dest: "{{ nginx_path }}/{{ site_fqdn }}/html/tos/index.html"
-    owner: nginx
-    group: nginx
-    mode: '0640'
-
-- name: install discord redirect
-  ansible.builtin.template:
-    src: discord_redirect.html.j2
-    dest: "{{ nginx_path }}/{{ site_fqdn }}/html/discord/index.html"
-    owner: nginx
-    group: nginx
-    mode: '0640'
-
-- name: install donate redirect
-  ansible.builtin.template:
-    src: donate_redirect.html.j2
-    dest: "{{ nginx_path }}/{{ site_fqdn }}/html/donate/index.html"
-    owner: nginx
-    group: nginx
-    mode: '0640'
 
 - name: reload nginx
   ansible.builtin.service:

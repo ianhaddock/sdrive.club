@@ -21,7 +21,7 @@
   retries: 720 # 720 * 5 = 1 hour
   delay: 5
 
-- name: start "{{ systemd_multi }}"
+- name: stop "{{ systemd_multi }}"
   ansible.builtin.systemd:
     name: "{{ systemd_multi }}"
     daemon_reload: true

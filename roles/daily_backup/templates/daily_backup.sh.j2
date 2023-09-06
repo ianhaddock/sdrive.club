@@ -21,7 +21,7 @@ function usage() {
 destination="{{ backup_path }}"
 acserver="{{ acserver_path }}"
 acmanager="{{ acmanager_path }}"
-datestamp="$(date +%Y%m%d)"
+datestamp="$(date +%Y%m%d.%H%M%S)"
 PIDFILE=/tmp/acsm_backup.PID
 used_space="$(df -k / | tail -n1 | awk '{print $5}' | sed 's/%//g')"
 drive_full=95
@@ -52,10 +52,11 @@ echo "$(date +%Y%m%d:%H%M%S): Starting backup."
 zip -y \
   -r \
   {{ backup_path }}/acsm_"$version"_"$datestamp".zip \
-  "$acmanager" "$acserver" \
-  -x "{{ acserver_path }}/content" \
-  -x \*.License \
-  -x \*.zip \
+  "$acmanager" \
+  "$acserver" \
+  -x "$acserver"/content/\* \
+  \*.License \
+  \*.zip \
   -li \
   -lf {{ backup_path }}/acsm_"$version"_"$datestamp".log
 

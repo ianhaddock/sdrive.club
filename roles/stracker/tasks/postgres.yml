@@ -1,0 +1,107 @@
+# stracker postgres.yml
+---
+- name: install postgres
+  ansible.builtin.package:
+    name:
+      - postgresql-server-13.11
+      - python3-pip-21.2.3
+    state: present
+  register: postgres_install_state
+
+- name: install psycopg2 python module
+  ansible.builtin.pip:
+    name: psycopg2-binary
+
+- name: run postgresql initdb
+  become_user: postgres
+  ansible.builtin.command:
+    cmd: postgresql-setup --initdb
+  register: postgres_initdb_result
+  when: postgres_install_state.changed
+
+- name: output of postgres initdb
+  ansible.builtin.debug:
+    msg: "{{ postgres_initdb_result }}"
+  when: verbose
+
+- name: set stracker user authentication to md5
+  ansible.builtin.lineinfile:
+    dest: "/var/lib/pgsql/data/pg_hba.conf"
+    line: 'host    stracker        pgstracker      127.0.0.1/32            md5'
+    insertafter: '# TYPE  DATABASE        USER            ADDRESS                 METHOD'
+    state: present
+
+- name: set listen address to localhost 
+  ansible.builtin.lineinfile:
+    dest: "/var/lib/pgsql/data/postgresql.conf"
+    line: "listen_addresses = 'localhost'"
+    state: present
+
+- name: set log destination to syslog
+  ansible.builtin.lineinfile:
+    dest: "/var/lib/pgsql/data/postgresql.conf"
+    line: "log_destination = 'syslog'"
+    state: present
+
+- name: enable and start postgres
+  ansible.builtin.systemd:
+    name: postgresql
+    enabled: true
+    state: restarted
+
+- name: create stracker postgres user
+  become_user: postgres
+  community.postgresql.postgresql_user:
+    name: "{{ stracker_postgres_username }}"
+    password: "{{ stracker_postgres_password }}"
+    comment: stracker user
+
+- name: create stracker backup postgres user
+  become_user: postgres
+  community.postgresql.postgresql_user:
+    name: "{{ assetto_user }}"
+    password: "{{ stracker_postgres_password }}"
+    comment: stracker backup user
+
+- name: create stracker postgres database
+  become_user: postgres
+  community.postgresql.postgresql_db:
+    name: "{{ stracker_database_name }}"
+    owner: "{{ stracker_postgres_username }}"
+    encoding: UTF-8
+
+- name: grant stracker postgres user access
+  become_user: postgres
+  community.postgresql.postgresql_privs:
+    database: "{{ stracker_database_name }}"
+    privs: ALL
+    type: database
+    role: "{{ stracker_postgres_username }}"
+
+- name: grant stracker backup postgres user access
+  become_user: postgres
+  community.postgresql.postgresql_privs:
+    database: "{{ stracker_database_name }}"
+    privs: CONNECT
+    type: database
+    role: "{{ assetto_user }}"
+
+- name: grant stracker backup postgres user access
+  become_user: postgres
+  community.postgresql.postgresql_privs:
+    database: "{{ stracker_database_name }}"
+    type: table
+    schema: public
+    privs: SELECT
+    objs: ALL_IN_SCHEMA
+    role: "{{ assetto_user }}"
+
+- name: grant stracker backup postgres user access
+  become_user: postgres
+  community.postgresql.postgresql_privs:
+    database: "{{ stracker_database_name }}"
+    type: sequence
+    schema: public
+    privs: SELECT
+    objs: ALL_IN_SCHEMA
+    role: "{{ assetto_user }}"

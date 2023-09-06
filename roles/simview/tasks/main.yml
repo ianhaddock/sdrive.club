@@ -1,4 +1,4 @@
-# install simview
+# simview main.yml
 ---
 - name: create isolation user and group. Enable linger
   ansible.builtin.include_role:
@@ -11,17 +11,175 @@
     gid: "{{ app_gid }}"
     comment: "{{ app_name }} app account"
 
+- name: add my.cnf file
+  ansible.builtin.template:
+    src: simview.my.cnf.j2
+    dest: /home/{{ assetto_user }}/.my.cnf
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
+    mode: '0600'
+
 - name: create app path "{{ app_path }}"
   ansible.builtin.file:
     path: "{{ app_path }}"
     state: directory
-    owner: "{{ app_user }}"
-    group: "{{ app_group }}"
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
     mode: '0755'
   register: simview_path_state
 
-    # - name: create db
-    #   become_user: "{{ app_user }}"
-    #   community.mysql.mysql_db:
-    #     name: simview
-    #     state: present
+- name: copy backup script
+  ansible.builtin.template:
+    src: "simview_backup.sh.j2"
+    dest: "{{ app_path }}/simview_backup.sh"
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
+    mode: '0700'
+
+- name: add cron job for backup script
+  become_user: "{{ assetto_user }}"
+  ansible.builtin.cron:
+    name: daily simview backup
+    minute: "10"
+    hour: "{{ backup_hours }}"
+    job: "{{ app_path }}/simview_backup.sh >> /var/log/daily_backup_acsm.log 2>&1"
+
+    ### simview_writer apps do not support secure websocket wss connections yet ###
+    # - name: create cert path
+    #   ansible.builtin.file:
+    #     path: "{{ simview_cert_path }}"
+    #     state: directory
+    #     owner: "{{ assetto_user }}"
+    #     group: "{{ assetto_group }}"
+    #     mode: '0755'
+    # 
+    # - name: copy cert.pem
+    #   ansible.builtin.copy:
+    #     src: "/etc/letsencrypt/live/{{ site_fqdn }}/cert.pem"
+    #     dest: "{{ simview_cert_path }}/cert.pem"
+    #     owner: "{{ assetto_user }}"
+    #     group: "{{ assetto_group }}"
+    #     mode: '0600'
+    #     remote_src: true
+    # 
+    # - name: copy privkey.pem
+    #   ansible.builtin.copy:
+    #     src: "/etc/letsencrypt/live/{{ site_fqdn }}/privkey.pem"
+    #     dest: "{{ simview_cert_path }}/privkey.pem"
+    #     owner: "{{ assetto_user }}"
+    #     group: "{{ assetto_group }}"
+    #     mode: '0600'
+    #     remote_src: true
+
+- name: install simview
+  ansible.builtin.import_tasks: install.yml
+  when: simview_path_state.changed
+
+- name: config mariadb
+  ansible.builtin.import_tasks: mariadb.yml
+  when: simview_path_state.changed
+
+# - name: insert config.toml for single server setup
+
+- name: add simview directory
+  ansible.builtin.file:
+    path: "{{ acmanager_path }}/servers/SERVER_{{ item }}/assetto/simview"
+    state: directory
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
+- name: insert config.toml for multi servers
+  ansible.builtin.template:
+    src: config.toml.j2
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/assetto/simview/config.toml"
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
+    mode: '0644'
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
+- name: insert config.toml for simview_http
+  ansible.builtin.template:
+    src: config_simview_http.toml.j2
+    dest: "{{ app_path }}/config/config.toml"
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
+    mode: '0644'
+
+- name: simlink SimViewWriter app to game lobbies
+  ansible.builtin.file:
+    src: "{{ app_path }}/bin/SimViewWriter"
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/assetto/simview/SimViewWriter"
+    state: link
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
+- name: simlink SimViewHttp app to simview folder
+  ansible.builtin.file:
+    src: "{{ app_path }}/bin/SimViewHttp"
+    dest: "{{ app_path }}/SimViewHttp"
+    state: link
+
+    ### This seems to load simview_writer after starting ac server - which causes simview to segfault
+    # - name: add simview plugin to acsm config.yml
+    #   ansible.builtin.replace:
+    #     path: "{{ acmanager_path }}/config.yml"
+    #     regexp: '(^  plugins:\n    #)'
+    #     replace: '  plugins:\n      - executable: assetto/simview/SimViewWriter\n        arguments: ["config.toml"]\n    #'
+
+- name: install simview_http.service systemd file
+  ansible.builtin.template:
+    src: "simview_http.service.j2"
+    dest: "/usr/lib/systemd/system/simview_http.service"
+    owner: root
+    group: root
+    mode: '0644'
+  register: simview_httpd_systemd
+
+- name: install simview_writer_NN.service systemd file
+  ansible.builtin.template:
+    src: "simview_writer.service.j2"
+    dest: "/usr/lib/systemd/system/simview_writer_{{ item }}.service"
+    owner: root
+    group: root
+    mode: '0644'
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+  register: simview_writer_systemd
+
+- name: reload systemd daemon
+  ansible.builtin.systemd:
+    daemon_reload: true
+  when: simview_httpd_systemd.changed or simview_writer_systemd.changed
+
+- name: enable simview_http
+  ansible.builtin.systemd:
+    name: "simview_http.service"
+    enabled: true
+    state: started
+
+- name: enable simview_writers
+  ansible.builtin.systemd:
+    name: "simview_writer_{{ item }}.service"
+    enabled: true
+    state: started
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
+- name: open ports for websocket connection
+  ansible.builtin.firewalld:
+    port: "{{ simview_websocket_port_prefix}}{{ item }}/tcp"
+    state: enabled
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
+- name: set nginx proxy
+  ansible.builtin.template:
+    src: nginx-proxy-simview.conf.j2
+    dest: "/etc/nginx/conf.d/{{ app_name }}.{{ site_fqdn }}.conf"
+    owner: root
+    group: root
+    mode: '0640'
+  notify: reload nginx
+
+- name: start "{{ systemd_multi }}"
+  ansible.builtin.systemd:
+    name: "{{ systemd_multi }}"
+    daemon_reload: true
+    state: restarted
