@@ -85,7 +85,6 @@
     dest: "{{ app_path }}/simview_cache/"
     owner: "{{ assetto_user }}"
     group: "{{ assetto_group }}"
-    mode: '0644'
     remote_src: true
 
 - name: copy tracks folder to simview cache folder
@@ -94,10 +93,18 @@
     dest: "{{ app_path }}/simview_cache/"
     remote_src: true
 
-- name: remote extra files from github pull
+- name: remove extra files from github pull
   ansible.builtin.file:
     path: "{{ app_path }}/simview_cache/simview_pit_boundaries-main"
     state: absent
+
+- name: update permissions on pit boundary files
+  ansible.builtin.file:
+    path: "{{ app_path }}/simview_cache/tracks"
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
+    mode: 'u=rwX,g=rX,o=rX'
+    recurse: true
 
 # - name: insert config.toml for single server setup
 
