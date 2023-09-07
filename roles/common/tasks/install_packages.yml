@@ -26,6 +26,10 @@
       - certbot
     state: latest  # noqa package-latest
 
+- name: drop package cache to save space
+  ansible.builtin.command:
+    cmd: dnf clean packages
+
       # - name: install container tools
       #   ansible.builtin.package:
       #     name:
