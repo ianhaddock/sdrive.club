@@ -146,6 +146,21 @@
     dest: "{{ app_path }}/SimViewHttp"
     state: link
 
+- name: open ports for websocket connection
+  ansible.builtin.firewalld:
+    port: "{{ simview_websocket_port_prefix}}{{ item }}/tcp"
+    state: enabled
+  with_sequence: start=0 end={{ server_count -1 }} format=%02x
+
+- name: set nginx proxy
+  ansible.builtin.template:
+    src: nginx-proxy-simview.conf.j2
+    dest: "/etc/nginx/conf.d/{{ app_name }}.{{ site_fqdn }}.conf"
+    owner: root
+    group: root
+    mode: '0640'
+  notify: reload nginx
+
     ### This seems to load simview_writer after starting ac server - which causes simview to segfault
     # - name: add simview plugin to acsm config.yml
     #   ansible.builtin.replace:
@@ -177,33 +192,18 @@
     daemon_reload: true
   when: simview_httpd_systemd.changed or simview_writer_systemd.changed
 
-- name: enable simview_http
+- name: enable and start simview_http
   ansible.builtin.systemd:
     name: "simview_http.service"
     enabled: true
-    state: started
+    state: restarted
 
-- name: enable simview_writers
+- name: enable and start simview_writers
   ansible.builtin.systemd:
     name: "simview_writer_{{ item }}.service"
     enabled: true
-    state: started
+    state: restarted
   with_sequence: start=0 end={{ server_count -1 }} format=%02x
-
-- name: open ports for websocket connection
-  ansible.builtin.firewalld:
-    port: "{{ simview_websocket_port_prefix}}{{ item }}/tcp"
-    state: enabled
-  with_sequence: start=0 end={{ server_count -1 }} format=%02x
-
-- name: set nginx proxy
-  ansible.builtin.template:
-    src: nginx-proxy-simview.conf.j2
-    dest: "/etc/nginx/conf.d/{{ app_name }}.{{ site_fqdn }}.conf"
-    owner: root
-    group: root
-    mode: '0640'
-  notify: reload nginx
 
 - name: start "{{ systemd_multi }}"
   ansible.builtin.systemd:
