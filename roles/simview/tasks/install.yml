@@ -27,15 +27,6 @@
     - "{{ app_path }}/simview_cache"
     - "{{ app_path }}/certs"
 
-- name: add pit boundries from files server
-  ansible.builtin.unarchive:
-    src: "{{ files_server }}/pit_boundries.zip"
-    dest: "{{ app_path }}/simview_cache/"
-    owner: "{{ assetto_user }}"
-    group: "{{ assetto_group }}"
-    mode: '0600'
-    remote_src: true
-
 - name: unarchive simview
   become_user: "{{ assetto_user }}"
   ansible.builtin.unarchive:

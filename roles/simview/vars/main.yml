@@ -12,3 +12,5 @@ simview_websocket_port_prefix: 122
 
 app_path: '/usr/local/sbin/{{ app_name }}'
 simview_cert_path: '/usr/local/sbin/{{ app_name }}/certs'
+
+simview_pit_boundaries_zip: 'https://github.com/ianhaddock/simview_pit_boundaries/archive/refs/heads/main.zip'
