@@ -27,17 +27,18 @@
 - name: backup current AC Server Manager install
   ansible.builtin.archive:
     path:
-      - "{{ acserver_path }}"
-      - "{{ acmanager_path }}"
-    exclude_path:
-      - "{{ acserver_path }}/content/*"
-      - "{{ acmanager_path }}/*.zip"
-      - "{{ acmanager_path }}/*.License"
+      - "{{ acserver_path }}/*"
+      - "{{ acmanager_path }}/*"
     dest: "{{ backup_path }}/acsm_{{ acsm_version.stdout }}_{{ timestamp.stdout }}.zip"
+    exclude_path:
+      - "{{ acserver_path }}/content"
+      - "{{ acmanager_path }}/acsm_*.zip"
+      - "{{ acmanager_path }}/ACSM.License"
     owner: "{{ assetto_user }}"
     group: "{{ assetto_group }}"
     mode: '0644'
     format: zip
+    ### keep the file globs on the paths for the excludes to work
 
 - name: backup game content directory; cars, tracks, weather
   ansible.builtin.archive:

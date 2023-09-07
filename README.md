@@ -1,7 +1,7 @@
-# Assetto Corsa Game Server
+# sdrive.club - Assetto Corsa Game Server
 Builds a single or multi-lobby Assetto Corsa game server on a DigitalOcean VPS. 
 
-As used on my server, [Spirited Drive Club][4]. Racing since 2020. 
+As used on my server, [Spirited Drive Club][4]. Which hosts over 290 Discord channel users, who have participated in over 6,300 race events with over 600 unique racers since 3/2022. Racing online since 2020. 
 
 ### Enabled Plugins:
 * [KissMyRank (KMR)][2] 

@@ -5,8 +5,5 @@
   become: true
   gather_facts: true
 
-  vars:
-  - public_key: test_nyc1.pub
-
   roles:
   - common
