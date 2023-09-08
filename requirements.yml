@@ -1,16 +1,20 @@
 # ansible-galaxy install -r requirements.yml
+# this format is wrong still
 ---
-- src: community.general
-- src: ansible.posix
-- src: community.crypto
-- src: community.mysql
+- name: community.general
+  version: 6.3.0
 
-# /Users/Ian/.ansible/collections/ansible_collections
-Collection           Version
--------------------- -------
-ansible.posix        1.5.1  
-community.crypto     2.10.0 
-community.general    6.3.0  
-community.mysql      3.7.2  
-community.postgresql 3.2.0  
-containers.podman    1.9.3  
+- name: ansible.posix
+  version: 1.5.1
+
+- name: community.crypto
+  version: 2.10.0
+
+- name: community.mysql
+  version: 3.7.2
+
+- name: community.postgresql
+  version: 3.2.0
+
+- name: containers.podman
+  version: 1.9.3

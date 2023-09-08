@@ -1,17 +1,18 @@
 # simview app must start before ac server starts
 # installed on {{ ansible_date_time.date }}
+# will restart every 5 seconds 4 times in 45 seconds to reduce restart spamming
 
 [Unit]
 Description=Simview http Server service
 After=network.target
+StartLimitBurst=4
+StartLimitIntervalSec=45
 
 [Service]
 Type=simple
 Nice=0
 Restart=always
-RestartSec=2
-StartLimitIntervalSec=10
-StartLimitBurst=4
+RestartSec=5
 User=assetto
 WorkingDirectory=/usr/local/sbin/simview
 ExecStart=/usr/local/sbin/simview/SimViewHttp /usr/local/sbin/simview/config/config.toml
