@@ -31,6 +31,7 @@
     - sysctl
     - users
     - systemd
+    - fail2ban
     - steamcmd
     - acserver
     - certbot

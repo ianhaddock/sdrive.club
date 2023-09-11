@@ -1,0 +1,4 @@
+# fail2ban vars
+---
+app_path: '/etc/fail2ban'
+

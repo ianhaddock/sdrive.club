@@ -14,8 +14,22 @@
 
 - name: setup jail.local
   ansible.builtin.copy:
-    src: /etc/fail2ban/jail.conf
-    dest: /etc/fail2ban/jail.local
+    src: "{{ app_path }}/jail.conf"
+    dest: "{{ app_path }}/jail.local"
     remote_src: true
 
+- name: Set ignore IPs
+  ansible.builtin.lineinfile:
+    path: "{{ app_path }}/jail.local"
+    insertafter: '^\[DEFAULT\]'
+    firstmatch: true
+    line: 'ignoreip = 127.0.0.1/8 {{ ignore_ip_address }}'
+    state: present
+
+- name: Set bantime
+  ansible.builtin.lineinfile:
+    path: "{{ app_path }}/jail.local"
+    insertafter: '^\[DEFAULT\]'
+    line: 'bantime = 10m'
+    state: present
 
