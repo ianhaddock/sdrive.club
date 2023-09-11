@@ -36,13 +36,21 @@
     group: "{{ assetto_group }}"
     mode: '0700'
 
+- name: copy restore script
+  ansible.builtin.template:
+    src: "backup_restore_simview.sh.j2"
+    dest: "{{ backup_path }}/simview_restore.sh"
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
+    mode: '0700'
+
 - name: add cron job for backup script
   become_user: "{{ assetto_user }}"
   ansible.builtin.cron:
     name: daily simview backup
     minute: "10"
     hour: "{{ backup_hours }}"
-    job: "{{ app_path }}/backup_simview.sh >> /var/log/daily_backup_acsm.log 2>&1"
+    job: "{{ app_path }}/simview_backup.sh >> /var/log/daily_backup_acsm.log 2>&1"
 
     ### simview_writer apps do not support secure websocket wss connections yet ###
     # - name: create cert path

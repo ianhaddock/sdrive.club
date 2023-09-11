@@ -1,0 +1,58 @@
+#!/bin/bash -e
+# installed {{ ansible_date_time.date }}
+
+function usage() {
+  echo ""
+  echo "This restores the Simview plugin from backup."
+  echo "Pass the db backup file, and the cache backup to it."
+  echo "E.x. ./simview_restore.sh simview-NNNNNNNN.sql.gz simview_cache.zip"
+  echo ""
+}
+
+mysql_dump="$1"
+cache_dir="$2"
+PIDFILE=/tmp/simview_restore.PID
+
+if [ $# != 2 ]; then
+  usage;
+  exit 1;
+elif [ $(whoami) != "{{ assetto_user }}" ]; then
+  usage;
+  echo "ERROR: Run this script as the {{ assetto_user }} user. Exiting.";
+  exit 1;
+elif [ ! -f $mysql_dump ]; then
+  usage;
+  echo "ERROR: Database file not found. Exiting.";
+  exit 1;
+elif [ ! -f $cache_dir ]; then
+  usage;
+  echo "ERROR: Cache dir not found. Exiting.";
+  exit 1;
+elif [ -f $PIDFILE ]; then
+    echo "WARNING: script already running. Exiting.";
+    exit 0;
+fi
+
+
+# remove PID file on exit
+trap 'rm -f $PIDFILE' EXIT
+echo $$ > $PIDFILE
+
+echo "$(date +%Y%m%d.%H%M%S): Restoring database.";
+
+gunzip < $mysql_dump | mysql simview
+
+echo "$(date +%Y%m%d.%H%M%S): Restoring cache directory.";
+
+unzip -o $cache_dir -d /
+
+
+# exit
+echo "$(date +%Y%m%d:%H%M%S): Restore complete. Exiting"
+echo "Time taken: $SECONDS seconds.";
+times;
+echo "";
+
+rm -f "$PIDFILE";
+
+exit 0;

@@ -1,0 +1,21 @@
+# fail2ban main.yml
+---
+- name: install fail2ban
+  ansible.builtin.package:
+    name:
+      - fail2ban
+    state: latest
+
+- name: enable fail2ban
+  ansible.builtin.systemd:
+    name: fail2ban
+    enabled: true
+    state: stopped
+
+- name: setup jail.local
+  ansible.builtin.copy:
+    src: /etc/fail2ban/jail.conf
+    dest: /etc/fail2ban/jail.local
+    remote_src: true
+
+
