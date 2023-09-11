@@ -1,0 +1,67 @@
+#!/bin/bash -e
+# installed {{ ansible_date_time.date }}
+
+function usage() {
+  echo ""
+  echo "Restores stracker plugin database from backup."
+  echo "Run as root and pass a db backup file to it."
+  echo "E.x. ./stracker_restore.sh stracker-NNNNNNNN.pg.gz"
+  echo ""
+}
+
+psql_dump="$1"
+PIDFILE=/tmp/stracker_restore.PID
+
+if [ $# != 1 ]; then
+  usage;
+  exit 1;
+elif [ $(whoami) != "root" ]; then
+  usage;
+  echo "ERROR: Run this script as root. Exiting.";
+  exit 1;
+elif [ ! -f $psql_dump ]; then
+  usage;
+  echo "ERROR: Database file not found. Exiting.";
+  exit 1;
+elif [ -f $PIDFILE ]; then
+    echo "WARNING: script already running. Exiting.";
+    exit 0;
+fi
+
+# remove PID file on exit
+trap 'rm -f $PIDFILE' EXIT
+echo $$ > $PIDFILE
+
+echo "$(date +%Y%m%d.%H%M%S): Restoring database.";
+
+echo "drop old db."
+su - postgres -c "psql -c 'drop database {{ stracker_database_name }}'"
+
+echo "create new db."
+su - postgres -c "psql -c 'create database {{ stracker_database_name }}'"
+
+echo "copy db dump to tmp";
+cp $psql_dump /tmp/pgdump.pg.gz
+
+echo "import db dump file";
+su - postgres -c 'gunzip < /tmp/pgdump.pg.gz | psql -d {{ stracker_database_name }}'
+
+echo "remove tmp file";
+rm -f /tmp/pgdump.pg.gz
+
+echo "change db owner to {{ stracker_postgres_username }}";
+su - postgres -c "psql -c 'ALTER DATABASE {{ stracker_database_name }} OWNER TO {{ stracker_postgres_username }}'"
+
+echo "reassign db contents to {{ stracker_postgres_username }}";
+su - postgres -c "psql -d stracker -c 'REASSIGN OWNED BY {{ assetto_user }} TO {{ stracker_postgres_username }}'"
+
+
+# exit
+echo "$(date +%Y%m%d:%H%M%S): Restore complete. Exiting"
+echo "Time taken: $SECONDS seconds.";
+times;
+echo "";
+
+rm -f "$PIDFILE";
+
+exit 0;

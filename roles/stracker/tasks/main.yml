@@ -34,6 +34,14 @@
     group: "{{ assetto_group }}"
     mode: '0700'
 
+- name: copy restore script
+  ansible.builtin.template:
+    src: "backup_restore_stracker.sh.j2"
+    dest: "{{ backup_path }}/stracker_restore.sh"
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
+    mode: '0700'
+
 - name: add cron job for backup script
   become_user: "{{ assetto_user }}"
   ansible.builtin.cron:

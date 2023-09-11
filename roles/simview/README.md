@@ -1,6 +1,12 @@
 ## Simview
 Simview "provides live timing and statistics for all types of Assetto Corsa multiplayer sessions" and is available [here][1] on Race Department. The developer also has a discord channel [here][2]. 
 
+### As implemented
+* runs under ACSM user
+* upgraded mysql to maridb
+* uses systemd service files
+* has archive and restore tools
+
 ### Installation
 
 There are two main components, a http server and a 'simview writer' which reads the UDP stream from the AC server as well as parses some AC server logs. Each AC  server/lobby requires a specific config.toml file plus the http server config.toml. 
