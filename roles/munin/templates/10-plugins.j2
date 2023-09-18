@@ -36,6 +36,11 @@ env.leasefile /var/lib/dhcpd/dhcpd.leases
 [exim*]
 group mail
 
+[fail2ban]
+env.client /usr/bin/fail2ban-client
+env.config_dir /etc/fail2ban
+user root
+
 [fw_*]
 user root
 
@@ -64,7 +69,7 @@ env.fields update limits
 [mysql*]
 #env.mysqlopts -u {{ assetto_user }} 
 env.mysqluser {{ assetto_user }}
-enb.mysqlpassword NeedToAddROUser
+env.enb.mysqlpassword NeedToAddROUser
 
 [mysql_replication]
 env.slave_io_running_warning 0.5

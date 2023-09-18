@@ -1,0 +1,27 @@
+# Master Playbook
+---
+### all hosts ###
+
+### acserver ###
+
+- hosts: acserver
+  become: true
+
+  roles:
+    - certbot
+
+  handlers:
+    - name: reload nginx
+      ansible.builtin.systemd:
+        name: nginx
+        state: reloaded
+
+    - name: restart acsm
+      ansible.builtin.systemd:
+        name: server-manager
+        state: restarted
+
+    - name: restart acsm multi
+      ansible.builtin.systemd:
+        name: multi-server-manager
+        state: restarted
