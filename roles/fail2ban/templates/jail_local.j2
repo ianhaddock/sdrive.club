@@ -47,11 +47,11 @@ ignoreip = 127.0.0.1/8 {{ ignore_ip_address }}
 
 # "bantime.increment" allows to use database for searching of previously banned ip's to increase a 
 # default ban time using special formula, default it is banTime * 1, 2, 4, 8, 16, 32...
-#bantime.increment = true
+bantime.increment = true
 
 # "bantime.rndtime" is the max number of seconds using for mixing with random time 
 # to prevent "clever" botnets calculate exact time IP can be unbanned again:
-#bantime.rndtime = 
+bantime.rndtime = 120 
 
 # "bantime.maxtime" is the max number of seconds using the ban time can reach (doesn't grow further)
 #bantime.maxtime = 
@@ -59,7 +59,7 @@ ignoreip = 127.0.0.1/8 {{ ignore_ip_address }}
 # "bantime.factor" is a coefficient to calculate exponent growing of the formula or common multiplier,
 # default value of factor is 1 and with default value of formula, the ban time 
 # grows by 1, 2, 4, 8, 16 ...
-#bantime.factor = 1
+bantime.factor = 1
 
 # "bantime.formula" used by default to calculate next value of ban time, default value below,
 # the same ban time growing will be reached by multipliers 1, 2, 4, 8, 16, 32...
@@ -392,11 +392,12 @@ port    = http,https
 logpath = %(nginx_error_log)s
 
 [nginx-botsearch]
-
+enabled = true
 port     = http,https
 logpath  = %(nginx_error_log)s
 
 [nginx-bad-request]
+enabled = true
 port    = http,https
 logpath = %(nginx_access_log)s
 
