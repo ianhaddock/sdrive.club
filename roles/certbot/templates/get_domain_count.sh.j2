@@ -1,0 +1,5 @@
+#!/bin/bash
+# get count of subdomains
+# installed by ansible {{ ansible_date_time.date }}
+
+certbot certificates | grep Domains | cut -c14- | wc -w

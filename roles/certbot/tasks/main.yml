@@ -27,26 +27,22 @@
     path: '/etc/letsencrypt/live/{{ site_fqdn }}'
   register: certbot_dir
 
+- name: add domain check script
+  ansible.builtin.template:
+    src: 'get_domain_count.sh.j2'
+    dest: '/etc/letsencrypt/get_domain_count.sh'
+    owner: root
+    group: root
+    mode: '0700'
+
 - name: get current subdomain count
-  ansible.builtin.find:
-    path: '/etc/nginx/conf.d/'
-    patterns: "*.conf"
-  register: nginx_subdomain_count
+  ansible.builtin.command:
+    cmd: /etc/letsencrypt/get_domain_count.sh
+  register: certbot_subdomain_count
 
 - name: set existing sub_domain count
   ansible.builtin.set_fact:
-    nginx_domain_count: "{{ nginx_subdomain_count.matched | int }}"
-
-- name: debug nginx subdomain count
-  ansible.builtin.debug:
-    msg: "current nginx conf file count {{ nginx_subdomain_count.matched }}"
-  when: verbose
-
-- name: debug nginx subdomain count
-  ansible.builtin.debug:
-    msg: "{{ item.path }}"
-  with_items: "{{ nginx_subdomain_count.files }}"
-  when: verbose
+    certbot_domain_count: "{{ certbot_subdomain_count.stdout | int }}"
 
 - name: create updated subdomain list
   ansible.builtin.set_fact:
@@ -59,7 +55,7 @@
 
 - name: add kmr subdomains to list
   ansible.builtin.set_fact:
-    sub_domains: "{{ sub_domains|default([]) }} + ['kmr{{ item }}.{{ site_fqdn }}']"
+    sub_domains: "{{ sub_domains }} + ['kmr{{ item }}.{{ site_fqdn }}']"
   with_sequence: start=0 end={{ server_count -1 }} format=%02x
 
 - name: cat list to string for certbot
@@ -73,8 +69,9 @@
 - name: debug list of subdomains
   ansible.builtin.debug:
     msg: [
-      'current nginx_subdomain_count: {{ nginx_domain_count }}',
-      'new subdomain_count: {{ sub_domain_count }}',
+      'current subdomain count: {{ certbot_domain_count }}',
+      'new subdomain count: {{ sub_domain_count }}',
+      ' ',
       'new subdomains list: {{ sub_domains }}',
       'certbot subdomain string: {{ sub_domain_str }}'
     ]
@@ -88,8 +85,7 @@
 - name: request new or update certificates if count does not match
   ansible.builtin.command:
     cmd: 'certbot certonly --standalone --non-interactive --expand --agree-tos -m "{{ certbot_email }}" -d "{{ sub_domain_str }}"'
-  when:
-    not certbot_dir.stat.exists or nginx_domain_count < sub_domain_count
+  when: certbot_domain_count != sub_domain_count
   register: certbot_certonly_output
 
 - name: output of certbot
