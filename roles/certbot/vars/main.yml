@@ -4,4 +4,4 @@
 app_name: ac
 app_port: 8772
 
-certbot_subdomain_prefixes: "['www', 'ac', 'stracker', 'simview']"
+certbot_subdomain_prefixes: "['www', 'ac', 'stracker', 'simview', 'munin']"

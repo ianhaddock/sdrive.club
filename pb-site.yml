@@ -32,6 +32,7 @@
     - users
     - systemd
     - fail2ban
+    - munin
     - steamcmd
     - acserver
     - certbot
