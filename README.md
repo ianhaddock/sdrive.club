@@ -12,7 +12,7 @@ As used on my server, [Spirited Drive Club][4]. Which hosts over 290 Discord cha
 * Automated backups
 * postgresql enabled sTracker
 * mariaDB enabled Simview
-* fail2ban login monitoring
+* fail2ban access monitoring
 * munin resource monitoring
 * kernel tuned for low latency
 * systemd service file app management
