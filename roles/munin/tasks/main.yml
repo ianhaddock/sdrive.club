@@ -103,7 +103,7 @@
   become_user: "{{ app_user }}"
   ansible.builtin.cron:
     name: munin munin-cron job
-    minute: "*/5"
+    minute: "*/15"
     job: "if [ -x /usr/bin/munin-cron ]; then /usr/bin/munin-cron; fi"
 
 - name: setup nginx munin subdomain
