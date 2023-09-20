@@ -49,22 +49,25 @@ echo $$ > $PIDFILE
 echo "$(date +%Y%m%d:%H%M%S): Starting backup."
 
 # archive app except license file and content folder
+cd /usr/local/sbin
 zip -y \
   -r \
   {{ backup_path }}/acsm_"$version"_"$datestamp".zip \
-  "$acmanager" \
-  "$acserver" \
-  -x "$acserver"/content/\* \
+  acmanager \
+  acserver \
+  -x acserver/content/\* \
   \*.License \
   \*.zip \
   -li \
   -lf {{ backup_path }}/acsm_"$version"_"$datestamp".log
 
 # archive content folder by updating yesterday's zip
+cd "$acserver"
 zip -y \
   -r \
+  -li \
   {{ backup_path }}/acsm_content.zip \
-  {{ acserver_path }}/content
+  content
 
 # exit
 echo "$(date +%Y%m%d:%H%M%S): Backup complete. Exiting"

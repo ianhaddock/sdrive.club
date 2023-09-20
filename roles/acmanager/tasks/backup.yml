@@ -1,21 +1,5 @@
 # backup acserver and acmanager
 ---
-- name: set timestamp for backup
-  ansible.builtin.command: 'date +%Y%m%d.%H%M%S'
-  register: timestamp
-
-- name: add helper script for version tracking
-  ansible.builtin.template:
-    src: get_version.sh.j2
-    dest: "{{ acmanager_path }}/get_version.sh"
-    owner: "{{ assetto_user }}"
-    group: "{{ assetto_group }}"
-    mode: '0740'
-
-- name: run script to get installed version of acsm
-  ansible.builtin.command: '{{ acmanager_path }}/get_version.sh'
-  register: acsm_version
-
 - name: create backup directory
   ansible.builtin.file:
     path: "{{ backup_path }}"
@@ -24,27 +8,54 @@
     group: "{{ assetto_group }}"
     mode: '0750'
 
-- name: backup current AC Server Manager install
-  ansible.builtin.archive:
-    path:
-      - "{{ acserver_path }}/*"
-      - "{{ acmanager_path }}/*"
-    dest: "{{ backup_path }}/acsm_{{ acsm_version.stdout }}_{{ timestamp.stdout }}.zip"
-    exclude_path:
-      - "{{ acserver_path }}/content"
-      - "{{ acmanager_path }}/acsm_*.zip"
-      - "{{ acmanager_path }}/ACSM.License"
+- name: add helper script for backups
+  ansible.builtin.template:
+    src: get_version.sh.j2
+    dest: "{{ acmanager_path }}/get_version.sh"
     owner: "{{ assetto_user }}"
     group: "{{ assetto_group }}"
-    mode: '0644'
-    format: zip
-    ### keep the file globs on the paths for the excludes to work
+    mode: '0740'
 
-- name: backup game content directory; cars, tracks, weather
-  ansible.builtin.archive:
-    path: "{{ acserver_path }}/content"
-    dest: "{{ backup_path }}/acsm_content.zip"
+- name: add backup script
+  ansible.builtin.template:
+    src: daily_backup.sh.j2
+    dest: "{{ acmanager_path }}/daily_backup.sh"
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
+    mode: '0740'
+
+- name: add backup restore script
+  ansible.builtin.template:
+    src: 'restore_acsm.sh.j2'
+    dest: "{{ backup_path }}/acsm_restore.sh"
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
+    mode: '0740'
+
+- name: create daily backup acsm log file
+  ansible.builtin.file:
+    state: touch
+    path: /var/log/daily_backup_acsm.log
     owner: "{{ assetto_user }}"
     group: "{{ assetto_group }}"
     mode: '0644'
-    format: zip
+
+- name: add cron job for backup script
+  become_user: "{{ assetto_user }}"
+  ansible.builtin.cron:
+    name: daily acsm backup
+    minute: "15"
+    hour: "{{ backup_hours }}"
+    job: "{{ acmanager_path }}/daily_backup.sh >> /var/log/daily_backup_acsm.log 2>&1"
+
+  # why? ansible.archive will not keep symlinks when saving to zip
+- name: run backup script on current AC server install
+  become_user: "{{ assetto_user }}"
+  ansible.builtin.command:
+    cmd: '{{ acmanager_path }}/daily_backup.sh'
+  when: not acmanager_path_state.changed
+  register: backup_script_state
+
+    #- name: output of backup script
+    #  ansible.builtin.debug:
+    #    msg: "{{ backup_script_state }}"

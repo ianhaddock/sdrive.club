@@ -66,6 +66,14 @@
     group: "{{ assetto_group }}"
     remote_src: true
 
+- name: update file permissions
+  ansible.builtin.file:
+    dest: "{{ acserver_path }}/stracker"
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
+    state: directory
+    recurse: true
+
       # - name: update stracker file permissions
       #   ansible.builtin.file:
       #     dest: "{{ acserver_path }}/stracker/stracker_linux_x86"

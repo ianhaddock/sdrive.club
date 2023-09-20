@@ -1,5 +1,0 @@
-# daily backup vars
----
-
-#backup_hours: '4'
-  #backup_path: '/home/{{ assetto_user }}/backups'

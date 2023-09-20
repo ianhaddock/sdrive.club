@@ -1,0 +1,60 @@
+#!/bin/bash -e
+# installed {{ ansible_date_time.date }}
+
+function usage() {
+  echo ""
+  echo "This restores ACSM files from backup."
+  echo "Pass the daily backup file, and the content backup to it."
+  echo "E.x. ./acsm_restore.sh acsm_v2.x.x_yyyymmdd.hhmmss.zip acsm_content.zip"
+  echo ""
+}
+
+acsm_backup="$1"
+acsm_content="$2"
+PIDFILE=/tmp/acsm_restore.PID
+
+if [ $# != 2 ]; then
+  usage;
+  exit 1;
+elif [ $(whoami) != "{{ assetto_user }}" ]; then
+  usage;
+  echo "ERROR: Run this script as the {{ assetto_user }} user. Exiting.";
+  exit 1;
+elif [ ! -f $mysql_dump ]; then
+  usage;
+  echo "ERROR: ACSM backup zip not found. Exiting.";
+  exit 1;
+elif [ ! -f $cache_dir ]; then
+  usage;
+  echo "ERROR: Content zip not found. Exiting.";
+  exit 1;
+elif [ -f $PIDFILE ]; then
+    echo "WARNING: script already running. Exiting.";
+    exit 0;
+elif [ $(pidof -s server-manager) ]; then
+    echo "ERROR: ACSM must be stopped before restoring files. Exiting.";
+    exit 0;
+elif [ $(pidof -s simview) ]; then
+    echo "ERROR: Simview http and writers must be stopped before restoring files. Exiting.";
+    exit 0;
+fi
+
+# remove PID file on exit
+trap 'rm -f $PIDFILE' EXIT
+echo $$ > $PIDFILE
+
+echo "$(date +%Y%m%d.%H%M%S): Restoring ACSM files.";
+unzip -o "$acsm_backup" -d /usr/local/sbin/
+
+echo "$(date +%Y%m%d.%H%M%S): Restoring ACSM content.";
+unzip -o "$acsm_content" -d {{ acserver_path }}
+
+# exit
+echo "$(date +%Y%m%d:%H%M%S): Restore complete. Exiting"
+echo "Time taken: $SECONDS seconds.";
+times;
+echo "";
+
+rm -f "$PIDFILE";
+
+exit 0;
