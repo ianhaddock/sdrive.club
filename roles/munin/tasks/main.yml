@@ -41,6 +41,22 @@
   ansible.builtin.command:
     cmd: 'htpasswd -bc /etc/nginx/htpasswd {{ munin_username }} {{ munin_password }}'
 
+- name: add munin-graph script
+  ansible.builtin.template:
+    src: 'munin-graph.j2'
+    dest: '/usr/bin/munin-graph'
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: add munin-cron script
+  ansible.builtin.template:
+    src: 'munin-cron.j2'
+    dest: '/usr/bin/munin-cron'
+    owner: root
+    group: root
+    mode: '0755'
+
 - name: add rrdcached systemd service template
   ansible.builtin.template:
     src: 'systemd_rrdcached_service.j2'
@@ -99,12 +115,25 @@
     enabled: true
     state: restarted
 
+- name: enable and start munin
+  ansible.builtin.systemd:
+    name: munin
+    enabled: true
+    state: restarted
+
 - name: add cron job for munin-cron
   become_user: "{{ app_user }}"
   ansible.builtin.cron:
     name: munin munin-cron job
-    minute: "*/15"
+    minute: "*/5"
     job: "if [ -x /usr/bin/munin-cron ]; then /usr/bin/munin-cron; fi"
+
+- name: add cron job for munin-cron
+  become_user: "{{ app_user }}"
+  ansible.builtin.cron:
+    name: munin munin-graph job
+    minute: "7"
+    job: "if [ -x /usr/bin/munin-graph ]; then /usr/bin/munin-graph; fi"
 
 - name: setup nginx munin subdomain
   ansible.builtin.template:
