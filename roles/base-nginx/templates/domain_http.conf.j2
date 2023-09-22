@@ -5,6 +5,11 @@ server {
   client_max_body_size 256m;
 
 
+  error_page 401 /401/401-error.html;
+  location /401 {
+        root {{ nginx_path }}/error_pages;
+  }
+
   error_page 404 /404/404-error.html;
   location /404/ {
         root {{ nginx_path }}/error_pages;
