@@ -1,4 +1,5 @@
 # munin install main.yml
+# https://raymii.org/s/tutorials/Munin_optimalization_on_Debian.html
 ---
 
 - name: install munin packages
@@ -126,14 +127,22 @@
   ansible.builtin.cron:
     name: munin munin-cron job
     minute: "*/5"
-    job: "if [ -x /usr/bin/munin-cron ]; then /usr/bin/munin-cron; fi"
+    job: "if [ -x /usr/bin/munin-cron ]; then /bin/ionice -c 3 /bin/nice -n 19 /usr/bin/munin-cron; fi"
 
-- name: add cron job for munin-cron
+- name: add cron job for munin-graph
   become_user: "{{ app_user }}"
   ansible.builtin.cron:
     name: munin munin-graph job
     minute: "7"
-    job: "if [ -x /usr/bin/munin-graph ]; then /usr/bin/munin-graph; fi"
+    job: "if [ -x /usr/bin/munin-graph ]; then /bin/ionice -c 3 /bin/nice -n 19 /usr/bin/munin-graph; fi"
+
+- name: setup nginx status page for munin
+  ansible.builtin.template:
+    src: 'nginx_status.conf.j2'
+    dest: '/etc/nginx/conf.d/nginx_status.conf'
+    owner: nginx
+    group: nginx
+    mode: '0640'
 
 - name: setup nginx munin subdomain
   ansible.builtin.template:

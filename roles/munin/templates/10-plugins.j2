@@ -68,8 +68,8 @@ env.fields update limits
 
 [mysql*]
 #env.mysqlopts -u {{ assetto_user }} 
-env.mysqluser {{ assetto_user }}
-env.enb.mysqlpassword NeedToAddROUser
+env.mysqluser simview
+env.mysqlpassword {{ simviewdb_pass }}
 
 [mysql_replication]
 env.slave_io_running_warning 0.5
@@ -80,6 +80,9 @@ env.seconds_behind_master_critical 86400
 [mysql_wsrep_flow_paused_ns]
 env.wsrep_flow_control_paused_ns_warning 200000000
 env.wsrep_flow_control_paused_ns_critical 10000000000
+
+[nginx*]
+env.url http://127.0.0.1/nginx_status
 
 [nsd_requests]
 user root
