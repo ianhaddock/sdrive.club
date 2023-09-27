@@ -4,7 +4,8 @@
 
 ### As implemented
 
-* uses rrdcached
+* rrdcached enabled
+* graphs generated hourly
 * automatic plugin update
 * password secured gui
 

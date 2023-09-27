@@ -1,6 +1,10 @@
 # group vars
 ---
 
+verbose: true
+zram_ratio: 0.95
+cert_enabled: true
+
 assetto_user: assetto
 assetto_uid: 1210
 assetto_group: assetto
@@ -8,6 +12,9 @@ assetto_gid: 1210
 
 app_name: ac
 app_port: 8772
+
+containers: false
+containers_path: '/mnt/containers'
 
 simview_receive_port: 130
 stracker_proxy_plugin_local_port: 142
