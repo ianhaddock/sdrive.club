@@ -1,0 +1,61 @@
+### example host_vars file ###
+#
+# The below values need to be set for your specific setup
+#
+###
+---
+public_key: example.pub
+hostname: 'example'
+outbound_route: '10.1.10.1'
+
+files_server: 'https://files.example.site'
+backup_pub_key: 'example_daily_backup.pub'
+
+# nginx
+site_fqdn: 'example.site'
+certbot_email: "example_user@gmail.com"
+admin_email: 'admin@{{ site_fqdn }}'
+
+# fail2ban
+ignore_ip_address: '192.168.0.1/32'
+
+# server options
+game_server_name: 'EXAMPLE GAME SERVER'
+game_server_short_name: 'egs'
+admin_chat_password: "example"
+site_banner: 'https://www.{{ site_fqdn }}/site_banner.png'
+server_icon: 'https://www.{{ site_fqdn }}/site_128x128.png'
+favicon_icon: 'https://www.{{ site_fqdn }}/site_32x32.png'
+
+# Server Manager
+acsm_license: 'example_license.zip'
+
+# config, steamcmd
+steamcmd_user: 'example_username'
+steamcmd_password: 'example_password'
+
+# config, http settings
+http_session_key: 'big-unique-session-key-here'
+
+# config, user management
+admin_pw_reset: false
+admin_password_override: 'example_pw'
+
+# stracker plugin
+stracker_username: 'example'
+stracker_password: 'foo'
+stracker_postgres_password: 'bar'
+stracker_backup_user_password: 'baz'
+
+# kmr plugin
+kmr_web_console_password: "foo2"
+kmr_race_control_password: "example-long-password"  # 8 char+
+admin_uuids: '    "admin-steam-id",\n    ""'
+
+# simview plugin
+root_mysql_pw: 'bar2'
+simviewdb_pass: 'baz2'
+
+# munin
+munin_username: 'example'
+munin_password: 'foo3'

@@ -1,5 +1,5 @@
 # sdrive.club - Assetto Corsa Game Server
-Builds a single or multi-lobby Assetto Corsa game server on a DigitalOcean VPS. 
+Builds a multi-lobby Assetto Corsa game server on a DigitalOcean VPS. 
 
 As used on the [Spirited Drive Club][4]. Hosting 290+ users who have participated in over 6,300 events with more than 600 other racers online so far this year. 
 
@@ -12,14 +12,15 @@ As used on the [Spirited Drive Club][4]. Hosting 290+ users who have participate
 * [Simview][6]
 
 ### Features:
-* kernel tuned for low latency
 * postgresql enabled sTracker
 * mariaDB enabled Simview
 * fail2ban access monitoring
 * munin resource monitoring
 * daily backups
 * backup restore tools
+* kernel tuned for low latency
 * systemd app mangement
+* zRam memory compression
 * nginx reverse proxy with https
 
 ### Uses:
@@ -28,20 +29,30 @@ As used on the [Spirited Drive Club][4]. Hosting 290+ users who have participate
 * Ansible installation
 * [Letsencrypt][3] certificates
 * CentOS Stream 9 base OS
-* zRam memory compression
 
 ### Requires:
 * Assetto Corsa Server Manager v2 license
 * DigitalOcean VPS
 * DigitalOcean reserved IP
 
-### Plugin Schema:
+### Setup:
 
-<p align="center">
-  <img width="90%" height="auto" src="https://raw.githubusercontent.com/ianhaddock/acmanager/main/acmanager-schema.png">
-  <img width="90%" height="auto" src="http://git.ianhaddock.org/ian/sdrive.club/raw/branch/main/roles/acmanager/acmanager-schema.png">
-</p>
+```
+# pull the repo from git
+$ git pull https://git.ianhaddock.com/ian/....
 
+# install requirements
+$ ansible-galaxy install -r roles/requirements.yml
+
+# create admin account keyfile
+$ ssh-keygen -f ~/.ssh/acgs_admin
+
+# copy the example host_vars file and rename it to your target ip address
+cp host_vars/example host_vars/192.168.0.1.yml
+
+....
+
+```
 
 
 [1]: https://github.com/JustaPenguin/assetto-server-manager

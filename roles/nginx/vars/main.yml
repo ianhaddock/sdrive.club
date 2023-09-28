@@ -1,6 +1,0 @@
-# nginx role vars
----
-
-app_name: ac
-app_port: 8772
-

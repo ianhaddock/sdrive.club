@@ -36,7 +36,6 @@
     - steamcmd
     - acserver
     - certbot
-    - nginx
     - acmanager
     - kmr
     - stracker
