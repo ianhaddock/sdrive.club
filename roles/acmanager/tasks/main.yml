@@ -29,6 +29,9 @@
     mode: '0755'
   register: acmanager_path_state
 
+- name: install nginx configs
+  ansible.builtin.import_tasks: nginx.yml
+
 - name: setup backups and backup existing install if not new
   ansible.builtin.import_tasks: backup.yml
 
