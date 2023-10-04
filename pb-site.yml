@@ -32,7 +32,6 @@
     - users
     - systemd
     - fail2ban
-    - munin
     - steamcmd
     - acserver
     - certbot
@@ -40,6 +39,7 @@
     - kmr
     - stracker
     - simview
+    - munin
 
   handlers:
     - name: reload nginx

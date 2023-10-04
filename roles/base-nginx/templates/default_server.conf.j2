@@ -1,7 +1,7 @@
 server {
   listen 443 ssl;
   listen [::]:443 ssl;
-  server_name {{ site_fqdn }};
+  server_name default_server;
   client_max_body_size 256m;
 
 
@@ -21,9 +21,9 @@ server {
   }
 
   location / {
-    root {{ nginx_path }}/{{ site_fqdn }};
+    root {{ nginx_path }};
 
-    index index.html;
+    index maintenance_page.html;
   }
 
   ssl_certificate /etc/letsencrypt/live/{{ site_fqdn }}/fullchain.pem;
@@ -33,14 +33,34 @@ server {
 
 }
 
+
 server {
   listen 80;
   listen [::]:80;
-  server_name {{ site_fqdn }};
+  server_name default_server;
   client_max_body_size 256m;
 
-  location  / {
-     deny all;
-     return 301 https://{{ site_fqdn }}$request_uri;
+
+  error_page 401 /401/401-error.html;
+  location /401 {
+        root {{ nginx_path }}/error_pages;
   }
+
+  error_page 404 /404/404-error.html;
+  location /404 {
+        root {{ nginx_path }}/error_pages;
+  }
+
+  error_page 500 502 503 504 /50x/50x-error.html;
+  location /50x {
+        root {{ nginx_path }}/error_pages;
+  }
+
+
+  location / {
+    root {{ nginx_path }};
+
+    index maintenance_page.html;
+  }
+
 }

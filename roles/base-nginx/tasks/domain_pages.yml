@@ -37,19 +37,29 @@
     group: "{{ nginx_group }}"
     mode: '0640'
 
-      # - name: add custom index page
-      #   ansible.builtin.template:
-      #     src: index.html.j2
-      #     dest: "{{ nginx_path }}/{{ app_name }}.{{ site_fqdn }}/index.html"
-      #     owner: "{{ nginx_user }}"
-      #     group: "{{ nginx_group }}"
-      #     mode: u=rwX,g=rX,o=rX
-      #   register: build_debug
+- name: add custom maintenace page
+  ansible.builtin.template:
+    src: maintenance_page.html.j2
+    dest: "{{ nginx_path }}/maintenance_page.html"
+    owner: "{{ nginx_user }}"
+    group: "{{ nginx_group }}"
+    mode: '0640'
 
-      # - name: debug
-      #   ansible.builtin.debug:
-      #     msg: "{{ build_debug }}"
-      #   when: verbose
+- name: add maintenance page config file
+  ansible.builtin.template:
+    src: default_server.conf.j2
+    dest: "/etc/nginx/conf.d/default_server.conf"
+    owner: "{{ nginx_user }}"
+    group: "{{ nginx_group }}"
+    mode: '0640'
+
+- name: replace nginx defualt index page
+  ansible.builtin.template:
+    src: index.html.j2
+    dest: "{{ nginx_path }}/index.html"
+    owner: "{{ nginx_user }}"
+    group: "{{ nginx_group }}"
+    mode: u=rwX,g=rX,o=rX
 
 - name: add robots.txt
   ansible.builtin.copy:
@@ -59,32 +69,20 @@
     group: "{{ nginx_group }}"
     mode: u=rwX,g=rX,o=rX
 
-      # - name: add domain http conf
-      #   ansible.builtin.template:
-      #     src: domain_http.conf.j2
-      #     dest: "{{ nginx_conf }}/{{ app_name }}.{{ site_fqdn }}.conf"
-      #     owner: "{{ nginx_user }}"
-      #     group: "{{ nginx_group }}"
-      #     mode: u=rwX,g=rX,o=rX
-      #   when: not cert_enabled
-      #   register: build_debug
+- name: add domain http conf
+  ansible.builtin.template:
+    src: domain_http.conf.j2
+    dest: "{{ nginx_conf }}/{{ site_fqdn }}.conf"
+    owner: "{{ nginx_user }}"
+    group: "{{ nginx_group }}"
+    mode: u=rwX,g=rX,o=rX
+  when: not cert_enabled
 
-      # - name: debug
-      #   ansible.builtin.debug:
-      #     msg: "{{ build_debug }}"
-      #   when: verbose
-
-    # - name: add domain https conf
-    #   ansible.builtin.template:
-    #     src: domain_https.conf.j2
-    #     dest: "{{ nginx_conf }}/{{ app_name }}.{{ site_fqdn }}.conf"
-    #     owner: "{{ nginx_user }}"
-    #     group: "{{ nginx_group }}"
-    #     mode: u=rwX,g=rX,o=rX
-    #   when: cert_enabled
-    #   register: build_debug
-    #
-    # - name: debug
-    #   ansible.builtin.debug:
-    #     msg: "{{ build_debug }}"
-    #   when: verbose
+- name: add domain https conf
+  ansible.builtin.template:
+    src: domain_https.conf.j2
+    dest: "{{ nginx_conf }}/{{ site_fqdn }}.conf"
+    owner: "{{ nginx_user }}"
+    group: "{{ nginx_group }}"
+    mode: u=rwX,g=rX,o=rX
+  when: cert_enabled
