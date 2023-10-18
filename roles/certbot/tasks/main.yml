@@ -27,6 +27,30 @@
     path: '/etc/letsencrypt/live/{{ site_fqdn }}'
   register: certbot_dir
 
+- name: install cert renew script
+  ansible.builtin.template:
+    src: certbot_renew.sh
+    dest: /usr/sbin/cerbot_renew.sh
+    owner: root
+    group: root
+    mode: '0740'
+
+- name: create cerbot cert renew logfile
+  ansible.builtin.file:
+    path: "/var/log/cerbot_renew.log"
+    owner: root
+    group: root
+    state: touch
+
+- name: add cert renew to root crontab
+  become: true
+  ansible.builtin.cron:
+    name: "cerbot renew"
+    day: 3
+    hour: 3
+    minute: 3
+    job: "/usr/sbin/cerbot_renew.sh >> /var/log/cerbot_renew.log"
+
 - name: add domain check script
   ansible.builtin.template:
     src: 'get_domain_count.sh.j2'
