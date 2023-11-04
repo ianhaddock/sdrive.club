@@ -16,9 +16,8 @@ Vagrant.configure("2") do |config|
     acserver.vm.box = "bento/centos-stream-9"
     acserver.vm.hostname = "acserver"
     acserver.vm.define "acserver"  # update default vm definition name
-    acserver.vm.hostname = "acserver"
-#    acserver.vm.network "private_network",  # private for ansible
-#      ip: "192.168.40.46"
+    acserver.vm.network "private_network",  # private for ansible
+      ip: "192.168.40.46"
     acserver.vm.network "public_network",  # public network
       use_dhcp_assigned_default_route: true
     acserver.vm.post_up_message = "AC Server"
