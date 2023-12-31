@@ -1,7 +1,5 @@
 # sdrive.club - Assetto Corsa Game Server
-Builds a multi-lobby Assetto Corsa game server on a DigitalOcean VPS. 
-
-As used on the [Spirited Drive Club][4]. Hosting 290+ users who have participated in over 6,300 events with more than 600 other racers online so far this year. 
+Builds a multi-lobby Assetto Corsa game server on a DigitalOcean VPS. As used on the [Spirited Drive Club][4].
 
 ### Assetto Corsa Manager:
 * [Assetto Corsa Server Manager v2][1]
@@ -34,6 +32,11 @@ As used on the [Spirited Drive Club][4]. Hosting 290+ users who have participate
 * Assetto Corsa Server Manager v2 license
 * DigitalOcean VPS
 * DigitalOcean reserved IP
+
+### Schema:
+<p align="center">
+  <img width="80%" height="auto" src="https://raw.githubusercontent.com/ianhaddock/acmanager/main/acmanager-schema.png">
+</p>
 
 ### Setup:
 
