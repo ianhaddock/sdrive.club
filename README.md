@@ -35,7 +35,7 @@ Builds a multi-lobby Assetto Corsa game server on a DigitalOcean VPS. As used on
 
 ### Schema:
 <p align="center">
-  <img width="80%" height="auto" src="https://raw.githubusercontent.com/ianhaddock/acmanager/main/acmanager-schema.png">
+  <img width="80%" height="auto" src="https://raw.githubusercontent.com/ianhaddock/sdrive.club/main/roles/acmanager/acmanager-schema.png">
 </p>
 
 ### Setup:
