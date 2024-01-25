@@ -87,33 +87,6 @@
   ansible.builtin.import_tasks: mariadb.yml
   when: simview_path_state.changed
 
-- name: pull pit boundries from github
-  ansible.builtin.unarchive:
-    src: "{{ simview_pit_boundaries_zip }}"
-    dest: "{{ app_path }}/simview_cache/"
-    owner: "{{ assetto_user }}"
-    group: "{{ assetto_group }}"
-    remote_src: true
-
-- name: copy tracks folder to simview cache folder
-  ansible.builtin.copy:
-    src: "{{ app_path }}/simview_cache/simview_pit_boundaries-main/tracks"
-    dest: "{{ app_path }}/simview_cache/"
-    remote_src: true
-
-- name: remove extra files from github pull
-  ansible.builtin.file:
-    path: "{{ app_path }}/simview_cache/simview_pit_boundaries-main"
-    state: absent
-
-- name: update permissions on pit boundary files
-  ansible.builtin.file:
-    path: "{{ app_path }}/simview_cache/tracks"
-    owner: "{{ assetto_user }}"
-    group: "{{ assetto_group }}"
-    mode: 'u=rwX,g=rX,o=rX'
-    recurse: true
-
 # - name: insert config.toml for single server setup
 
 - name: add simview directory
