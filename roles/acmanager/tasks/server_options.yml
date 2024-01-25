@@ -22,6 +22,13 @@
     state: present
   when: not cert_enabled
 
+- name: set client interval
+  ansible.builtin.lineinfile:
+    dest: "{{ store_path }}/server_options.json"
+    regex: '^  "ClientSendIntervalInHertz": 18,$'
+    line: '  "ClientSendIntervalInHertz": {{ client_send_interval }},'
+    state: present
+
 - name: set lobby http port
   ansible.builtin.lineinfile:
     dest: "{{ store_path }}/server_options.json"

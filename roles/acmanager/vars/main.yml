@@ -2,3 +2,5 @@
 ---
 app_name: acsm
 app_port: 8772
+
+client_send_interval: 20
