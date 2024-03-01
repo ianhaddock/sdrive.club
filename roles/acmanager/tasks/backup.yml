@@ -8,6 +8,14 @@
     group: "{{ assetto_group }}"
     mode: '0750'
 
+- name: if backup directory exists, update file ownership for any files in directory
+  ansible.builtin.file:
+    path: "{{ backup_path }}"
+    state: directory
+    recurse: true
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
+
 - name: add helper script for backups
   ansible.builtin.template:
     src: get_version.sh.j2
