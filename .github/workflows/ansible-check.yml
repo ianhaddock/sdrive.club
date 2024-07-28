@@ -3,9 +3,9 @@ run-name: Run Syntax Check on Ansible Playbook
 
 on:
   push:
-    branches: [ $default-branch, dev ]
+    branches: [ $default-branch ]
     # Publish semver tags as releases.
-    # tags: [ 'v*.*.*' ]
+    tags: [ 'v*.*.*' ]
 
 env:
   #
