@@ -3,8 +3,8 @@
 - name: install postgres
   ansible.builtin.package:
     name:
-      - postgresql-server-13.11
-      - python3-pip-21.2.3
+      - postgresql-server
+      - python3-pip
     state: present
   register: postgres_install_state
 
@@ -31,7 +31,7 @@
     insertafter: '# TYPE  DATABASE        USER            ADDRESS                 METHOD'
     state: present
 
-- name: set listen address to localhost 
+- name: set listen address to localhost
   ansible.builtin.lineinfile:
     dest: "/var/lib/pgsql/data/postgresql.conf"
     line: "listen_addresses = 'localhost'"
