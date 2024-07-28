@@ -1,3 +1,5 @@
+[![Ansible Yaml Check](https://github.com/ianhaddock/sdrive.club/actions/workflows/ansible-check.yml/badge.svg)](https://github.com/ianhaddock/sdrive.club/actions/workflows/ansible-check.yml)
+
 # sdrive.club - Assetto Corsa Game Server
 Builds a multi-lobby Assetto Corsa game server on a DigitalOcean VPS. As used on the [Spirited Drive Club][4].
 
