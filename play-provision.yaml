@@ -1,4 +1,4 @@
-# Staging Provision
+# provision playbook
 ---
 - name: common settings
   hosts: all
@@ -6,4 +6,4 @@
   gather_facts: true
 
   roles:
-  - common
+    - common

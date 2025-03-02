@@ -1,4 +1,4 @@
-# Update Playbook
+# update playbook
 ---
 ### all hosts ###
 
@@ -9,7 +9,6 @@
   roles:
     - common
     - sshd
-    - zram
 
   handlers:
     - name: restart system
