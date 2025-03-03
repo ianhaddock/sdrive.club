@@ -1,6 +1,6 @@
 # sdrive playbook
 ---
-- hosts: acserver
+- hosts: sdrive
   become: true
 
   roles:

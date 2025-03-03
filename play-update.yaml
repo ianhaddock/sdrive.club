@@ -2,7 +2,7 @@
 ---
 ### all hosts ###
 
-- hosts: all
+- hosts: sdrive
   gather_facts: true
   become: true
 

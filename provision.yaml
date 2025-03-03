@@ -1,0 +1,12 @@
+# provision play
+---
+- name: provision
+  hosts: all
+  become: true
+  gather_facts: true
+
+  vars:
+    - public_key: assetto.pub
+
+  roles:
+    - common
