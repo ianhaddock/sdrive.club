@@ -46,7 +46,7 @@
   become: true
   ansible.builtin.cron:
     name: "cerbot renew"
-    day: 3
+    day: 2,28
     hour: 3
     minute: 3
     job: "/usr/sbin/cerbot_renew.sh >> /var/log/cerbot_renew.log"
@@ -106,21 +106,21 @@
     name: nginx
     state: stopped
 
-- name: request new or update certificates if count does not match
-  ansible.builtin.command:
-    cmd: 'certbot certonly --standalone --non-interactive --expand --agree-tos -m "{{ certbot_email }}" -d "{{ sub_domain_str }}"'
-  when: certbot_domain_count != sub_domain_count
-  register: certbot_certonly_output
-
-- name: output of certbot
-  ansible.builtin.debug:
-    msg: "certbot output {{ certbot_certonly_output }}"
-  when: verbose
+    #- name: request new or update certificates if count does not match
+    #  ansible.builtin.command:
+    #    cmd: 'certbot certonly --standalone --non-interactive --expand --agree-tos -m "{{ certbot_email }}" -d "{{ sub_domain_str }}"'
+    #  when: certbot_domain_count != sub_domain_count
+    #  register: certbot_certonly_output
+    #
+    #- name: output of certbot
+    #  ansible.builtin.debug:
+    #    msg: "certbot output {{ certbot_certonly_output }}"
+    #  when: verbose
 
 - name: update existing letsencrypt certificates when path exists
   ansible.builtin.command:
     cmd: 'certbot renew'
-  when: certbot_dir.stat.exists and not certbot_certonly_output.changed
+    #  when: certbot_dir.stat.exists and not certbot_certonly_output.changed
   register: certbot_renew_output
 
 - name: output of certbot renew
