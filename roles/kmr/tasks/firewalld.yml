@@ -9,6 +9,7 @@
   ansible.builtin.firewalld:
     port: "{{ kmr_web_stats_port_prefix }}{{ item }}/tcp"
     state: enabled
+    permanent: true
   with_sequence: start=0 end={{ server_count -1 }} format=%02x
 
     ### these are internal plugin ports
@@ -28,4 +29,5 @@
   ansible.builtin.firewalld:
     port: "{{ kmr_ac_app_link_prefix }}{{ item }}/udp"
     state: enabled
+    permanent: true
   with_sequence: start=0 end={{ server_count -1 }} format=%02x

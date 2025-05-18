@@ -8,12 +8,6 @@
 # https://docs.digitalocean.com/reference/api/metadata-api/#operation/getReservedIpIpv4Active
 # https://stackoverflow.com/questions/35610586/how-to-get-public-ip-address-in-ubuntu
 #
-# Why:
-# If the VPS is restarted, the firewall and services are set to not open up
-# and start. Instead, running the ansible play will setup thesystem with the
-# latest configuration. This way if something bounces the box unexpectedly,
-# it boots to a simple state with just port 22 open for ssh.
-#
 ---
 - name: set outbound traffic ip to reserved IP
   become: true
