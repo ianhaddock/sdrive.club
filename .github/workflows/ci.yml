@@ -1,0 +1,31 @@
+# CI Github Action
+---
+
+name: ci
+
+on:
+  pull_request:
+    branches: [main]
+
+env:
+  PLAYBOOK: play-sdrive.yml
+
+permissions:
+  contents: read
+
+jobs:
+  test-on-pull-request:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v4
+
+      - name: install ansible with pip
+        run: |
+          sudo apt update
+          sudo apt install -y python3-pip
+          sudo pip3 install ansible
+
+      - name: run syntax check
+        run: ansible-playbook ${{ env.PLAYBOOK }} -i development --syntax-check
