@@ -131,6 +131,7 @@
   ansible.builtin.firewalld:
     port: "{{ simview_websocket_port_prefix}}{{ item }}/tcp"
     state: enabled
+    permanent: true
   with_sequence: start=0 end={{ server_count -1 }} format=%02x
 
 - name: set nginx proxy
