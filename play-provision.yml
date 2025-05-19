@@ -1,0 +1,9 @@
+# play-provision.yml
+---
+- name: provision
+  hosts: all
+  become: true
+  gather_facts: true
+
+  roles:
+    - common
