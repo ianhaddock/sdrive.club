@@ -103,24 +103,24 @@
 - name: request new or update certificates if count does not match
   ansible.builtin.command:
     cmd: 'certbot certonly --dry-run --standalone --non-interactive --expand --agree-tos -m "{{ certbot_email }}" -d "{{ sub_domains }}"'
-  when: certbot_domain_count != sub_domain_count
+  when: cert_enabled and certbot_domain_count != sub_domain_count
   register: certbot_certonly_output
 
 - name: output of certbot
   ansible.builtin.debug:
     msg: "certbot output {{ certbot_certonly_output }}"
-  when: verbose
+  when: cert_enabled and verbose
 
 - name: update existing letsencrypt certificates when path exists
   ansible.builtin.command:
     cmd: 'certbot renew'
-  when: certbot_dir.stat.exists and not certbot_certonly_output.changed
+  when: cert_enabled and ( certbot_dir.stat.exists and not certbot_certonly_output.changed )
   register: certbot_renew_output
 
 - name: output of certbot renew
   ansible.builtin.debug:
     msg: "certbot renew output {{ certbot_renew_output }}"
-  when: verbose
+  when: cert_enabled and  verbose
 
 - name: start nginx if stopped for certs
   ansible.builtin.service:
