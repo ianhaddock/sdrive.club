@@ -1,9 +1,13 @@
 #!/bin/bash -e
 # pulls version from the changelog
 
-version="$(cat {{ acmanager_path }}/CHANGELOG.txt | grep v. | head -n1)"
-
-state=$?
+if [ -f {{ acmanager_path }}/CHANGELOG.txt ]; then
+    version="$(cat {{ acmanager_path }}/CHANGELOG.txt | grep v. | head -n1)"
+    state=$?
+else
+    version=0
+    state=0
+fi
 
 echo "$version"
 
