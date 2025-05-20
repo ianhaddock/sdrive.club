@@ -12,7 +12,8 @@
     owner: root
     group: root
     mode: '0440'
-  register: custom_css_status
+  ignore_errors: true
+  register: pull_custom_css
 
 - name: if no custom css, use default
   ansible.builtin.copy:
@@ -21,7 +22,7 @@
     owner: root
     group: root
     mode: '0440'
-  when: custom_css_status.failed
+  when: pull_custom_css.failed
 
 - name: slurp custom css
   ansible.builtin.slurp:
