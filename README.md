@@ -7,7 +7,7 @@ Builds a multi-lobby Assetto Corsa game server on a DigitalOcean VPS. As used on
 * [Assetto Corsa Server Manager v2][1]
 
 ### Enabled Game Plugins:
-* [KissMyRank (KMR)][2] 
+* [KissMyRank (KMR)][2]
 * [sTracker (with pTracker support)][5]
 * [Simview][6]
 

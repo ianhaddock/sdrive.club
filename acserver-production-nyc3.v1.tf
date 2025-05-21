@@ -38,4 +38,3 @@ resource "digitalocean_reserved_ip_assignment" "acserver" {
   ip_address = digitalocean_reserved_ip.acserver.ip_address
   droplet_id = digitalocean_droplet.acserver.id
 }
-

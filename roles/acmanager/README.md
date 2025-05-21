@@ -13,4 +13,3 @@
 <p align="center">
   <img width="90%" height="auto" src="https://raw.githubusercontent.com/ianhaddock/sdrive.club/main/roles/acmanager/acmanager-schema.png">
 </p>
-

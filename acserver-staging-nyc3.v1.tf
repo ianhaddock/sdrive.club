@@ -38,4 +38,3 @@ resource "digitalocean_reserved_ip_assignment" "testserver-nyc3" {
   ip_address = digitalocean_reserved_ip.testserver-nyc3.ip_address
   droplet_id = digitalocean_droplet.testserver-nyc3.id
 }
-

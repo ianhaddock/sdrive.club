@@ -76,4 +76,3 @@
     state: present
   with_sequence: start=0 end={{ server_count -1 }}
   when: acmm_installed.stat.exists
-

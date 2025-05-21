@@ -111,7 +111,7 @@
 - name: add stracker_options.json file if this is a new install
   ansible.builtin.template:
     src: stracker_options.json.j2
-    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/stracker_options.json"  
+    dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/stracker_options.json"
   with_sequence: start=0 end={{ server_count -1 }} format=%02x
   when: not stracker_options_file_stat.stat.exists
 
@@ -216,7 +216,7 @@
     line: '    "PostgresPassword": "{{ stracker_postgres_password }}"'
   with_sequence: start=0 end={{ server_count -1 }} format=%02x
 
-- name: set database compression 
+- name: set database compression
   ansible.builtin.lineinfile:
     dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/store.json/stracker_options.json"
     regexp: '^    "Mode": '
