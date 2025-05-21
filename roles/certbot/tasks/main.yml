@@ -102,7 +102,7 @@
 
 - name: request new or update certificates if count does not match
   ansible.builtin.command:
-    cmd: 'certbot certonly --dry-run --standalone --non-interactive --expand --agree-tos -m "{{ certbot_email }}" -d "{{ sub_domains }}"'
+    cmd: 'certbot certonly --standalone --non-interactive --expand --agree-tos -m "{{ certbot_email }}" -d "{{ sub_domains }}"'
   when: cert_enabled and certbot_domain_count != sub_domain_count
   register: certbot_certonly_output
 
@@ -120,7 +120,7 @@
 - name: output of certbot renew
   ansible.builtin.debug:
     msg: "certbot renew output {{ certbot_renew_output }}"
-  when: cert_enabled and  verbose
+  when: cert_enabled and verbose
 
 - name: start nginx if stopped for certs
   ansible.builtin.service:
