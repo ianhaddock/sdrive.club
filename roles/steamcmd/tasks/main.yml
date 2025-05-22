@@ -59,16 +59,3 @@
     owner: "{{ steam_user }}"
     group: "{{ steam_group }}"
     mode: '0640'
-
-- name: update steamcmd
-  become_user: "{{ steam_user }}"
-  ansible.builtin.command:
-    cmd: '/usr/local/sbin/steamcmd.sh +@sSteamCmdForcePlatformType \
-      windows +runscript /usr/local/sbin/steamcmd/steamcmd_script.txt'
-  when: steamcmd_path_check.changed
-  register: steam_out
-
-- name: debug steam update
-  ansible.builtin.debug:
-    msg: 'Steam update output = {{ steam_out }}'
-  when: verbose

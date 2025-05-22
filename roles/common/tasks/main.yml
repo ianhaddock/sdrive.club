@@ -2,7 +2,9 @@
 ---
 - name: print facts
   ansible.builtin.debug:
-    var: ansible_facts
+    msg:
+      - "nodename: {{ansible_facts.nodename}}"
+      - "os_family: {{ansible_os_family}}"
   when: verbose
 
 - name: enable EPEL on Fedora 8 systems

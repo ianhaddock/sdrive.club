@@ -1,31 +1,12 @@
-# Master Playbook
+# sdrive playbook
 ---
-### all hosts ###
-
-- hosts: all
-  gather_facts: true
+- hosts: sdrive
   become: true
 
   roles:
     - common
     - sshd
     - zram
-
-  handlers:
-    - name: restart system
-      ansible.builtin.reboot:
-
-    - name: reload network
-      ansible.builtin.systemd:
-        name: network
-        state: reloaded
-
-### acserver ###
-
-- hosts: acserver
-  become: true
-
-  roles:
     - outbound_ip
     - base-nginx
     - sysctl
@@ -42,6 +23,14 @@
     - munin
 
   handlers:
+    - name: restart system
+      ansible.builtin.reboot:
+
+    - name: reload network
+      ansible.builtin.systemd:
+        name: network
+        state: reloaded
+
     - name: reload nginx
       ansible.builtin.systemd:
         name: nginx

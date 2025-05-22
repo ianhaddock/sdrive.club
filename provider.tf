@@ -19,4 +19,3 @@ provider "digitalocean" {
 data "digitalocean_ssh_key" "terraform" {
   name = var.pub_key_name
 }
-

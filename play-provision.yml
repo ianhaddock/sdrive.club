@@ -1,9 +1,9 @@
-# Staging Provision
+# play-provision.yml
 ---
-- name: common settings
+- name: provision
   hosts: all
   become: true
   gather_facts: true
 
   roles:
-  - common
+    - common

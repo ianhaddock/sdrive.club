@@ -61,11 +61,14 @@ zip -y \
 
 # archive content folder by updating yesterday's zip
 cd "$acserver"
-zip -y \
-  -r \
-  -li \
-  {{ backup_path }}/acsm_content.zip \
-  content
+
+if [ -d content ]; then
+    zip -y \
+      -r \
+      -li \
+      {{ backup_path }}/acsm_content.zip \
+      content
+fi
 
 # exit
 echo "$(date +%Y%m%d:%H%M%S): Backup complete. Exiting"

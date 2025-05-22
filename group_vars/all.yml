@@ -3,9 +3,13 @@
 
 verbose: true
 zram_ratio: 0.95
+
+containers: true
+containers_path: '/mnt/containers'
+
 cert_enabled: true
 
-server_count: 4
+server_count: 2
 
 assetto_user: assetto
 assetto_uid: 1210
@@ -15,8 +19,6 @@ assetto_gid: 1210
 app_name: ac
 app_port: 8772
 
-containers: false
-containers_path: '/mnt/containers'
 
 # plugins
 simview_receive_port: 130

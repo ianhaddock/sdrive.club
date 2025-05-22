@@ -8,7 +8,7 @@
 #
 # # #
 
-datestamp="$(date +%Y%m%d)" 
+datestamp="$(date +%Y%m%d)"
 PIDFILE=/tmp/stracker_backup.PID
 used_space="$(df -k / | tail -n1 | awk '{print $5}' | sed 's/%//g')"
 drive_full=95

@@ -60,7 +60,7 @@
     #     owner: "{{ assetto_user }}"
     #     group: "{{ assetto_group }}"
     #     mode: '0755'
-    # 
+    #
     # - name: copy cert.pem
     #   ansible.builtin.copy:
     #     src: "/etc/letsencrypt/live/{{ site_fqdn }}/cert.pem"
@@ -69,7 +69,7 @@
     #     group: "{{ assetto_group }}"
     #     mode: '0600'
     #     remote_src: true
-    # 
+    #
     # - name: copy privkey.pem
     #   ansible.builtin.copy:
     #     src: "/etc/letsencrypt/live/{{ site_fqdn }}/privkey.pem"
