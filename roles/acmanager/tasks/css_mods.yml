@@ -7,7 +7,7 @@
 
 - name: pull custom css
   ansible.builtin.template:
-    url: "css_{{ site_fqdn }}.j2"
+    src: "css_{{ site_fqdn }}.j2"
     dest: /tmp/custom_css.txt
     owner: root
     group: root
