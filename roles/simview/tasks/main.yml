@@ -10,6 +10,8 @@
     group: "{{ app_group }}"
     gid: "{{ app_gid }}"
     comment: "{{ app_name }} app account"
+  tags:
+    - simview
 
 - name: add my.cnf file
   ansible.builtin.template:
@@ -18,6 +20,8 @@
     owner: "{{ assetto_user }}"
     group: "{{ assetto_group }}"
     mode: '0600'
+  tags:
+    - simview
 
 - name: create app path "{{ app_path }}"
   ansible.builtin.file:
@@ -27,6 +31,18 @@
     group: "{{ assetto_group }}"
     mode: '0755'
   register: simview_path_state
+  tags:
+    - simview
+
+- name: create app config path
+  ansible.builtin.file:
+    path: "{{ app_path }}/config"
+    state: directory
+    owner: "{{ assetto_user }}"
+    group: "{{ assetto_group }}"
+    mode: '0755'
+  tags:
+    - simview
 
 - name: copy backup script
   ansible.builtin.template:
@@ -35,6 +51,8 @@
     owner: "{{ assetto_user }}"
     group: "{{ assetto_group }}"
     mode: '0700'
+  tags:
+    - simview
 
 - name: copy restore script
   ansible.builtin.template:
@@ -43,6 +61,8 @@
     owner: "{{ assetto_user }}"
     group: "{{ assetto_group }}"
     mode: '0700'
+  tags:
+    - simview
 
 - name: add cron job for backup script
   become_user: "{{ assetto_user }}"
@@ -51,6 +71,8 @@
     minute: "10"
     hour: "{{ backup_hours }}"
     job: "{{ app_path }}/simview_backup.sh >> /var/log/daily_backup_acsm.log 2>&1"
+  tags:
+    - simview
 
     ### simview_writer apps do not support secure websocket wss connections yet ###
     # - name: create cert path
@@ -82,10 +104,14 @@
 - name: install simview
   ansible.builtin.import_tasks: install.yml
   when: simview_path_state.changed
+  tags:
+    - simview
 
 - name: config mariadb
   ansible.builtin.import_tasks: mariadb.yml
   when: simview_path_state.changed
+  tags:
+    - simview
 
 # - name: insert config.toml for single server setup
 
@@ -96,6 +122,8 @@
     owner: "{{ assetto_user }}"
     group: "{{ assetto_group }}"
   with_sequence: start=0 end={{ server_count -1 }} format=%02x
+  tags:
+    - simview
 
 - name: insert config.toml for multi servers
   ansible.builtin.template:
@@ -105,6 +133,8 @@
     group: "{{ assetto_group }}"
     mode: '0644'
   with_sequence: start=0 end={{ server_count -1 }} format=%02x
+  tags:
+    - simview
 
 - name: insert config.toml for simview_http
   ansible.builtin.template:
@@ -113,6 +143,8 @@
     owner: "{{ assetto_user }}"
     group: "{{ assetto_group }}"
     mode: '0644'
+  tags:
+    - simview
 
 - name: simlink SimViewWriter app to game lobbies
   ansible.builtin.file:
@@ -120,12 +152,16 @@
     dest: "{{ acmanager_path }}/servers/SERVER_{{ item }}/assetto/simview/SimViewWriter"
     state: link
   with_sequence: start=0 end={{ server_count -1 }} format=%02x
+  tags:
+    - simview
 
 - name: simlink SimViewHttp app to simview folder
   ansible.builtin.file:
     src: "{{ app_path }}/bin/SimViewHttp"
     dest: "{{ app_path }}/SimViewHttp"
     state: link
+  tags:
+    - simview
 
 - name: open ports for websocket connection
   ansible.builtin.firewalld:
@@ -133,6 +169,8 @@
     state: enabled
     permanent: true
   with_sequence: start=0 end={{ server_count -1 }} format=%02x
+  tags:
+    - simview
 
 - name: set nginx proxy
   ansible.builtin.template:
@@ -142,6 +180,8 @@
     group: root
     mode: '0640'
   notify: reload nginx
+  tags:
+    - simview
 
     ### This seems to load simview_writer after starting ac server - which causes simview to segfault
     # - name: add simview plugin to acsm config.yml
@@ -158,6 +198,8 @@
     group: root
     mode: '0644'
   register: simview_httpd_systemd
+  tags:
+    - simview
 
 - name: install simview_writer_NN.service systemd file
   ansible.builtin.template:
@@ -168,17 +210,23 @@
     mode: '0644'
   with_sequence: start=0 end={{ server_count -1 }} format=%02x
   register: simview_writer_systemd
+  tags:
+    - simview
 
 - name: reload systemd daemon
   ansible.builtin.systemd:
     daemon_reload: true
   when: simview_httpd_systemd.changed or simview_writer_systemd.changed
+  tags:
+    - simview
 
 - name: enable and start simview_http
   ansible.builtin.systemd:
     name: "simview_http.service"
     enabled: true
     state: restarted
+  tags:
+    - simview
 
 - name: enable and start simview_writers
   ansible.builtin.systemd:
@@ -186,9 +234,13 @@
     enabled: true
     state: restarted
   with_sequence: start=0 end={{ server_count -1 }} format=%02x
+  tags:
+    - simview
 
 - name: start "{{ systemd_multi }}"
   ansible.builtin.systemd:
     name: "{{ systemd_multi }}"
     daemon_reload: true
     state: restarted
+  tags:
+    - simview

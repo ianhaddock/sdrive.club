@@ -40,10 +40,10 @@
   with_sequence: start=0 end={{ server_count -1 }} format=%02x
   when: server_count > 1 and acmm_installed.stat.exists
 
-### new file format of server_options.json means this does not parse correctly anymore:
+# new file format of server_options.json means this does not parse correctly anymore:
 - name: pull custom cm welcome message
-  ansible.builtin.get_url:
-    url: "{{ files_server }}/welcome_{{ site_fqdn }}.txt"
+  ansible.builtin.file:
+    path: "welcome_{{ site_fqdn }}.txt"
     dest: /tmp/cm_welcome.txt
     owner: root
     group: root

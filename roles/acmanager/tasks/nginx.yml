@@ -17,12 +17,11 @@
 
 - name: add site images in html folder
   ansible.builtin.unarchive:
-    src: "{{ files_server }}/acsm_html.zip"
+    src: acsm_html.zip
     dest: "{{ nginx_path }}/{{ site_fqdn }}/html"
     owner: nginx
     group: nginx
     mode: '0750'
-    remote_src: true
 
 - name: install TOS redirect
   ansible.builtin.template:
@@ -48,7 +47,7 @@
     group: nginx
     mode: '0640'
 
-- name: add http site in sites-available
+- name: add http site
   ansible.builtin.template:
     src: www_domain_http.conf.j2
     dest: /etc/nginx/conf.d/www.{{ site_fqdn }}.conf
@@ -58,7 +57,7 @@
   when: not cert_enabled
   register: http_site
 
-- name: add https site in sites-available
+- name: add https site
   ansible.builtin.template:
     src: www_domain_https.conf.j2
     dest: /etc/nginx/conf.d/www.{{ site_fqdn }}.conf
@@ -169,15 +168,6 @@
   with_sequence: start=0 end={{ server_count -1 }} format=%02x
   when: cert_enabled
   register: kmr_https_nginx
-
-    # - name: link site to conf.d
-    #   ansible.builtin.file:
-    #     src: /etc/nginx/sites-available/www.{{ site_fqdn }}.conf
-    #     dest: /etc/nginx/conf.d/www.{{ site_fqdn }}.conf
-    #     state: link
-    #     owner: nginx
-    #     group: nginx
-    #     mode: '0644'
 
 - name: reload nginx
   ansible.builtin.service:

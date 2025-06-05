@@ -15,7 +15,9 @@
   ansible.posix.authorized_key:
     user: "{{ assetto_user }}"
     state: present
-    key: "{{ files_server }}/{{ backup_pub_key }}"
+    key: "{{ lookup('file', item) }}"
+  with_items:
+    - "{{ backup_pub_key }}"
 
 - name: add firewall ports
   ansible.builtin.import_tasks: firewalld.yml

@@ -30,9 +30,8 @@
 - name: unarchive simview
   become_user: "{{ assetto_user }}"
   ansible.builtin.unarchive:
-    src: "{{ files_server }}/SimView-v1.4.zip"
+    src: "SimView-v1.4.zip"
     dest: "{{ app_path }}"
-    remote_src: true
 
 - name: unarchive linux install
   become_user: "{{ assetto_user }}"

@@ -56,14 +56,15 @@
     hour: "{{ backup_hours }}"
     job: "{{ acmanager_path }}/daily_backup.sh >> /var/log/daily_backup_acsm.log 2>&1"
 
-  # why? ansible.archive will not keep symlinks when saving to zip
-- name: run backup script on current AC server install
+# ansible.archive will not keep symlinks when saving to zip
+- name: run backup script on current AC server install if in production
   become_user: "{{ assetto_user }}"
   ansible.builtin.command:
     cmd: '{{ acmanager_path }}/daily_backup.sh'
-  when: not acmanager_path_state.changed
+  when: cert_enabled and not acmanager_path_state.changed
   register: backup_script_state
 
-    #- name: output of backup script
-    #  ansible.builtin.debug:
-    #    msg: "{{ backup_script_state }}"
+- name: output of backup script
+  ansible.builtin.debug:
+    msg: "{{ backup_script_state }}"
+  when: cert_enabled and not acmanager_path_state.changed

@@ -6,8 +6,8 @@
   register: acmm_installed
 
 - name: pull custom css
-  ansible.builtin.get_url:
-    url: "{{ files_server }}/css_{{ site_fqdn }}.txt"
+  ansible.builtin.template:
+    url: "css_{{ site_fqdn }}.j2"
     dest: /tmp/custom_css.txt
     owner: root
     group: root
