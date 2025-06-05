@@ -8,6 +8,25 @@ Vagrant.configure("2") do |config|
     vmware.vmx["numvcpus"] = "2"
   end
 
+  Vagrant.configure(2) do |config|
+    config.vm.provider :vmware_desktop do |vmware|
+      vmware.vmx["ethernet0.pcislotnumber"] = "160"
+    end
+  end
+
+  Vagrant.configure(2) do |config|
+    config.vm.provider :vmware_desktop do |vmware|
+      vmware.vmx["ethernet1.pcislotnumber"] = "224"
+    end
+  end
+
+  Vagrant.configure(2) do |config|
+    config.vm.provider :vmware_desktop do |vmware|
+      vmware.vmx["ethernet2.pcislotnumber"] = "256"
+    end
+  end
+
+
   config.vm.provision "ansible" do |ansible|  # ansible bootstrap play
     ansible.playbook = "play-provision.yml"
   end
