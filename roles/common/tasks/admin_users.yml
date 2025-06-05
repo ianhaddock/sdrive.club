@@ -54,4 +54,4 @@
   ansible.posix.authorized_key:
     user: "{{ admin_user }}"
     state: present
-    key: "{{ lookup('file', '/Users/Ian/.ssh/assetto.pub') }}"
+    key: "{{ lookup('file', admin_pub_key) }}"
