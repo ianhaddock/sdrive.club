@@ -49,22 +49,10 @@
     - server-manager
     - assetto-multiserver-manager
 
-- name: ACSM License from files server
-  ansible.builtin.unarchive:
-    src: "{{ files_server }}/{{ acsm_license }}"
-    dest: "{{ acmanager_path }}/"
-    owner: "{{ assetto_user }}"
-    group: "{{ assetto_group }}"
-    mode: '0600'
-    remote_src: true
-  ignore_errors: true
-  register: license_install
-
-- name: ACSM License from ansible install
+- name: install ACSM License
   ansible.builtin.copy:
     src: ACSM.License
     dest: "{{ acmanager_path }}/"
     owner: "{{ assetto_user }}"
     group: "{{ assetto_group }}"
     mode: '0600'
-  when: license_install.failed

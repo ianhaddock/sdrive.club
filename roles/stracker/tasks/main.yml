@@ -52,11 +52,10 @@
 
 - name: install stracker
   ansible.builtin.unarchive:
-    src: "{{ files_server }}/stracker-V3.5.1.zip"
+    src: "stracker-V3.5.1.zip"
     dest: "{{ acserver_path }}/stracker"
     owner: "{{ assetto_user }}"
     group: "{{ assetto_group }}"
-    remote_src: true
 
 - name: install stracker linux plugin
   ansible.builtin.unarchive:
@@ -74,10 +73,10 @@
     state: directory
     recurse: true
 
-      # - name: update stracker file permissions
-      #   ansible.builtin.file:
-      #     dest: "{{ acserver_path }}/stracker/stracker_linux_x86"
-      #     mode: '0655'
+- name: update stracker file permissions
+  ansible.builtin.file:
+    dest: "{{ acserver_path }}/stracker/stracker_linux_x86"
+    mode: '0655'
 
 - name: start "{{ systemd_multi }}"
   ansible.builtin.systemd:

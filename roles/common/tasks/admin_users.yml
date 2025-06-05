@@ -54,4 +54,4 @@
   ansible.posix.authorized_key:
     user: "{{ admin_user }}"
     state: present
-    key: "{{ files_server }}/{{ public_key }}"
+    key: "{{ lookup('file', admin_pub_key) }}"
