@@ -7,7 +7,8 @@
 # custom files not for git
 dist/*
 
-# Server Manager license
+# Server Manager license and zip files
+acsm_*amd64.zip
 *.License
 
 host_vars/*.yml
@@ -20,7 +21,7 @@ host_vars/*.yml
 *.tar.xz
 *.tar.gz
 *.tar
-*.zip
+
 *.rpm
 
 # keys
